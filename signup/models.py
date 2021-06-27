@@ -7,7 +7,7 @@ class Signup(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
 
 
-class Ballad(models.Model):
+class Ride(models.Model):
     title = models.CharField(max_length=220)
     guide = models.CharField(max_length=220)
     description = models.TextField()
@@ -19,11 +19,17 @@ class Ballad(models.Model):
     def available(self):
         return max(int((self.max_participants * 0.9) - self.participant_set.count()), 0)
 
+    class Meta:
+        verbose_name = _("ride")
+
 
 class Participant(models.Model):
     signup = models.ForeignKey(Signup, on_delete=models.CASCADE, verbose_name=_('signup'))
-    ballad = models.ForeignKey(Ballad, on_delete=models.CASCADE, verbose_name=_('ballad'))
+    ride = models.ForeignKey(Ride, on_delete=models.CASCADE, verbose_name=_('ride'))
     firstname = models.CharField(max_length=56, verbose_name=_('firstname'))
     lastname = models.CharField(max_length=56, verbose_name=_('lastname'))
     address = models.CharField(max_length=220, verbose_name=_('address'))
     adult = models.BooleanField(default=True, verbose_name=_('adult'))
+
+    def __repr__(self):
+        return f"{self.firstname} {self.lastname}"

@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
-from .models import Signup, Ballad, Participant
+from .models import Signup, Ride, Participant
 
 
 class ParticipantInline(admin.TabularInline):
@@ -19,14 +19,30 @@ class ParticipantInline(admin.TabularInline):
 class SignupAdmin(admin.ModelAdmin):
     list_display = (
         'id',
+        'firstname',
+        'lastname',
     )
     inlines = [
         ParticipantInline,
     ]
     readonly_fields = ('user',)
 
+    def firstname(self, obj):
+        first_participant = obj.participant_set.first()
+        if first_participant:
+            return first_participant.firstname
+        else:
+            return ""
 
-@admin.register(Ballad)
+    def lastname(self, obj):
+        first_participant = obj.participant_set.first()
+        if first_participant:
+            return first_participant.lastname
+        else:
+            return ""
+
+
+@admin.register(Ride)
 class BalladAdmin(admin.ModelAdmin):
     list_display = (
         'title',
@@ -40,7 +56,7 @@ class ParticipantAdmin(admin.ModelAdmin):
     actions = ["export_as_csv"]
     list_display = (
         'group_link',
-        'ballad',
+        'ride',
         'firstname',
         'lastname',
         'adult'
@@ -56,7 +72,8 @@ class ParticipantAdmin(admin.ModelAdmin):
         return obj._group
 
     def group_link(self, obj):
-        return mark_safe('<a href="%s">%s</a>' % (reverse("admin:signup_signup_change", args=(obj._group,)), escape(obj._group)))
+        return mark_safe(
+            '<a href="%s">%s</a>' % (reverse("admin:signup_signup_change", args=(obj._group,)), escape(obj._group)))
 
     group_link.allow_tags = True
     group_link.short_description = "Group"
@@ -67,7 +84,7 @@ class ParticipantAdmin(admin.ModelAdmin):
             'firstname',
             'lastname',
             'address',
-            'ballad__title',
+            'ride__title',
             'adult',
         ]
 

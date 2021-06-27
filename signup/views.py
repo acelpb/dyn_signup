@@ -8,12 +8,12 @@ from django.urls import reverse_lazy
 from django.views.generic import UpdateView, ListView
 
 # Create your views here.
-from .models import Signup, Participant, Ballad
+from .models import Signup, Participant, Ride
 
 
 class BalladView(ListView):
     template_name = "signup/ballads.html"
-    model = Ballad
+    model = Ride
 
 
 class ParticpantFormView(UpdateView):

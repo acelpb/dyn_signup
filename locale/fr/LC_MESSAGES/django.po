@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-06-27 19:28+0200\n"
+"POT-Creation-Date: 2021-06-27 22:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: dynasignup/settings.py:143
+#: dynasignup/settings.py:145
 msgid "French"
 msgstr "Français"
 
-#: dynasignup/settings.py:144
+#: dynasignup/settings.py:146
 msgid "Dutch"
 msgstr "Néerlandais"
 
@@ -33,7 +33,7 @@ msgid "signup"
 msgstr "S'inscrire"
 
 #: signup/models.py:25
-msgid "ballad"
+msgid "ride"
 msgstr "balade"
 
 #: signup/models.py:26
@@ -51,18 +51,6 @@ msgstr "addresse (domicile)"
 #: signup/models.py:29
 msgid "adult"
 msgstr "adulte"
-
-#: templates/base.html:39
-msgid "logout"
-msgstr "déconnexion"
-
-#: templates/base.html:43
-msgid "login"
-msgstr "se connecter"
-
-#: templates/base.html:46
-msgid "register"
-msgstr "s'enregistrer"
 
 #: templates/django_registration/activation_complete.html:5
 msgid "Your account has been activated.  You may go ahead and log in now."
@@ -104,7 +92,7 @@ msgid ""
 msgstr ""
 
 #: templates/django_registration/registration_form.html:4
-#: templates/signup/ballads.html:14 templates/signup/particpant.html:78
+#: templates/signup/ballads.html:14 templates/signup/particpant.html:83
 msgid "Signup"
 msgstr "S'inscrire"
 
@@ -205,15 +193,15 @@ msgstr ""
 msgid "Reset my password"
 msgstr ""
 
-#: templates/signup/particpant.html:69
+#: templates/signup/particpant.html:74
 msgid "Submit"
 msgstr "Envoyer"
 
-#: templates/signup/particpant.html:70
+#: templates/signup/particpant.html:75
 msgid "Add participant"
 msgstr "Ajouter un participant"
 
-#: templates/signup/particpant.html:74
+#: templates/signup/particpant.html:79
 msgid ""
 "\n"
 "            You do not seem to have signed up for any ballad yet.\n"
@@ -221,9 +209,11 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"            Vous ne semblez pas vous être inscrit à des balades pour le moment.\n"
+"            Vous ne semblez pas vous être inscrit à des balades pour le "
+"moment.\n"
 "            Voulez-vous commencer?\n"
 "        "
+
 #: venv/lib/python3.9/site-packages/_pytest/config/argparsing.py:445
 #, python-format
 msgid "ambiguous option: %(option)s could match %(matches)s"
@@ -1437,3 +1427,15 @@ msgstr ""
 #: venv/lib/python3.9/site-packages/django/views/templates/default_urlconf.html:249
 msgid "Connect, get help, or contribute"
 msgstr ""
+
+#~ msgid "ballad"
+#~ msgstr "balade"
+
+#~ msgid "logout"
+#~ msgstr "déconnexion"
+
+#~ msgid "login"
+#~ msgstr "se connecter"
+
+#~ msgid "register"
+#~ msgstr "s'enregistrer"
