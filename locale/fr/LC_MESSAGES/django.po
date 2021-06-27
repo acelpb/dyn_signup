@@ -46,7 +46,7 @@ msgstr "nom de famille"
 
 #: signup/models.py:28
 msgid "address"
-msgstr "addresse"
+msgstr "addresse (domicile)"
 
 #: signup/models.py:29
 msgid "adult"
