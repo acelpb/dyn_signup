@@ -24,7 +24,7 @@ SECRET_KEY = 'django-insecure-hmv)rcew6libys3k1an7k-b#)j5xw$telg&##zjv#ny*iz*#7-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["inscriptions.dynamobile.net"]
 
 # Application definition
 
