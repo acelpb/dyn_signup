@@ -2,44 +2,68 @@ import csv
 
 from django.contrib import admin
 # Register your models here.
-from django.db.models import F, TextField
-from django.db.models.functions import Coalesce
+from django.db.models import F
 from django.http import HttpResponse
+from django.urls import reverse
+from django.utils.html import escape
+from django.utils.safestring import mark_safe
 
 from .models import Signup, Ballad, Participant
 
 
+class ParticipantInline(admin.TabularInline):
+    model = Participant
+
+
 @admin.register(Signup)
 class SignupAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'id',
+    )
+    inlines = [
+        ParticipantInline,
+    ]
+    readonly_fields = ('user',)
 
 
 @admin.register(Ballad)
 class BalladAdmin(admin.ModelAdmin):
-    pass
+    list_display = (
+        'title',
+        "guide",
+        'max_participants',
+    )
 
 
 @admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.annotate(_responsable=Coalesce(F('signup__user__username'), F('signup_id'), output_field=TextField()))
-
+    actions = ["export_as_csv"]
     list_display = (
-        'responsable',
+        'group_link',
+        'ballad',
         'firstname',
         'lastname',
-        'ballad',
         'adult'
     )
+    list_display_links = ('firstname', 'lastname',)
+    search_fields = ['firstname', 'lastname']
 
-    def responsable(self, obj):
-        return obj._responsable
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(_group=F('signup_id'))
 
-    actions = ["export_as_csv"]
+    def group(self, obj):
+        return obj._group
+
+    def group_link(self, obj):
+        return mark_safe('<a href="%s">%s</a>' % (reverse("admin:signup_signup_change", args=(obj._group,)), escape(obj._group)))
+
+    group_link.allow_tags = True
+    group_link.short_description = "Group"
 
     def export_as_csv(self, request, queryset):
         fields = [
+            '_group',
             'firstname',
             'lastname',
             'address',
