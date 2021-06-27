@@ -9,6 +9,7 @@ class Signup(models.Model):
 
 class Ballad(models.Model):
     title = models.CharField(max_length=220)
+    guide = models.CharField(max_length=220)
     description = models.TextField()
     max_participants = models.IntegerField()
 
