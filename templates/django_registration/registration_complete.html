@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block meta %}
+    {{ block.super }}
+    <meta http-equiv="refresh" content="0; URL={% url "participant_form" %}" />
+{% endblock %}
+
 {% block smallcontent %}
     <p class="p-3">{% trans "Your account has been created. You should shortly recieve an email to activate it." %}</p>
 {% endblock %}

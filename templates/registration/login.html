@@ -18,12 +18,13 @@
         <form class="p-3" method="post" id="login-form">{% csrf_token %}
             {{ form|crispy }}
             {% url 'password_reset' as password_reset_url %}
+            <button type="submit" class="btn btn-primary">{% trans 'Log in' %}</button>
+            <a href="{% url "django_registration_register" %}" class="btn btn-secondary">{% trans 'Register' %}</a>
             {% if password_reset_url %}
                 <p class="password-reset-link">
                     <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
                 </p>
             {% endif %}
-            <button type="submit" class="btn btn-primary">{% trans 'Log in' %}</button>
         </form>
     </div>
 {% endblock %}
