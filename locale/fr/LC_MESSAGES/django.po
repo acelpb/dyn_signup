@@ -34,7 +34,7 @@ msgstr "S'inscrire"
 
 #: signup/models.py:25
 msgid "ballad"
-msgstr "ballade"
+msgstr "balade"
 
 #: signup/models.py:26
 msgid "firstname"
@@ -221,7 +221,7 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"            Vous ne semblez pas vous être inscrit à des ballades pour le moment.\n"
+"            Vous ne semblez pas vous être inscrit à des balades pour le moment.\n"
 "            Voulez-vous commencer?\n"
 "        "
 #: venv/lib/python3.9/site-packages/_pytest/config/argparsing.py:445
