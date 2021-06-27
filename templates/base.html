@@ -32,21 +32,6 @@
                 <a class="nav-link" href="{% url "participant_view" %}">Mon inscription</a>
             </li>
         </ul>
-        <ul class="navbar-nav">
-            {% if user.is_authenticated %}
-                <li class="nav-item"><span class="nav-link">{{ user.username }}</span></li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'logout' %}">{% trans "logout" %}</a>
-                </li>
-            {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'login' %}">{% trans "login" %}</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'django_registration_register' %}">{% trans "register" %}</a>
-                </li>
-            {% endif %}
-        </ul>
     </div>
 </nav>
 <main role="main" class="container-fluid">
