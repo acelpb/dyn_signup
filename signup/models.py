@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import models
-
+from django.utils.translation import gettext_lazy as _
 
 # Create your models here.
 class Signup(models.Model):
@@ -21,9 +21,9 @@ class Ballad(models.Model):
 
 
 class Participant(models.Model):
-    signup = models.ForeignKey(Signup, on_delete=models.CASCADE)
-    ballad = models.ForeignKey(Ballad, on_delete=models.CASCADE)
-    firstname = models.CharField(max_length=56)
-    lastname = models.CharField(max_length=56)
-    address = models.CharField(max_length=220)
-    adult = models.BooleanField(default=True)
+    signup = models.ForeignKey(Signup, on_delete=models.CASCADE, verbose_name=_('signup'))
+    ballad = models.ForeignKey(Ballad, on_delete=models.CASCADE, verbose_name=_('ballad'))
+    firstname = models.CharField(max_length=56, verbose_name=_('firstname'))
+    lastname = models.CharField(max_length=56, verbose_name=_('lastname'))
+    address = models.CharField(max_length=220, verbose_name=_('address'))
+    adult = models.BooleanField(default=True, verbose_name=_('adult'))

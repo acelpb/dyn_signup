@@ -14,6 +14,7 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -107,9 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
-
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Brussels'
 
 USE_I18N = True
 
@@ -137,3 +136,14 @@ MEDIA_ROOT = BASE_DIR / "uploads"
 MEDIA_URL = "/uploads/"
 
 LOGIN_REDIRECT_URL = reverse_lazy("ballad_list")
+
+LANGUAGE_CODE = 'fr'  # default language
+
+LANGUAGES = (
+    ('fr', _('French')),
+    ('nl', _('Dutch')),
+)
+
+LOCALE_PATHS = [
+    BASE_DIR / "locale"
+]

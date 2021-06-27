@@ -3,9 +3,10 @@
 {% load crispy_forms_tags %}
 {% load crispy_forms_utils %}
 {% load crispy_forms_field %}
+{% load i18n %}
 
 {% block smallcontent %}
-
+    {% if form.forms %}
     <form method="post">
         {%  for error in form.non_form_errors %}
             <div class="alert alert-danger" role="alert">{{ error }}</div>
@@ -65,10 +66,17 @@
         {% if reviewing_form %}
             <a href="{% url "participant_form" %}" class="btn btn-primary">Edit</a>
         {% else %}
-            <button type="submit" class="btn btn-primary">Submit</button>
-            <button class="btn btn-secondary add-form-row">Add</button>
+            <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+            <button class="btn btn-secondary add-form-row">{% trans "Add participant" %}</button>
         {% endif %}
     </form>
+    {% else %}
+        {% blocktrans %}
+            You do not seem to have signed up for any ballad yet.
+            Would you like to start?
+        {% endblocktrans %}
+            <a href="{% url "participant_form" %}" class="btn btn-primary">{% trans "Signup" %}</a>
+    {% endif %}
 {% endblock %}
 
 {% block script %}
