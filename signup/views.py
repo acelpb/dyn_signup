@@ -48,9 +48,9 @@ class ParticpantFormView(UpdateView):
                 print(remaining_spots, len(new_participants))
                 if remaining_spots < len(new_participants):
                     if remaining_spots == 0:
-                        alert_message = f"I'acceptons plus de nouveau participants pour la ballade: {ballad.title}"
+                        alert_message = f"Désolé, nous n'acceptons plus de nouveau participants pour la balade: {ballad.title}"
                     else:
-                        alert_message = f"Il ne reste plus que {remaining_spots} pour la ballade: {ballad.title}"
+                        alert_message = f"Désolé, mais pour cette balade il ne reste que {remaining_spots} pour cette balade: {ballad.title}"
                     error = ValidationError(alert_message, code='no_spots_left')
                     form._non_form_errors.append(error)
             if not form.non_form_errors():
