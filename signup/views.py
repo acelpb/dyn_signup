@@ -16,7 +16,7 @@ class BalladView(ListView):
     model = Ballad
 
 
-class ParticpantFormView(LoginRequiredMixin, UpdateView):
+class ParticpantFormView(UpdateView):
     template_name = "signup/particpant.html"
     form_class = inlineformset_factory(Signup, Participant, fields="__all__", can_delete=True, extra=1)
 
@@ -24,19 +24,28 @@ class ParticpantFormView(LoginRequiredMixin, UpdateView):
         return reverse_lazy("participant_view")
 
     def get_object(self, queryset=None):
-        signup, _ = Signup.objects.get_or_create(user=self.request.user)
+        if self.request.session.get('signup_id'):
+            signup = Signup.objects.get(id=self.request.session['signup_id'])
+        elif self.request.user.is_authenticated:
+            signup, _ = Signup.objects.get_or_create(user=self.request.user)
+        else:
+            signup = Signup.objects.create()
+        self.request.session['signup_id'] = signup.id
         return signup
 
     def form_valid(self, form):
         new_particpants_per_ballad = defaultdict(list)
         for participant in form.extra_forms:
-            if not form.has_changed():
+            if not form.has_changed() or 'ballad' not in participant.cleaned_data:
                 continue
-            new_particpants_per_ballad[participant.cleaned_data['ballad']] += participant
+            print(1, participant)
+            new_particpants_per_ballad[participant.cleaned_data['ballad']].append(participant)
 
         with transaction.atomic():
             for ballad, new_participants in new_particpants_per_ballad.items():
                 remaining_spots = ballad.available()
+                print(new_participants)
+                print(remaining_spots, len(new_participants))
                 if remaining_spots < len(new_participants):
                     if remaining_spots == 0:
                         alert_message = f"I'acceptons plus de nouveau participants pour la ballade: {ballad.title}"

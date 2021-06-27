@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     "signup.apps.SignupConfig",
 ]
 
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -147,3 +149,5 @@ LANGUAGES = (
 LOCALE_PATHS = [
     BASE_DIR / "locale"
 ]
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
