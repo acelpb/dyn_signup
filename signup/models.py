@@ -15,6 +15,9 @@ class Ballad(models.Model):
     def __str__(self):
         return self.title
 
+    def available(self):
+        return max(int(self.max_participants * 0.9) - self.participant_set.count(), 0)
+
 
 class Participant(models.Model):
     signup = models.ForeignKey(Signup, on_delete=models.CASCADE)

@@ -1,21 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-    <div class="row">
+    <div class="card-deck">
         {% for ballad in object_list %}
-            <div class="col-4 col-sm-6">
-                <div class="card" style="width: 18rem;">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ ballad.title }}</h5>
-                        <p class="card-text">{{ ballad.description }}</p>
-                        <a href="{% url "participant_form" %}" class="btn btn-primary">Signup</a>
-                    </div>
+            <div class="card" style="width: 18rem;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ ballad.title }}</h5>
+                    <p class="card-text">{{ ballad.description }}</p>
+                    <a href="{% url "participant_form" %}" class="btn btn-primary">Signup</a>
+                </div>
+                <div class="card-footer">
+                  <small class="text-muted">{{ ballad.available }} places encore disponbiles</small>
                 </div>
             </div>
         {% endfor %}
-
     </div>
-
-
 {% endblock %}
