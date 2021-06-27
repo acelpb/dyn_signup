@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block smallcontent %}
+    <p class="p-3">{% trans "Your account has been activated.  You may go ahead and log in now." %}</p>
+    <p class="p-3"><a href="{% url "login" %}">{% trans 'Log in' %}</a></p>
+{% endblock %}

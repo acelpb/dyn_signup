@@ -1,4 +1,3 @@
-from pytest_bdd import scenario, given, when, then, parsers
 import pytest
 from django.conf import settings
 from model_bakery import baker
@@ -9,7 +8,13 @@ from signup.models import Signup
 
 @pytest.mark.django_db
 @scenario('signup.feature', 'Simple Signup')
-def test_publish():
+def test_signup():
+    pass
+
+
+@pytest.mark.django_db
+@scenario('signup.feature', 'Max capacity reached')
+def test_max_participants_reached():
     pass
 
 
@@ -20,13 +25,28 @@ def create_user():
 
 @given("a ballad", target_fixture="ballad")
 def create_ballad():
-    return baker.make("signup.Ballad")
+    return create_params_ballad(max_participants=25)
+
+
+@given(parsers.cfparse("a ballad with max {max_participants:d} participants"),
+       target_fixture="ballad")
+def create_params_ballad(max_participants):
+    return baker.make("signup.Ballad", max_participants=max_participants)
 
 
 @when(parsers.cfparse("user submits {x:d} participants"))
-def submit_barticipants(x, user, ballad):
+def submit_barticipants(x, user, ballad, client):
+    client.post()
+    from signup.forms import MultiParticipantForm
     signup = Signup.objects.create(user=user)
-    baker.make("signup.Participant", x, ballad=ballad, signup=signup)
+    form = MultiParticipantForm(initial=[
+        el.__dict__ for el in baker.prepare("signup.Participant", x, ballad=ballad, signup=signup)
+    ])
+    if form.is_valid():
+        form.save()
+    else:
+        print(form.errors)
+        assert False
 
 
 @then(parsers.cfparse("the total count of participants for the ballad should be {x:d}"))

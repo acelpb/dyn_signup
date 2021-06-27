@@ -1,0 +1,7 @@
+{% load i18n %}{% autoescape off %}{% trans "Hello" %} {{ user.username }},
+
+{% trans "Please click on the link to confirm your registration," %}
+{{scheme}}://{{ request.META.HTTP_HOST }}{% url 'django_registration_activate' activation_key=activation_key %}
+
+{% trans "Thank you for using the Customer Analytics portal!" %}
+{% endautoescape %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
+{% block title %}{% trans "Login" %}{% endblock %}
+
+{% block smallcontent %}
+    <div>
+        {% if user.is_authenticated %}
+            {% with username=user.username %}
+                <p class="alert alert-danger">
+                    {% blocktrans trimmed %}
+                        You are authenticated as {{ username }}, but are not authorized to
+                        access this page. Would you like to login to a different account?
+                    {% endblocktrans %}
+                </p>
+            {% endwith %}
+        {% endif %}
+
+        <form class="p-3" method="post" id="login-form">{% csrf_token %}
+            {{ form|crispy }}
+            {% url 'password_reset' as password_reset_url %}
+            {% if password_reset_url %}
+                <p class="password-reset-link">
+                    <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
+                </p>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">{% trans 'Log in' %}</button>
+        </form>
+    </div>
+{% endblock %}
