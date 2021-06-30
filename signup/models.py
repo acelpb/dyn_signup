@@ -29,6 +29,8 @@ class Participant(models.Model):
     firstname = models.CharField(max_length=56, verbose_name=_('firstname'))
     lastname = models.CharField(max_length=56, verbose_name=_('lastname'))
     address = models.CharField(max_length=220, verbose_name=_('address'))
+    address = models.CharField(max_length=220, verbose_name=_('address'))
+    email = models.EmailField(null=True, blank=True, verbose_name=_('e-mail'))
     adult = models.BooleanField(default=True, verbose_name=_('adult'))
 
     def __repr__(self):

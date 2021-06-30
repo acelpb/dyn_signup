@@ -59,6 +59,7 @@ class ParticipantAdmin(admin.ModelAdmin):
         'ride',
         'firstname',
         'lastname',
+        'email',
         'adult'
     )
     list_display_links = ('firstname', 'lastname',)
@@ -84,6 +85,7 @@ class ParticipantAdmin(admin.ModelAdmin):
             'firstname',
             'lastname',
             'address',
+            'email',
             'ride__title',
             'adult',
         ]
