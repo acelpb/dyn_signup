@@ -2,7 +2,7 @@ import csv
 
 from django.contrib import admin
 # Register your models here.
-from django.db.models import F
+from django.db.models import F, Count
 from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.html import escape
@@ -12,7 +12,30 @@ from .models import Signup, Ride, Participant
 
 
 class ParticipantInline(admin.TabularInline):
+    can_delete = True
     model = Participant
+    fields = (
+        'group_link',
+        'firstname',
+        'lastname',
+        'email',
+        'adult'
+    )
+    readonly_fields = ('group_link', )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(_group=F('signup_id'))
+
+    def group_link(self, obj):
+        return mark_safe(
+            '<a href="%s">%s</a>' % (reverse("admin:signup_signup_change", args=(obj._group,)), escape(obj._group)))
+
+    def has_add_permission(self, request, obj):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Signup)
@@ -47,8 +70,20 @@ class BalladAdmin(admin.ModelAdmin):
     list_display = (
         'title',
         "guide",
+        'participants_inscrits',
         'max_participants',
     )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.annotate(_participants=Count('participant'))
+
+    def participants_inscrits(self, obj):
+        return obj._participants
+
+    inlines = [
+        ParticipantInline
+    ]
 
 
 @admin.register(Participant)
