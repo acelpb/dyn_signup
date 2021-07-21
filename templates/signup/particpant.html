@@ -6,7 +6,7 @@
 {% load i18n %}
 
 {% block smallcontent %}
-    {% if reviewing_form and form.form %}
+    {% if reviewing_form and form.forms %}
         <div class="alert alert-primary">
             Votre inscription est confirmée. Rendez-vous le 23 juillet à 10h devant la gare de Charleroi Sud.
         </div>
@@ -69,7 +69,7 @@
                 </tbody>
             </table>
             {% if reviewing_form %}
-                <a href="{% url "participant_form" %}" class="btn btn-primary">Edit</a>
+                <a class="btn btn-primary disabled" disabled>Edit</a>
             {% else %}
                 <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
                 <button class="btn btn-secondary add-form-row">{% trans "Add participant" %}</button>
@@ -78,9 +78,7 @@
     {% else %}
         {% blocktrans %}
             You do not seem to have signed up for any ballad yet.
-            Would you like to start?
         {% endblocktrans %}
-        <a href="{% url "participant_form" %}" class="btn btn-primary">{% trans "Signup" %}</a>
     {% endif %}
 {% endblock %}
 

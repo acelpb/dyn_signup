@@ -1,6 +1,13 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block content %}
+    <div class="alert alert-warning alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        Les inscripttions en ligne sont cloturées. Si vous souhaitez malgré tout participer, merci de contacter un
+        member du CA.
+    </div>
     <div class="card-deck p">
         {% for ballad in object_list %}
             <div class="card my-3" style="min-width: 480px; max-width: 680px">
@@ -11,7 +18,6 @@
                 </div>
                 <div class="card-footer">
                     <small class="text-muted">{{ ballad.available }} places encore disponibles</small>
-                    <a href="{% url "participant_form" %}" class="btn btn-primary">{% trans "Signup" %}</a>
                 </div>
             </div>
         {% endfor %}
