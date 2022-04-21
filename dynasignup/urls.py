@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-                  path("", include("signup.urls")),
+                  path("", include("signup2022.urls")),
                   path('accounts/', include('django_registration.backends.one_step.urls')),
                   path('accounts/', include('django.contrib.auth.urls')),
                   path('admin/', admin.site.urls),

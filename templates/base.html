@@ -4,8 +4,9 @@
 <head>
     <!-- Required meta tags -->
     {% block meta %}
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        {% block extrameta %}{% endblock extrameta %}
     {% endblock %}
 
     {% block style %}
@@ -24,14 +25,14 @@
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
+{% comment %}        <ul class="navbar-nav mr-auto">
             <li class="nav-item">
                 <a class="nav-link" href="/">Balades</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{% url "participant_view" %}">Mon inscription</a>
             </li>
-        </ul>
+        </ul>{% endcomment %}
     </div>
 </nav>
 <main role="main" class="container-fluid">

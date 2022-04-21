@@ -9,11 +9,13 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import zoneinfo
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 from django.urls import reverse_lazy
+from django.utils.dateparse import parse_datetime, parse_date
 from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,7 +44,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     "bootstrap4",
     "django_registration",
-    "signup.apps.SignupConfig",
+    "signup2022.apps.Signup2022Config",
 ]
 
 
@@ -63,8 +65,7 @@ ROOT_URLCONF = 'dynasignup.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates']
-        ,
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -151,3 +152,25 @@ LOCALE_PATHS = [
 ]
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+
+brussels_tz = zoneinfo.ZoneInfo("Europe/Brussels")
+
+DYNAMOBILE_START_SIGNUP = parse_datetime("2022-05-02 17:00:00").replace(
+    tzinfo=brussels_tz
+)
+DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2022-05-20 17:00:00").replace(
+    tzinfo=brussels_tz
+)
+DYNAMOBILE_END_SIGNUP = parse_datetime("2022-05-20 17:00:00").replace(
+    tzinfo=brussels_tz
+)
+DYNAMOBILE_FIRST_DAY = parse_date("2022-07-18")
+DYNAMOBILE_LAST_DAY = parse_date("2022-07-23")
+
+DYNAMOBILE_DAYS = [
+    (day, day.strftime("%Y-%m-%d"))
+    for day in (
+        DYNAMOBILE_FIRST_DAY + timedelta(days=i)
+        for i in range((DYNAMOBILE_LAST_DAY - DYNAMOBILE_FIRST_DAY).days + 1)
+    )
+]
