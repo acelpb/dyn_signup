@@ -1,9 +1,13 @@
-from django.shortcuts import redirect, render
-from django.utils import timezone
-from django.views.generic import TemplateView
 from django.conf import settings
-from .forms import ParticipantFormSet, ParticipantForm
-from .models import Signup, Participant
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
+from django.forms import inlineformset_factory
+from django.http import HttpResponseRedirect
+from django.utils import timezone
+from django.views.generic import TemplateView, UpdateView, FormView
+
+from .forms import ParticipantFormSet, ParticipantForm, DaySignupFormset
+from .models import Signup, Participant, DaySignup
 
 
 class HomePage(TemplateView):
@@ -17,28 +21,86 @@ class HomePage(TemplateView):
         return kwargs
 
 
-def create_participant(request):
-    (signup_group, _) = Signup.objects.get_or_create(owner=request.user)
-    participants = Participant.objects.filter(signup_group=signup_group)
-    formset = ParticipantFormSet(request.POST or None)
+class GroupEditView(LoginRequiredMixin, FormView):
+    template_name = "signup/particpant.html"
+    success_url = '/signup-2'
 
-    if request.method == "POST":
-        if formset.is_valid():
-            formset.instance = signup_group
-            formset.save()
-            return redirect("signup-participants")
+    form_class = inlineformset_factory(
+        Signup, Participant, form=ParticipantForm, extra=0, can_delete=False
+    )
 
-    context = {
-        "formset": formset,
-        "participants": participants
-    }
+    def get_object(self, queryset=None):
+        if self.request.session.get('signup_id'):
+            signup = Signup.objects.get(id=self.request.session['signup_id'])
+        elif self.request.user.is_authenticated:
+            signup, _ = Signup.objects.get_or_create(owner=self.request.user)
+        else:
+            signup = Signup.objects.create()
+        self.request.session['signup_id'] = signup.id
+        return signup
 
-    return render(request, "create_participant.html", context)
+    def get_form(self, form_class=None):
+        return ParticipantFormSet(
+            **self.get_form_kwargs(),
+            instance=self.get_object(),
+        )
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
 
 
-def create_participant_form(request):
-    form = ParticipantForm()
-    context = {
-        "form": form
-    }
-    return render(request, "partials/participant_form.html", context)
+class ParticipantEditView(LoginRequiredMixin, FormView):
+    template_name = "signup/particpant.html"
+    success_url = '/signup-2'
+
+    def get_form(self, form_class=None):
+        (signup_group, _) = Signup.objects.get_or_create(owner=self.request.user)
+        return DaySignupFormset(
+            **self.get_form_kwargs(),
+            instance=signup_group.participant_set.first(),
+        )
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+
+class GroupReviewView(LoginRequiredMixin, UpdateView):
+    template_name = "signup/review-participants.html"
+    success_url = '/signup-3'
+
+    form_class = inlineformset_factory(
+        Signup, Participant, form=ParticipantForm, extra=0, can_delete=False
+    )
+
+    def get_context_data(self, **kwargs):
+        print(self.request)
+        context = super().get_context_data(**kwargs)
+        formset = context['form']
+        for form in formset.forms:
+            for field in form.fields.values():
+                field.required = False
+                field.widget.attrs['disabled'] = 'disabled'
+        return context
+
+    def get_object(self, queryset=None):
+        if self.request.session.get('signup_id'):
+            return Signup.objects.get(id=self.request.session['signup_id'])
+        else:
+            return Signup.objects.get(owner=self.request.user)
+
+    def form_valid(self, form):
+        complete_signup = []
+
+        for participant in self.object.participant_set.all():
+            for day, _ in settings.DYNAMOBILE_DAYS:
+                complete_signup.append(DaySignup(day=day, participant=participant))
+        self.object.validated_at = timezone.now()
+        with transaction.atomic():
+            DaySignup.objects.bulk_create(complete_signup)
+            self.object.save()
+        return HttpResponseRedirect(self.success_url)
+
+    def form_invalid(self, form):
+        return self.form_valid(form)

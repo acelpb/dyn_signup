@@ -3,6 +3,8 @@
 {% block title %}{% trans "Login" %}{% endblock %}
 
 {% block smallcontent %}
+    Bonjour, afin de pouvoir procéder à l'inscription vous devez créer un compte avec une adrese email valide.
+    Par la suite vous pourrez reconnecter afin de visualiser le statut votre inscription.
     <div>
         {% if user.is_authenticated %}
             {% with username=user.username %}

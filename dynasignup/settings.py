@@ -14,6 +14,7 @@ from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+from decouple import config
 from django.urls import reverse_lazy
 from django.utils.dateparse import parse_datetime, parse_date
 from django.utils.translation import gettext_lazy as _
@@ -24,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hmv)rcew6libys3k1an7k-b#)j5xw$telg&##zjv#ny*iz*#7-'
+SECRET_KEY = config("SECRET_KEY", default='django-insecure-hmv)rcew6libys3k1an7k-b#)jqsdlkqsdnzuauzeqsdiz*#7-')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ["inscriptions.dynamobile.net", '127.0.0.1']
 
@@ -155,7 +156,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
 brussels_tz = zoneinfo.ZoneInfo("Europe/Brussels")
 
-DYNAMOBILE_START_SIGNUP = parse_datetime("2022-05-02 17:00:00").replace(
+DYNAMOBILE_START_SIGNUP = parse_datetime("2022-04-02 17:00:00").replace(
     tzinfo=brussels_tz
 )
 DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2022-05-20 17:00:00").replace(
@@ -174,3 +175,10 @@ DYNAMOBILE_DAYS = [
         for i in range((DYNAMOBILE_LAST_DAY - DYNAMOBILE_FIRST_DAY).days + 1)
     )
 ]
+
+EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = config('EMAIL_HOST', default='localhost')
+EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='inscriptions@dynamobile.net')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
