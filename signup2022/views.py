@@ -1,13 +1,13 @@
 from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.utils import timezone
-from django.views.generic import TemplateView, UpdateView, FormView
+from django.views.generic import TemplateView, UpdateView, FormView, DetailView
 
 from .forms import ParticipantFormSet, ParticipantForm, DaySignupFormset
-from .models import Signup, Participant, DaySignup
+from .mixins import SignupStartedMixin
+from .models import Signup, Participant
 
 
 class HomePage(TemplateView):
@@ -21,23 +21,13 @@ class HomePage(TemplateView):
         return kwargs
 
 
-class GroupEditView(LoginRequiredMixin, FormView):
+class GroupEditView(SignupStartedMixin, FormView):
     template_name = "signup/particpant.html"
     success_url = '/signup-2'
 
     form_class = inlineformset_factory(
         Signup, Participant, form=ParticipantForm, extra=0, can_delete=False
     )
-
-    def get_object(self, queryset=None):
-        if self.request.session.get('signup_id'):
-            signup = Signup.objects.get(id=self.request.session['signup_id'])
-        elif self.request.user.is_authenticated:
-            signup, _ = Signup.objects.get_or_create(owner=self.request.user)
-        else:
-            signup = Signup.objects.create()
-        self.request.session['signup_id'] = signup.id
-        return signup
 
     def get_form(self, form_class=None):
         return ParticipantFormSet(
@@ -50,15 +40,14 @@ class GroupEditView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class ParticipantEditView(LoginRequiredMixin, FormView):
+class ParticipantEditView(SignupStartedMixin, FormView):
     template_name = "signup/particpant.html"
-    success_url = '/signup-2'
+    success_url = '/signup-3'
 
     def get_form(self, form_class=None):
-        (signup_group, _) = Signup.objects.get_or_create(owner=self.request.user)
         return DaySignupFormset(
             **self.get_form_kwargs(),
-            instance=signup_group.participant_set.first(),
+            instance=self.get_object(),
         )
 
     def form_valid(self, form):
@@ -66,7 +55,7 @@ class ParticipantEditView(LoginRequiredMixin, FormView):
         return super().form_valid(form)
 
 
-class GroupReviewView(LoginRequiredMixin, UpdateView):
+class GroupReviewView(SignupStartedMixin, UpdateView):
     template_name = "signup/review-participants.html"
     success_url = '/signup-3'
 
@@ -84,23 +73,34 @@ class GroupReviewView(LoginRequiredMixin, UpdateView):
                 field.widget.attrs['disabled'] = 'disabled'
         return context
 
-    def get_object(self, queryset=None):
-        if self.request.session.get('signup_id'):
-            return Signup.objects.get(id=self.request.session['signup_id'])
-        else:
-            return Signup.objects.get(owner=self.request.user)
 
     def form_valid(self, form):
-        complete_signup = []
-
-        for participant in self.object.participant_set.all():
+        participants = list(self.object.participant_set.all())
+        for participant in participants:
             for day, _ in settings.DYNAMOBILE_DAYS:
-                complete_signup.append(DaySignup(day=day, participant=participant))
+                participant.d2022_07_18 = True
+                participant.d2022_07_19 = True
+                participant.d2022_07_20 = True
+                participant.d2022_07_21 = True
+                participant.d2022_07_22 = True
+                participant.d2022_07_23 = True
+                participant.d2022_07_24 = True
+                participant.d2022_07_25 = True
         self.object.validated_at = timezone.now()
         with transaction.atomic():
-            DaySignup.objects.bulk_create(complete_signup)
+            Participant.objects.bulk_update(participants, fields=(
+                "d2022_07_18",
+                "d2022_07_19",
+                "d2022_07_20",
+                "d2022_07_21",
+                "d2022_07_22",
+                "d2022_07_23",
+                "d2022_07_24",
+                "d2022_07_25",
+            ))
             self.object.save()
         return HttpResponseRedirect(self.success_url)
 
     def form_invalid(self, form):
         return self.form_valid(form)
+

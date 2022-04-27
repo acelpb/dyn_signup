@@ -1,7 +1,7 @@
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 
 # Create your models here.
 
@@ -13,6 +13,9 @@ class Signup(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     validated_at = models.DateTimeField(default=None, null=True)
     cancelled_at = models.DateTimeField(default=None, null=True)
+
+    def __str__(self):
+        return f"Groupe de {self.owner.username}"
 
 
 class Participant(models.Model):
@@ -26,30 +29,17 @@ class Participant(models.Model):
         _("pays de résidence"), max_length=150, blank=False, default="Belgium"
     )
     vae = models.BooleanField(_('VAE'), help_text=_('Vélo à assistance électrique'), null=False)
+    d2022_07_18 = models.BooleanField(_("18-07"), default=False)
+    d2022_07_19 = models.BooleanField(_("19-07"), default=False)
+    d2022_07_20 = models.BooleanField(_("20-07"), default=False)
+    d2022_07_21 = models.BooleanField(_("21-07"), default=False)
+    d2022_07_22 = models.BooleanField(_("22-07"), default=False)
+    d2022_07_23 = models.BooleanField(_("23-07"), default=False)
+    d2022_07_24 = models.BooleanField(_("24-07"), default=False)
+    d2022_07_25 = models.BooleanField(_("25-07"), default=False)
 
-
-class DaySignup(models.Model):
-    participant = models.ForeignKey(Participant, on_delete=models.CASCADE)
-    day = models.DateField(
-        choices=settings.DYNAMOBILE_DAYS,
-        validators=[
-            MinValueValidator(settings.DYNAMOBILE_FIRST_DAY),
-            MaxValueValidator(settings.DYNAMOBILE_LAST_DAY),
-        ],
-    )
-    created_at = models.DateField(auto_now_add=True)
-    cancelled = models.DateField(null=True, blank=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=(
-                    "participant",
-                    "day",
-                ),
-                name="no double counting",
-            ),
-        ]
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 
 class Bill(models.Model):

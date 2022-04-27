@@ -1,8 +1,7 @@
 from django import forms
-from django.conf import settings
 from django.forms.models import inlineformset_factory
 
-from .models import Participant, Signup, DaySignup
+from .models import Participant, Signup
 
 
 class ParticipantForm(forms.ModelForm):
@@ -27,16 +26,25 @@ ParticipantFormSet = inlineformset_factory(
 
 
 class DaySignupForm(forms.ModelForm):
-    def __init__(self, **kwargs):
-        self.base_fields
-        super().__init__(**kwargs)
+    first_name = forms.CharField(disabled=True)
+    last_name = forms.CharField(disabled=True)
 
     class Meta:
         model = Participant
-        fields = '__all__'
-        # fields = [_[1] for _ in settings.DYNAMOBILE_DAYS]
+        fields = [
+            "first_name",
+            "last_name",
+            "d2022_07_18",
+            "d2022_07_19",
+            "d2022_07_20",
+            "d2022_07_21",
+            "d2022_07_22",
+            "d2022_07_23",
+            "d2022_07_24",
+            "d2022_07_25",
+        ]
 
 
 DaySignupFormset = inlineformset_factory(
-    Participant, DaySignup, form=DaySignupForm, min_num=1, extra=0, can_delete=False
+    Signup, Participant, form=DaySignupForm, min_num=1, extra=0, can_delete=False
 )
