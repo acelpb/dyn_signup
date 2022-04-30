@@ -26,7 +26,7 @@ class Participant(models.Model):
     birthday = models.DateField(_("date de naissance"), blank=False)
     city = models.CharField(_("ville de domicile"), max_length=150, blank=False)
     country = models.CharField(
-        _("pays de résidence"), max_length=150, blank=False, default="Belgium"
+        _("pays de résidence"), max_length=150, blank=False, default="Belgique"
     )
     vae = models.BooleanField(_('VAE'), help_text=_('Vélo à assistance électrique'), null=False)
     d2022_07_18 = models.BooleanField(_("18-07"), default=False)

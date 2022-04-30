@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
@@ -104,3 +105,11 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
     def form_invalid(self, form):
         return self.form_valid(form)
 
+
+class CompletedSignupView(LoginRequiredMixin, DetailView):
+    template_name = "signup/completed-signup.html"
+    model = Signup
+    context_object_name = "signup"
+
+    def get_object(self, queryset=None):
+        return Signup.objects.filter(owner=self.request.user).first()
