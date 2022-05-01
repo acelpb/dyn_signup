@@ -139,7 +139,7 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_ROOT = BASE_DIR / "uploads"
 MEDIA_URL = "/uploads/"
 
-LOGIN_REDIRECT_URL = reverse_lazy("ballad_list")
+LOGIN_REDIRECT_URL = reverse_lazy("index")
 
 LANGUAGE_CODE = 'fr'  # default language
 
