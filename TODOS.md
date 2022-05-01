@@ -1,0 +1,9 @@
+- [x] Rajouter la possibilité de se déconnecter (et donc de changer de compte)
+- [x] bug inscriptio partielle corrigé
+- [x] bouton précédent corrigé typo
+- [ ] toggle password field to show password
+- [ ] Changer date de naissance en date input et pas un chant libre
+- [ ] limites inscriptions
+- [ ] limite vae
+- [ ] export de l'admin
+- [ ] login using one time token via email
