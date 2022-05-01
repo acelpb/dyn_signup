@@ -3,6 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView, UpdateView, FormView, DetailView
 
@@ -41,8 +42,8 @@ class GroupEditView(SignupStartedMixin, FormView):
 
 
 class ParticipantEditView(SignupStartedMixin, FormView):
-    template_name = "signup/particpant.html"
-    success_url = '/signup-3'
+    template_name = "signup/select-days.html"
+    success_url = reverse_lazy('completed_signup')
 
     def get_form(self, form_class=None):
         return DaySignupFormset(
@@ -52,6 +53,9 @@ class ParticipantEditView(SignupStartedMixin, FormView):
 
     def form_valid(self, form):
         form.save()
+        signup = self.get_object()
+        signup.validated_at = timezone.now()
+        signup.save()
         return super().form_valid(form)
 
 

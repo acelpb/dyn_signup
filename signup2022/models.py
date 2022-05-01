@@ -31,7 +31,7 @@ class Signup(models.Model):
                     if participant.complete_signup():
                         price = upfront_price + all_days_price
                     else:
-                        price = upfront_price + (all_days_price / 7 * participant.nb_days())
+                        price = upfront_price + (all_days_price / 7 * participant.nb_of_days())
 
                     if age < 18:
                         price *= 1 - min(0.5, 0.25 * child_nb)
