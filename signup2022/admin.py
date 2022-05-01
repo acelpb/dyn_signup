@@ -31,7 +31,7 @@ class ParticipantDaysInline(admin.TabularInline):
 
 @admin.register(Signup)
 class SignupAdmin(admin.ModelAdmin):
-    list_display = ('id', 'owner', 'validated_at')
+    list_display = ('id', 'owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial')
     inlines = [ParticipantInfoInline, ParticipantDaysInline]
 
 

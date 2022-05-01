@@ -178,6 +178,11 @@ DYNAMOBILE_DAYS = [
     )
 ]
 
+# We reserve the right to accept up to 150 people on a case by case basis
+DYNAMOBILE_MAX_PARTICIPANTS = config('DYNAMOBILE_MAX_PARTICIPANTS', default=135, cast=int)
+# We reserve the right to accept up to 25 people on a case by case basis
+DYNAMOBILE_MAX_VAE_PARTICIPANTS = config('DYNAMOBILE_MAX_VAE_PARTICIPANTS', default=20, cast=int)
+
 EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
 EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)

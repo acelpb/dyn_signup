@@ -9,12 +9,16 @@ from django.utils.translation import gettext_lazy as _
 # Create your models here.
 
 
+
 class Signup(models.Model):
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     validated_at = models.DateTimeField(default=None, null=True)
+    on_hold = models.BooleanField(default=False)
+    on_hold_vae = models.BooleanField(default=False)
+    on_hold_partial = models.BooleanField(default=False)
     cancelled_at = models.DateTimeField(default=None, null=True)
 
     def __str__(self):
@@ -59,6 +63,18 @@ class Signup(models.Model):
             html_message=get_template('signup/partials/completed-signup.html').render({"signup": self}),
         )
         return bill
+
+    def has_vae(self):
+        return self.participant_set.filter(vae=True).count()
+
+    def complete_signup(self):
+        for participant in self.participant_set.all():
+            if not participant.complete_signup():
+                return False
+        return True
+
+    def waiting_number(self):
+        return Signup.objects.filter(validated_at__lt=self.validated_at, on_hold=True).count() + 1
 
 
 class Participant(models.Model):
