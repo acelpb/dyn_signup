@@ -30,7 +30,7 @@ SECRET_KEY = config("SECRET_KEY", default='django-insecure-hmv)rcew6libys3k1an7k
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ["inscriptions.dynamobile.net", '127.0.0.1']
+ALLOWED_HOSTS = ["inscriptions.dynamobile.net", '127.0.0.1', 'inscriptions.acelpb.com']
 
 # Application definition
 
@@ -182,3 +182,10 @@ EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='inscriptions@dynamobile.net')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+
+DYNAMOBILE_PRICES = (
+    (0, 6, 80, 10),
+    (6, 12, 160, 20),
+    (12, 18, 240, 30),
+    (18, 999, 325, 40),
+)
