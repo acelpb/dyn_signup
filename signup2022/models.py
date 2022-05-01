@@ -53,6 +53,7 @@ class Signup(models.Model):
         send_mail(
             subject="Votre inscription à dynamobile",
             message="Yipee",
+            from_email=settings.EMAIL_HOST_USER,
             recipient_list=[self.owner.email],
         )
         return bill
