@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import models
+from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -52,9 +53,10 @@ class Signup(models.Model):
         )
         send_mail(
             subject="Votre inscription à dynamobile",
-            message="Yipee",
+            message=get_template('signup/email.txt').render(),
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=[self.owner.email],
+            html_message=get_template('signup/partials/completed-signup.html').render({"signup": self}),
         )
         return bill
 

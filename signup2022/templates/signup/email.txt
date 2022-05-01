@@ -1,0 +1,1 @@
+Votre inscription est complète, vous pouvez la visualiser ici: {% url "completed_signup" %}.
