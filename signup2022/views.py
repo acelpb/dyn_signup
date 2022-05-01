@@ -18,7 +18,6 @@ class HomePage(TemplateView):
         kwargs = super().get_context_data(**kwargs)
         kwargs["registration_open"] = timezone.now() >= settings.DYNAMOBILE_START_SIGNUP
         kwargs["dynamobile_signup_period_start"] = settings.DYNAMOBILE_START_SIGNUP
-        print(settings.DYNAMOBILE_START_SIGNUP)
         return kwargs
 
 

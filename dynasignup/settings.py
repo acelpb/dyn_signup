@@ -156,7 +156,9 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
 brussels_tz = zoneinfo.ZoneInfo("Europe/Brussels")
 
-DYNAMOBILE_START_SIGNUP = parse_datetime("2022-04-02 17:00:00").replace(
+DYNAMOBILE_START_SIGNUP = parse_datetime(
+    config("DYNAMOBILE_START_SIGNUP", default="2022-05-02 20:00:00")
+).replace(
     tzinfo=brussels_tz
 )
 DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2022-05-20 17:00:00").replace(

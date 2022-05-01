@@ -12,22 +12,25 @@
 
 {% block content %}
     {% if not registration_open %}
-        <div class="p-3">
+        <div class="row">
+            <div class="col-md-2 col-lg-2"></div>
+            <div class="col-sm-12 col-md-8 col-lg-8 ">
+                {% with date=dynamobile_signup_period_start.date time=dynamobile_signup_period_start.time %}
+                    <p>{% blocktrans %}
+                        Les inscriptions n'ont pas encore débuté, merci de revenir après {{ time }} le {{ date }}.
+                    {% endblocktrans %}</p>
+                    <p>
+                        {% blocktrans %}
+                            Vous allez maintenant être redirigé vers la page d'acceuil de dynamobile.
+                        {% endblocktrans %}
 
-            {% with date=dynamobile_signup_period_start.date time=dynamobile_signup_period_start.time %}
-                <p>{% blocktrans %}
-                    Les inscriptions n'ont pas encore débuté, merci de revenir après {{ time }} le {{ date }}.
-                {% endblocktrans %}</p>
-                <p>
-                    {% blocktrans %}
-                        Vous allez maintenant être redirigé vers la page d'acceuil de dynamobile.
-                    {% endblocktrans %}
-
-                    {% blocktrans %}
-                        <a href="https://www.dynamobile.net/">Clicuez ici</a> si ce n'est pas le cas.
-                    {% endblocktrans %}
-                </p>
-            {% endwith %}
+                        {% blocktrans %}
+                            <a href="https://www.dynamobile.net/">Clicuez ici</a> si ce n'est pas le cas.
+                        {% endblocktrans %}
+                    </p>
+                {% endwith %}
+            </div>
+            <div class="col-md-2 col-lg-2"></div>
         </div>
     {% else %}
         <h2>Du 18 au 25 juillet 2022</h2>
@@ -64,14 +67,13 @@
             </li>
         </ul>
         <bold>
-            Annulations : formulées par écrit, elles donneront lieu à un remboursement intégral si elles sont reçues avant
+            Annulations : formulées par écrit, elles donneront lieu à un remboursement intégral si elles sont reçues
+            avant
             le 15 juin prochain. Passé ce délai, 50 % du montant total sera retenu. Merci pour votre compréhension.
         </bold>
         <p>
-        <a href="/signup-1" class="btn btn-primary">Commencez l'inscription</a>
+            <a href="{% url "group_edit" %}" class="btn btn-primary">Commencez l'inscription</a>
         </p>
-
-
         </div>
     {% endif %}
 {% endblock %}
