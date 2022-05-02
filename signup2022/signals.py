@@ -46,5 +46,6 @@ def create_bill(sender, *, instance, **kwargs):
 
 @receiver(post_save, sender=Participant)
 def update_bill(sender, *, instance, **kwargs):
-    if instance.signup_group.validated_at is not None:
-        instance.update_bill()
+    signup = instance.signup_group
+    if signup.validated_at is not None and signup.on_hold is False:
+        instance.signup_group.update_bill()

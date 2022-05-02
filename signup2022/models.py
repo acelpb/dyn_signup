@@ -60,9 +60,24 @@ class Signup(models.Model):
             message=get_template('signup/email.txt').render(),
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=[self.owner.email],
-            html_message=get_template('signup/partials/completed-signup.html').render({"signup": self}),
+            html_message=get_template('signup/email.html').render({"signup": self}),
         )
         return bill
+
+    def update_bill(self):
+        amount = self.calculate_amount()
+        if self.bill.amount != amount:
+            self.bill.amount = amount
+            self.bill.save()
+            send_mail(
+                subject="Mddification d'inscription à dynamobile",
+                message=get_template('signup/email_modified.txt').render(),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[self.owner.email],
+                html_message=get_template('signup/email_modified.html').render({"signup": self}),
+            )
+
+
 
     def has_vae(self):
         return self.participant_set.filter(vae=True).count()
