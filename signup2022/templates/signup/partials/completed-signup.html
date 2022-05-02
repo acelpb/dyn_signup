@@ -54,7 +54,7 @@
     {% endif %}
 {% else %}
     <p>
-        Merci d'effectuer un virement de {{ signup.bill|floatformat:2 }}€ sur le compte de Dynamobile: BE16 0001 6308
+        Merci d'effectuer un virement de {{ signup.bill.amount|floatformat:2 }}€ sur le compte de Dynamobile: BE16 0001 6308
         3874
     </p>
     <p>
