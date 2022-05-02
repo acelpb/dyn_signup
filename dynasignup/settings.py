@@ -71,15 +71,13 @@ AUTHENTICATION_BACKENDS = [
 # Set Djangos login URL to the magiclink login page
 LOGIN_URL = 'magiclink:login'
 LOGOUT_REDIRECT_URL = "index"
-MAGICLINK_LOGIN_TEMPLATE_NAME = 'registration/login.html'
-# MAGICLINK_LOGIN_SENT_TEMPLATE_NAME = 'magiclink/login_sent.html'
-# MAGICLINK_LOGIN_FAILED_TEMPLATE_NAME = 'magiclink/login_failed.html'
 
 # Optional:
 # If this setting is set to False a user account will be created the first
 # time a user requests a login link.
 MAGICLINK_REQUIRE_SIGNUP = False
-# MAGICLINK_SIGNUP_TEMPLATE_NAME = 'magiclink/signup.html'
+MAGICLINK_REQUIRE_SAME_BROWSER = False
+MAGICLINK_REQUIRE_SAME_IP = False
 
 TEMPLATES = [
     {

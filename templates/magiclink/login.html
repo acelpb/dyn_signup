@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load i18n crispy_forms_tags %}
+{% block title %}{% trans "Login" %}{% endblock %}
+
+{% block smallcontent %}
+    Bonjour, afin de pouvoir procéder à l'inscription nous aimerions vérifier que vous avez une adrese email valide.
+    <div>
+        {% if user.is_authenticated %}
+            {% with username=user.username %}
+                <p class="alert alert-danger">
+                    {% blocktrans trimmed %}
+                        You are authenticated as {{ username }}, but are not authorized to
+                        access this page. Would you like to login to a different account?
+                    {% endblocktrans %}
+                </p>
+            {% endwith %}
+        {% endif %}
+
+        <form class="p-3" method="post" id="login-form">{% csrf_token %}
+            {{ login_form|crispy }}
+            <button type="submit" class="btn btn-primary">{% trans 'Log in' %}</button>
+        </form>
+    </div>
+{% endblock %}
