@@ -19,7 +19,7 @@ class Signup(models.Model):
     on_hold = models.BooleanField(default=False)
     on_hold_vae = models.BooleanField(default=False)
     on_hold_partial = models.BooleanField(default=False)
-    cancelled_at = models.DateTimeField(default=None, null=True)
+    cancelled_at = models.DateTimeField(default=None, null=True, blank=True)
 
     def __str__(self):
         return f"Groupe de {self.owner.username}"
