@@ -29,9 +29,11 @@ def create_bill(sender, *, instance, **kwargs):
                     group.save()
                     return
 
-            nb_of_participants = Participant.objects.filter(
-                signup_group__validated_at__isnull=False,
-                signup_group__on_hold=False,
+            nb_of_participants = (
+                    Participant.objects.filter(
+                        signup_group__validated_at__isnull=False,
+                        signup_group__on_hold=False,
+                    ) | group.participant_set.all()
             ).count()
 
             if nb_of_participants > settings.DYNAMOBILE_MAX_PARTICIPANTS:
