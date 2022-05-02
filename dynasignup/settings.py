@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "whitenoise",
     'crispy_forms',
     "bootstrap4",
-    "django_registration",
+    'magiclink',
     "signup2022.apps.Signup2022Config",
 ]
 
@@ -62,6 +62,24 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'dynasignup.urls'
+
+AUTHENTICATION_BACKENDS = [
+    'magiclink.backends.MagicLinkBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Set Djangos login URL to the magiclink login page
+LOGIN_URL = 'magiclink:login'
+LOGOUT_REDIRECT_URL = "index"
+MAGICLINK_LOGIN_TEMPLATE_NAME = 'registration/login.html'
+# MAGICLINK_LOGIN_SENT_TEMPLATE_NAME = 'magiclink/login_sent.html'
+# MAGICLINK_LOGIN_FAILED_TEMPLATE_NAME = 'magiclink/login_failed.html'
+
+# Optional:
+# If this setting is set to False a user account will be created the first
+# time a user requests a login link.
+MAGICLINK_REQUIRE_SIGNUP = False
+# MAGICLINK_SIGNUP_TEMPLATE_NAME = 'magiclink/signup.html'
 
 TEMPLATES = [
     {

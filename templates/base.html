@@ -40,14 +40,11 @@
                     <p class="nav-link disabled">{{ user.email }}</p>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url "logout" %}">logout</a>
+                    <a class="nav-link" href="{% url "magiclink:logout" %}">logout</a>
                 </li>
             {% else %}
                 <li class="nav-item">
-                <a class="nav-link" href="{% url "login" %}">S'identifier</a> -
-                </li>
-                <li class="nav-item">
-                <a class="nav-link" href="{% url "django_registration_register" %}">Créer un compte</a>
+                <a class="nav-link" href="{% url "magiclink:login" %}">S'identifier</a> -
                 </li>
             {% endif %}
         </ul>

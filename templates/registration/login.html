@@ -3,8 +3,7 @@
 {% block title %}{% trans "Login" %}{% endblock %}
 
 {% block smallcontent %}
-    Bonjour, afin de pouvoir procéder à l'inscription vous devez créer un compte avec une adrese email valide.
-    Par la suite vous pourrez reconnecter afin de visualiser le statut votre inscription.
+    Bonjour, afin de pouvoir procéder à l'inscription nous aimerions vérifier que vous avez une adrese email valide.
     <div>
         {% if user.is_authenticated %}
             {% with username=user.username %}
@@ -18,15 +17,8 @@
         {% endif %}
 
         <form class="p-3" method="post" id="login-form">{% csrf_token %}
-            {{ form|crispy }}
-            {% url 'password_reset' as password_reset_url %}
+            {{ login_form|crispy }}
             <button type="submit" class="btn btn-primary">{% trans 'Log in' %}</button>
-            <a href="{% url "django_registration_register" %}" class="btn btn-secondary">{% trans 'Register' %}</a>
-            {% if password_reset_url %}
-                <p class="password-reset-link">
-                    <a href="{{ password_reset_url }}">{% trans 'Forgotten your password or username?' %}</a>
-                </p>
-            {% endif %}
         </form>
     </div>
 {% endblock %}

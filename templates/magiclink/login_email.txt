@@ -1,0 +1,7 @@
+Cliquez sur le lien ci-dessous pour confirmer votre identité. Ce lien expirera dans {{ expiry|timeuntil }}
+
+{{ magiclink|safe }}
+
+Merci de ne pas transférer ce message à qui que ce soit d'autre.
+
+Si vous n'avez pas essayer de vous connecter à http://inscriptions.dynamobile.net vous pouvez ignorer se message.

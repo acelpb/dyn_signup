@@ -20,7 +20,6 @@ from django.urls import path, include
 
 urlpatterns = [
                   path("", include("signup2022.urls")),
-                  path('accounts/', include('django_registration.backends.one_step.urls')),
-                  path('accounts/', include('django.contrib.auth.urls')),
+                  path('auth/', include('magiclink.urls', namespace='magiclink')),
                   path('admin/', admin.site.urls),
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
