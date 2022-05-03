@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Participant, Signup
+from .models import Participant, Signup, Bill
 
 
 # Register your models here.
@@ -62,3 +62,8 @@ class ParticipantAdmin(admin.ModelAdmin):
         'd2022_07_25',
         "vae",
     )
+
+
+@admin.register(Bill)
+class SignupAdmin(admin.ModelAdmin):
+    list_display = ('id', "signup", 'amount', 'ballance', 'created_at', 'payed_at')
