@@ -48,8 +48,6 @@ INSTALLED_APPS = [
     "signup2022.apps.Signup2022Config",
 ]
 
-
-
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -206,6 +204,9 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='inscriptions@dynamobile.net')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+
+SERVER_EMAIL = EMAIL_HOST_USER
+ADMINS = [("Augustin", EMAIL_HOST_USER), ]
 
 DYNAMOBILE_PRICES = (
     (0, 6, 80, 10),
