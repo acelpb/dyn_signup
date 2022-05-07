@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView, UpdateView, FormView, DetailView
 
-from .forms import ParticipantFormSet, ParticipantForm, DaySignupFormset
+from .forms import ParticipantFormSet, ParticipantForm, DaySignupFormset, ParticipantListReviewForm
 from .mixins import SignupStartedMixin
 from .models import Signup, Participant
 
@@ -63,23 +63,10 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
     template_name = "signup/review-participants.html"
     success_url = '/signup-3'
 
-    form_class = inlineformset_factory(
-        Signup, Participant, form=ParticipantForm, extra=0, can_delete=False
-    )
-
-    def get_context_data(self, **kwargs):
-        print(self.request)
-        context = super().get_context_data(**kwargs)
-        formset = context['form']
-        for form in formset.forms:
-            for field in form.fields.values():
-                field.required = False
-                field.widget.attrs['disabled'] = 'disabled'
-        return context
-
+    form_class = ParticipantListReviewForm
 
     def form_valid(self, form):
-        participants = list(self.object.participant_set.all())
+        participants = list(self.get_object().participant_set.all())
         for participant in participants:
             for day, _ in settings.DYNAMOBILE_DAYS:
                 participant.d2022_07_18 = True
@@ -104,9 +91,6 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
             ))
             self.object.save()
         return HttpResponseRedirect(self.success_url)
-
-    def form_invalid(self, form):
-        return self.form_valid(form)
 
 
 class CompletedSignupView(LoginRequiredMixin, DetailView):

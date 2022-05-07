@@ -5,6 +5,7 @@
 {% load crispy_forms_field %}
 {% load i18n %}
 
+
 {% block smallcontent %}
     {% if reviewing_form and form.forms %}
         <div class="alert alert-primary">
@@ -82,8 +83,8 @@
     {% endif %}
 {% endblock %}
 
-{% block script %}
-    {{ block.super }}
+{% block extra_scripts %}
+    {{ form.media }}
     <script>
 
         function updateElementIndex(el, prefix, ndx) {
@@ -148,4 +149,4 @@
             return false;
         });
     </script>
-{% endblock %}
+{% endblock extra_scripts %}
