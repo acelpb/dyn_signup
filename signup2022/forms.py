@@ -1,7 +1,7 @@
 from datetime import date
 
-from cfgv import ValidationError
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory
 
 from .models import Participant, Signup
