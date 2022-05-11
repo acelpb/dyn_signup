@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from .models import Participant, Signup, Bill
 
@@ -60,7 +62,7 @@ class SignupStatusFilter(SimpleListFilter):
                 'signup_group__validated_at__isnull': False,
                 'signup_group__on_hold': False,
             },
-            "payed": {'signup_group__bill__balance': -1},  # TODO no one has payed yet.
+            "payed": {'signup_group__bill__ballance__lte': 0},
             None: {},
         }
         return queryset.distinct().filter(**filters[self.value()])
@@ -115,7 +117,19 @@ class ParticipantAdmin(admin.ModelAdmin):
 
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
-    list_display = ('id', "signup", 'amount', 'ballance', 'created_at', 'payed_at')
+    list_display = ('id', "signup_link", 'amount', 'ballance', 'payed_at', 'created_at',)
+    fields = ('signup', 'amount', 'ballance', 'payed_at', 'created_at',)
+    readonly_fields = ('signup', 'created_at', )
     list_filter = (
         ("payed_at", admin.EmptyFieldListFilter),
     )
+
+    def signup_link(self, obj:Bill):
+        signup: Signup = obj.signup
+        link = "<a href={}>{}</a>".format(
+            reverse(
+                'admin:{}_{}_change'.format(signup._meta.app_label, signup._meta.model_name),
+                args=(obj.signup_id,)),
+            str(signup)
+        )
+        return mark_safe(link)
