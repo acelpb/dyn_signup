@@ -116,3 +116,6 @@ class ParticipantAdmin(admin.ModelAdmin):
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
     list_display = ('id', "signup", 'amount', 'ballance', 'created_at', 'payed_at')
+    list_filter = (
+        ("payed_at", admin.EmptyFieldListFilter),
+    )
