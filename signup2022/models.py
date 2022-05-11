@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Signup(models.Model):
-    owner = models.ForeignKey(
+    owner = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)

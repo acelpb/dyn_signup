@@ -61,7 +61,7 @@ class ParticipantEditView(SignupStartedMixin, FormView):
 
 class GroupReviewView(SignupStartedMixin, UpdateView):
     template_name = "signup/review-participants.html"
-    success_url = '/signup-3'
+    success_url = reverse_lazy('day_edit')
 
     form_class = ParticipantListReviewForm
 
