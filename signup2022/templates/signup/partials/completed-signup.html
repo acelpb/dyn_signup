@@ -37,7 +37,8 @@
     {% if signup.on_hold_vae %}
         <p>
             Nous avons atteint le maximum de participants souhaitants venir en VAE (Vélo avec assistance électrique).
-            Si vous voulez modifier votre participation pour une participation en vélo à assistance musculaire (pas électrique),
+            Si vous voulez modifier votre participation pour une participation en vélo à assistance musculaire (pas
+            électrique),
             vous pouvez nous contacter en suivant le lien ci-dessous. <br>
             <a href="mailto:inscriptions@dynamobile.net?subject=VAE n°{{ signup.id }}">inscriptions@dynamobile.net</a>.
         </p>
@@ -48,16 +49,26 @@
         </p>
     {% else %}
         <p>
-            La limite maximale de participant semble être atteinte. Vous occupez actuellement la place numéro: {{ signup.waiting_number }}.
+            La limite maximale de participant semble être atteinte. Vous occupez actuellement la place
+            numéro: {{ signup.waiting_number }}.
             En cas de désistement nous vous contacterons.
         </p>
     {% endif %}
-{% else %}
+{% elif signup.bill.ballance <= 0 %}
     <p>
-        Merci d'effectuer un virement de {{ signup.bill.amount|floatformat:2 }}€ sur le compte de Dynamobile: BE16 0001 6308
-        3874
+        Votre inscription est validée (nous avons bien reçu votre paiement).
+    </p>
+{% elif signup.bill.ballance > 0 %}
+    <p>
+        Merci d'effectuer un virement de {{ signup.bill.ballance|floatformat:2 }}€
+        sur le compte de Dynamobile: BE16 0001 6308 3874
     </p>
     <p>
         Votre inscription ne sera complètement valide qu'une fois le payment de celle-ci aura été confirmé.
+    </p>
+{% else %}
+    <p>
+        Mmmmh, il semble y avoir un soucis avec votre inscription.
+        Merci de contacter <a href="mailto:inscriptions@dynamobile.net">inscriptions@dynamobile.net</a>
     </p>
 {% endif %}

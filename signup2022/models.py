@@ -57,10 +57,10 @@ class Signup(models.Model):
         )
         send_mail(
             subject="Votre inscription à dynamobile",
-            message=get_template('signup/email.txt').render(),
+            message=get_template('signup/email/email.txt').render(),
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=[self.owner.email],
-            html_message=get_template('signup/email.html').render({"signup": self}),
+            html_message=get_template('signup/email/email.html').render({"signup": self}),
         )
         return bill
 
@@ -71,10 +71,10 @@ class Signup(models.Model):
             self.bill.save()
             send_mail(
                 subject="Mddification d'inscription à dynamobile",
-                message=get_template('signup/email_modified.txt').render(),
+                message=get_template('signup/email/email_modified.txt').render(),
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[self.owner.email],
-                html_message=get_template('signup/email_modified.html').render({"signup": self}),
+                html_message=get_template('signup/email/email_modified.html').render({"signup": self}),
             )
 
 
@@ -152,4 +152,13 @@ class Bill(models.Model):
     amount = models.DecimalField(decimal_places=2, default=0, max_digits=10)
     ballance = models.DecimalField(decimal_places=2, default=0, max_digits=10)
     created_at = models.DateTimeField(auto_now_add=True)
-    payed_at = models.DateTimeField(default=None, null=True)
+    payed_at = models.DateTimeField(default=None, null=True, blank=True)
+
+    def send_confirmation_email(self):
+        send_mail(
+            subject="Confirmation d'inscription à dynamobile",
+            message=get_template('signup/email/email_confirmation.txt').render(),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[self.signup.owner.email],
+            html_message=get_template('signup/email/email_confirmation.html').render({"signup": self.signup}),
+        )

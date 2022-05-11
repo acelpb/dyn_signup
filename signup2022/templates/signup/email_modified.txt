@@ -1,1 +1,0 @@
-Votre inscription a été modifiée.  Pour la visualiser suivez le lien suivant: {% url "completed_signup" %}.
