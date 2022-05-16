@@ -9,7 +9,6 @@ from django.utils.translation import gettext_lazy as _
 # Create your models here.
 
 
-
 class Signup(models.Model):
     owner = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True
@@ -46,7 +45,6 @@ class Signup(models.Model):
                 raise Exception('Apparently participant is older than 999.')
         return total_price
 
-
     def create_bill(self):
         amount = self.calculate_amount()
         bill = Bill.objects.create(
@@ -65,9 +63,10 @@ class Signup(models.Model):
         return bill
 
     def update_bill(self):
-        amount = self.calculate_amount()
-        if self.bill.amount != amount:
-            self.bill.amount = amount
+        new_amount = self.calculate_amount()
+        if self.bill.amount != new_amount:
+            self.bill.ballance += new_amount - self.bill.amount
+            self.bill.amount = new_amount
             self.bill.save()
             send_mail(
                 subject="Mddification d'inscription à dynamobile",
@@ -76,8 +75,6 @@ class Signup(models.Model):
                 recipient_list=[self.owner.email],
                 html_message=get_template('signup/email/email_modified.html').render({"signup": self}),
             )
-
-
 
     def has_vae(self):
         return self.participant_set.filter(vae=True).count()
@@ -90,6 +87,45 @@ class Signup(models.Model):
 
     def waiting_number(self):
         return Signup.objects.filter(validated_at__lt=self.validated_at, on_hold=True).count() + 1
+
+    def check_on_hold_partial(self):
+        if not self.complete_signup() and settings.DYNAMOBILE_START_PARTIAL_SIGNUP > timezone.now():
+            self.on_hold_partial = True
+            self.on_hold = True
+            return True
+
+        return False
+
+    def check_max_vae(self):
+        if additional_vae := self.has_vae():
+            registered_vae_bikes = Participant.objects.filter(
+                signup_group__validated_at__isnull=False,
+                vae=True
+            ).count()
+            if registered_vae_bikes + additional_vae > settings.DYNAMOBILE_MAX_VAE_PARTICIPANTS:
+                self.on_hold_vae = True
+                self.on_hold = True
+                return True
+
+        return False
+
+    def check_max_participants(self):
+        nb_of_participants = (
+                Participant.objects.filter(
+                    signup_group__validated_at__isnull=False,
+                    signup_group__on_hold=False,
+                ) | self.participant_set.all()
+        ).count()
+        if nb_of_participants > settings.DYNAMOBILE_MAX_PARTICIPANTS:
+            self.on_hold = True
+        return False
+
+    def check_if_on_hold(self):
+        return (
+                self.check_on_hold_partial() or
+                self.check_max_vae() or
+                self.check_max_participants()
+        )
 
 
 class Participant(models.Model):

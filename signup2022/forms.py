@@ -11,10 +11,12 @@ class DatePickerInput(forms.DateInput):
     input_type = "date"
 
     def format_value(self, value):
-        if value:
+        if isinstance(value, str):
+            return value
+        elif isinstance(value, date):
             return value.isoformat()
         else:
-            return ""
+            return value
 
 
 class ParticipantForm(forms.ModelForm):

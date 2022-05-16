@@ -89,6 +89,7 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
                 "d2022_07_24",
                 "d2022_07_25",
             ))
+            self.object.check_if_on_hold()
             self.object.save()
         return HttpResponseRedirect(self.success_url)
 
