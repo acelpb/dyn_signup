@@ -1,6 +1,6 @@
 from datetime import timedelta
-from pathlib import Path
 
+from django.conf import settings
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
@@ -10,7 +10,7 @@ from pytest_django.asserts import assertRedirects
 from signup2022.models import Signup, Participant
 
 
-@scenario('create_group.feature', 'Simple Signup')
+@scenario(settings.BASE_DIR / "features" / 'create_group.feature', 'Simple Signup')
 def test_signup():
     pass
 
