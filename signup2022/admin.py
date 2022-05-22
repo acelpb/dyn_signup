@@ -94,9 +94,10 @@ class SignupDayFilter(SimpleListFilter):
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = (
         'id',
-        "signup_group",
+        "signup_link",
         'first_name',
         'last_name',
+        'birthday',
         'd2022_07_18',
         'd2022_07_19',
         'd2022_07_20',
@@ -106,14 +107,26 @@ class ParticipantAdmin(admin.ModelAdmin):
         'd2022_07_24',
         'd2022_07_25',
         "vae",
+        'country',
     )
     search_fields = ["first_name", "last_name"]
     list_filter = (
         SignupStatusFilter,
         SignupDayFilter,
         "vae",
+        "country",
     )
+    fields = []
 
+    def signup_link(self, obj:Participant):
+        signup: Signup = obj.signup_group
+        link = "<a href={}>{}</a>".format(
+            reverse(
+                'admin:{}_{}_change'.format(signup._meta.app_label, signup._meta.model_name),
+                args=(signup.id,)),
+            str(signup)
+        )
+        return mark_safe(link)
 
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
