@@ -28,8 +28,7 @@ class Signup(models.Model):
     def calculate_amount(self):
         child_nb = 0
         total_price = 0
-        # TODO sort by age oldest to youngest
-        for participant in list(self.participant_set.all()):
+        for participant in self.participant_set.all().order_by('birthday'):
             age = participant.age_at_dynamobile_end()
             for min_age, max_age, all_days_price, upfront_price in settings.DYNAMOBILE_PRICES:
                 if age < max_age:
