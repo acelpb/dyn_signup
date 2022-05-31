@@ -58,7 +58,7 @@ class Signup(models.Model):
             subject="Votre inscription à dynamobile",
             message=get_template('signup/email/email.txt').render(),
             from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[self.owner.email],
+            recipient_list=[self.owner.email, settings.EMAIL_HOST_USER],
             html_message=get_template('signup/email/email.html').render({"signup": self}),
         )
         return bill
@@ -73,7 +73,7 @@ class Signup(models.Model):
                 subject="Mddification d'inscription à dynamobile",
                 message=get_template('signup/email/email_modified.txt').render(),
                 from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[self.owner.email],
+                recipient_list=[self.owner.email, settings.EMAIL_HOST_USER],
                 html_message=get_template('signup/email/email_modified.html').render({"signup": self}),
             )
 
@@ -196,6 +196,6 @@ class Bill(models.Model):
             subject="Confirmation d'inscription à dynamobile",
             message=get_template('signup/email/email_confirmation.txt').render(),
             from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[self.signup.owner.email],
+            recipient_list=[self.signup.owner.email, settings.EMAIL_HOST_USER],
             html_message=get_template('signup/email/email_confirmation.html').render({"signup": self.signup}),
         )
