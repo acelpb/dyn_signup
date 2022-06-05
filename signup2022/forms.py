@@ -3,6 +3,7 @@ from datetime import date
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory
+from django.template.defaultfilters import title
 
 from .models import Participant, Signup
 
@@ -17,6 +18,16 @@ class DatePickerInput(forms.DateInput):
             return value.isoformat()
         else:
             return value
+
+
+def ensure_mixed_case(name: str):
+    """Ensure that a name contains mixed case,
+      otherwise apply the title filter of Django.
+      """
+    if name == name.upper() or name == name.lower():
+        return title(name)
+    else:
+        return name
 
 
 class ParticipantForm(forms.ModelForm):
@@ -34,6 +45,19 @@ class ParticipantForm(forms.ModelForm):
             "country",
             'vae',
         )
+
+    def clean_first_name(self):
+        value = self.cleaned_data['first_name']
+        return ensure_mixed_case(value)
+
+    def clean_last_name(self):
+        value = self.cleaned_data['last_name']
+        return ensure_mixed_case(value)
+
+    def clean_country(self):
+        value = self.cleaned_data['country']
+        return ensure_mixed_case(value)
+
 
 
 ParticipantFormSet = inlineformset_factory(
