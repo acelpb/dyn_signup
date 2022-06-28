@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db import transaction
 from django.db.models import Case, When, Value, Count
 from django.forms import inlineformset_factory
@@ -126,4 +126,13 @@ class KitchenView(TemplateView):
         for _, day_formatted in settings.DYNAMOBILE_DAYS:
             context['days'][day_formatted]['total'] = sum(context['days'][day_formatted].values())
 
+        return super().get_context_data(**context)
+
+
+class PhilippesParticipantListView(PermissionRequiredMixin, TemplateView):
+    template_name = "signup/philippes_participant_list.html"
+    permission_required = ['is_admin']
+
+    def get_context_data(self, **context):
+        context['participants'] = Participant.objects.filter(signup_group__validated_at__isnull=False)
         return super().get_context_data(**context)

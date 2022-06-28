@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import HomePage, GroupEditView, GroupReviewView, ParticipantEditView, CompletedSignupView, KitchenView
+from .views import HomePage, GroupEditView, GroupReviewView, ParticipantEditView, CompletedSignupView, KitchenView, PhilippesParticipantListView
 
 urlpatterns = [
     path("", HomePage.as_view(), name="index"),
@@ -9,4 +9,5 @@ urlpatterns = [
     path("signup-3/", ParticipantEditView.as_view(), name="day_edit"),
     path("review/", CompletedSignupView.as_view(), name="completed_signup"),
     path("kitchen/", KitchenView.as_view(), name="kitchen"),
+    path("_secret_participants/", PhilippesParticipantListView.as_view(), name="secret"),
 ]
