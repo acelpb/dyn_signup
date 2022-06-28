@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import Case, When, Value, Count
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -68,15 +69,14 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
     def form_valid(self, form):
         participants = list(self.get_object().participant_set.all())
         for participant in participants:
-            for day, _ in settings.DYNAMOBILE_DAYS:
-                participant.d2022_07_18 = True
-                participant.d2022_07_19 = True
-                participant.d2022_07_20 = True
-                participant.d2022_07_21 = True
-                participant.d2022_07_22 = True
-                participant.d2022_07_23 = True
-                participant.d2022_07_24 = True
-                participant.d2022_07_25 = True
+            participant.d2022_07_18 = True
+            participant.d2022_07_19 = True
+            participant.d2022_07_20 = True
+            participant.d2022_07_21 = True
+            participant.d2022_07_22 = True
+            participant.d2022_07_23 = True
+            participant.d2022_07_24 = True
+            participant.d2022_07_25 = True
         self.object.validated_at = timezone.now()
         with transaction.atomic():
             Participant.objects.bulk_update(participants, fields=(
@@ -101,3 +101,29 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
 
     def get_object(self, queryset=None):
         return Signup.objects.filter(owner=self.request.user).first()
+
+
+class KitchenView(TemplateView):
+    template_name = "signup/kitchen.html"
+
+    def get_context_data(self, **context):
+        def _get_x_years_before(x):
+            return settings.DYNAMOBILE_LAST_DAY.replace(year=settings.DYNAMOBILE_LAST_DAY.year - x)
+
+        context['days'] = {
+            day_formatted: {k: v for k, v in Participant.objects.filter(
+                signup_group__validated_at__isnull=False,
+                **{'d' + day_formatted.replace('-', '_'): True}
+            ).values(age_group=Case(
+                When(birthday__gte=_get_x_years_before(6), then=Value('a0_6')),
+                When(birthday__gte=_get_x_years_before(12), then=Value('a6_12')),
+                When(birthday__gte=_get_x_years_before(18), then=Value('a12_18')),
+                default=Value('a18plus')),
+            ).annotate(participants=Count("age_group")).values_list('age_group', "participants")
+                            }
+            for day, day_formatted in settings.DYNAMOBILE_DAYS
+        }
+        for _, day_formatted in settings.DYNAMOBILE_DAYS:
+            context['days'][day_formatted]['total'] = sum(context['days'][day_formatted].values())
+
+        return super().get_context_data(**context)

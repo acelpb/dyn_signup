@@ -182,7 +182,7 @@ DYNAMOBILE_END_SIGNUP = parse_datetime("2022-05-20 17:00:00").replace(
     tzinfo=brussels_tz
 )
 DYNAMOBILE_FIRST_DAY = parse_date("2022-07-18")
-DYNAMOBILE_LAST_DAY = parse_date("2022-07-23")
+DYNAMOBILE_LAST_DAY = parse_date("2022-07-25")
 
 DYNAMOBILE_DAYS = [
     (day, day.strftime("%Y-%m-%d"))
