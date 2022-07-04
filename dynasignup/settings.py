@@ -214,3 +214,8 @@ DYNAMOBILE_PRICES = (
     (12, 18, 240, 30),
     (18, 999, 325, 40),
 )
+
+
+OVH_API_KEY = config("OVH_API_KEY", default="")
+OVH_API_SECRET = config("OVH_API_SECRET", default="")
+OVH_API_CONSUMER = config("OVH_API_CONSUMER", default="")
