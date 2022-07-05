@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     "bootstrap4",
     'magiclink',
+    "accounts",
     "signup2022.apps.Signup2022Config",
 ]
 
