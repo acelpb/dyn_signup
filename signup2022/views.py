@@ -1,7 +1,10 @@
+import datetime
+
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db import transaction
-from django.db.models import Case, When, Value, Count
+from django.db.models import Case, When, Value, Count, IntegerField, DateField, F, ExpressionWrapper, Q
+from django.db.models.functions import ExtractDay, Now, ExtractYear, Ceil, Sign, ExtractMonth, Cast, Coalesce
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -134,5 +137,16 @@ class PhilippesParticipantListView(PermissionRequiredMixin, TemplateView):
     permission_required = ['is_admin']
 
     def get_context_data(self, **context):
-        context['participants'] = Participant.objects.filter(signup_group__validated_at__isnull=False)
+        now = timezone.now()
+        context['participants'] = Participant.objects.filter(signup_group__validated_at__isnull=False).alias(
+            birth_year=ExtractYear('birthday'),
+            birth_month=ExtractMonth('birthday'),
+            birth_day=ExtractDay('birthday'),
+        ).annotate(
+            age=Value(now.year) - F('birth_year') - Cast(
+                Q(birth_month__gt=Value(now.month)) |
+                Q(birth_month__exact=Value(now.month), birth_day__gte=Value(now.day)),
+                output_field=IntegerField()
+            )
+        )
         return super().get_context_data(**context)
