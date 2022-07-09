@@ -1,10 +1,12 @@
 from django.contrib import admin
-from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper, Value, DecimalField
+from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper
+from import_export.admin import ImportMixin
 
-from .models import Operation, OperationValidation, Account
-
-
+from .format import BPostCSV
+from .models import Operation, Account, OperationValidation
 # Register your models here.
+from .resource import OperationResource
+
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
@@ -12,7 +14,9 @@ class AccountAdmin(admin.ModelAdmin):
 
 
 @admin.register(Operation)
-class OperationAdmin(admin.ModelAdmin):
+class OperationAdmin(ImportMixin, admin.ModelAdmin):
+    resource_class = OperationResource
+
     list_display = (
         "number",
         "date",
@@ -37,6 +41,7 @@ class OperationAdmin(admin.ModelAdmin):
 
     def justified(self, inst):
         return inst._justified
+
     justified.boolean = True
     justified.admin_order_field = '_justified'
 
@@ -44,7 +49,10 @@ class OperationAdmin(admin.ModelAdmin):
         if obj is None:
             return False
         else:
-            return False
+            return super().has_change_permission(())
+
+    def get_import_formats(self):
+        return [BPostCSV]
 
 
 @admin.register(OperationValidation)

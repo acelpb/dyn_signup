@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "bootstrap4",
     'magiclink',
     "accounts",
+    "import_export",
     "signup2022.apps.Signup2022Config",
 ]
 

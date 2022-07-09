@@ -1,6 +1,4 @@
-from csv import reader
 # Create your models here.
-from datetime import datetime
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -35,39 +33,6 @@ class Operation(models.Model):
         unique_together = (
             ('year', 'number')
         )
-
-    @staticmethod
-    def import_from_bpost_export(filename):
-        with open(filename, "r", encoding='utf-8-sig') as csv_file:
-            csv_reader = reader(csv_file, delimiter=';')
-            _, iban, account_type = next(csv_reader)
-            account, _ = Account.objects.get_or_create(IBAN=iban, defaults={
-                'name': account_type,
-            })
-            # remove_headers
-            next(csv_reader)
-            operations = []
-            for row in csv_reader:
-                (number, date, description,
-                 amount, currency, effective_date,
-                 counterparty_IBAN, counterparty_name, *communication,
-                 reference, _) = row
-                print(number)
-                transaction_date = datetime.strptime(date, "%Y-%m-%d")
-                operations.append(Operation(
-                    account=account,
-                    number=number,
-                    year=transaction_date.year,
-                    date=transaction_date,
-                    description=description,
-                    amount=float(amount.replace(',', '.')),
-                    currency=currency,
-                    effective_date=datetime.strptime(effective_date, "%d/%m/%Y"),
-                    counterparty_IBAN=counterparty_IBAN,
-                    counterparty_name=counterparty_name,
-                    communication='\n'.join(communication),
-                    reference=reference))
-            Operation.objects.bulk_create(operations)
 
     def __str__(self):
         return f"{self.year} {self.number} - {self.amount}€ - {self.counterparty_name}"
