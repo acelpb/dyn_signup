@@ -1,0 +1,11 @@
+Django~=3.2
+pytest-bdd~=5.0.0
+tablib~=3.2.1
+ovh~=1.0.0
+whitenoise
+django-crispy-forms
+django-bootstrap4
+django-magiclink
+django-import-export
+gunicorn
+python-decouple
