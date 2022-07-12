@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from import_export import resources
+from import_export.admin import ExportMixin
 
 from .models import Participant, Signup, Bill
 
@@ -90,8 +92,18 @@ class SignupDayFilter(SimpleListFilter):
             return queryset.distinct().filter(**{self.value(): True})
 
 
+class ParticipantResource(resources.ModelResource):
+
+    class Meta:
+        model = Participant
+
+
 @admin.register(Participant)
-class ParticipantAdmin(admin.ModelAdmin):
+class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
+    resource_class = ParticipantResource
+
+    ordering = ("last_name", "first_name")
+
     list_display = (
         'id',
         "signup_link",

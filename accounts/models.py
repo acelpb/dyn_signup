@@ -4,6 +4,9 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.functional import cached_property
+
+from signup2022.models import Signup
 
 
 class Account(models.Model):
@@ -49,3 +52,20 @@ class OperationValidation(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     event = GenericForeignKey()
+
+
+class SignupOperationManager(models.Manager):
+
+    @cached_property
+    def content_type(self):
+        return ContentType.objects.get_for_model(Signup)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(content_type=self.content_type)
+
+
+class SignupOperation(OperationValidation):
+    objects = SignupOperationManager()
+
+    class Meta:
+        proxy = True

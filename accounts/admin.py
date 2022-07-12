@@ -3,7 +3,8 @@ from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper
 from import_export.admin import ImportMixin
 
 from .format import BPostCSV
-from .models import Operation, Account, OperationValidation
+from .forms import SignupOperationForm
+from .models import Operation, Account, OperationValidation, SignupOperation
 # Register your models here.
 from .resource import OperationResource
 
@@ -47,9 +48,9 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None, **kwargs):
         if obj is None:
-            return False
+            return super().has_change_permission(request, **kwargs)
         else:
-            return super().has_change_permission(())
+            return False
 
     def get_import_formats(self):
         return [BPostCSV]
@@ -69,3 +70,25 @@ class OperationValidationAdmin(admin.ModelAdmin):
             return ['operation', 'amount', 'event']
         else:
             return super().get_readonly_fields(request, obj)
+
+
+@admin.register(SignupOperation)
+class InscriptionValidationAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'operation',
+        'amount',
+        'signup_group',
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            return ['operation', 'amount', 'event']
+        else:
+            return super().get_readonly_fields(request, obj)
+
+    def get_form(self, request, obj=None, change=False, **kwargs):
+        return SignupOperationForm
+
+    def signup_group(self, instance):
+        return instance.object_id
