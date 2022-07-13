@@ -1,6 +1,7 @@
+from datetime import timezone
+
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from django.core.exceptions import PermissionDenied
 from django.urls import reverse, path
 from django.utils.safestring import mark_safe
 from import_export import resources
@@ -53,7 +54,6 @@ class SignupAdmin(admin.ModelAdmin):
                 str(obj.bill.ballance)
             )
             return mark_safe(link)
-
 
 
 class SignupStatusFilter(SimpleListFilter):
@@ -168,6 +168,12 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         return mark_safe(link)
 
 
+@admin.action(description='Send payment confirmation email')
+def send_confirmation(modeladmin, request, queryset):
+    for el in queryset:
+        el.payed_at = timezone.now()
+        el.amount_payed_at = el.amount - el.ballance
+        el.send_confirmation_email()
 
 
 @admin.register(Bill)
@@ -179,6 +185,8 @@ class SignupAdmin(admin.ModelAdmin):
         ("payed_at", admin.EmptyFieldListFilter),
     )
 
+    actions = [send_confirmation]
+
     def signup_link(self, obj: Bill):
         signup: Signup = obj.signup
         link = "<a href={}>{}</a>".format(
@@ -188,4 +196,3 @@ class SignupAdmin(admin.ModelAdmin):
             str(signup)
         )
         return mark_safe(link)
-
