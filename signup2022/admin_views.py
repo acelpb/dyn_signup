@@ -55,7 +55,7 @@ class SyncMailingListFormView(AdminRequiredMixin, views.generic.FormView):
                                  'The following participants where added to the mailing list: ' + ", ".join(to_add))
         if form.cleaned_data["sync"] in {'both', 'remove'}:
             if not settings.DEBUG:
-                mailing_list.add_participants(to_remove)
+                mailing_list.remove_participants(to_remove)
             messages.add_message(self.request, messages.ERROR,
                                  'The following participants where removed from the mailing list: ' + ", ".join(
                                      to_remove))
