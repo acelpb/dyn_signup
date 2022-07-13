@@ -1,8 +1,7 @@
-#%%
-import logging
+# %%
 
-from django.conf import settings
 import ovh
+from django.conf import settings
 
 from signup2022.models import Participant
 
@@ -21,7 +20,6 @@ class MailingList:
     def get_all_members(self):
         return self._ovh.get(f'/email/domain/dynamobile.net/mailingList/{self.name}/subscriber')
 
-
     def check_mailing_list(self):
         mailing_list_participants = set(self.get_all_members())
         mailing_list_participants = {x.lower() for x in mailing_list_participants}
@@ -39,4 +37,6 @@ class MailingList:
         for participant in new_participants:
             if participant:
                 self._ovh.post(
-                    f'/email/domain/dynamobile.net/mailingList/{self.name}/subscriber/{participant}')
+                    f'/email/domain/dynamobile.net/mailingList/{self.name}/subscriber/',
+                    email=participant
+                )
