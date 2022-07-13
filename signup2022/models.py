@@ -2,7 +2,7 @@ import decimal
 
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db import models
+from django.db import models, transaction
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -183,6 +183,19 @@ class Participant(models.Model):
                 (last_day.month, last_day.day) < (birthday.month, birthday.day)
         )
 
+    @classmethod
+    def active_emails(cls):
+        """Get list of emails of all active particpants + signup_groups.
+
+        :return: List of emails: str for all active participants
+        """
+        active_participants = set(
+            cls.objects.filter(signup_group__validated_at__isnull=False).values_list("email", flat=True))
+        active_participants |= set(
+            Signup.objects.filter(validated_at__isnull=False).values_list('owner__email', flat=True))
+        active_participants.remove("")
+        return {x.lower() for x in active_participants}
+
 
 class Bill(models.Model):
     signup = models.OneToOneField(Signup, on_delete=models.CASCADE)
@@ -190,12 +203,3 @@ class Bill(models.Model):
     ballance = models.DecimalField(decimal_places=2, default=0, max_digits=10)
     created_at = models.DateTimeField(auto_now_add=True)
     payed_at = models.DateTimeField(default=None, null=True, blank=True)
-
-    def send_confirmation_email(self):
-        send_mail(
-            subject="Confirmation d'inscription à dynamobile",
-            message=get_template('signup/email/email_confirmation.txt').render(),
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[self.signup.owner.email, settings.EMAIL_HOST_USER],
-            html_message=get_template('signup/email/email_confirmation.html').render({"signup": self.signup}),
-        )

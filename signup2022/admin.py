@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from django.urls import reverse
+from django.core.exceptions import PermissionDenied
+from django.urls import reverse, path
 from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ExportMixin
 
+from .admin_views import SyncMailingListFormView
 from .models import Participant, Signup, Bill
 
 
@@ -100,6 +102,16 @@ class ParticipantResource(resources.ModelResource):
 @admin.register(Participant)
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
     resource_class = ParticipantResource
+    change_list_template = 'admin/signups/participant_changelist.html'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path('mailinglist/',
+                 self.admin_site.admin_view(SyncMailingListFormView.as_view()),
+                 name='%s_%s_mailinglist' % self.get_model_info()),
+        ]
+        return my_urls + urls
 
     ordering = ("last_name", "first_name")
 
@@ -138,6 +150,8 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
             str(signup)
         )
         return mark_safe(link)
+
+
 
 
 @admin.register(Bill)
