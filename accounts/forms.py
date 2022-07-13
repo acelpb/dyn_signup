@@ -7,9 +7,13 @@ from signup2022.models import Participant
 
 class SignupOperationForm(forms.ModelForm):
     operation = forms.ModelChoiceField(
-        queryset=Operation.objects.alias(
-            justified_amount=Sum('operationvalidation__amount') - F('amount')
-        ).all().filter(~Q(justified_amount__exact=0)) | Operation.objects.filter(operationvalidation__isnull=True)
+        queryset=(
+                Operation.objects.alias(
+                    justified_amount=Sum('operationvalidation__amount') - F('amount')
+                ).all().filter(~Q(justified_amount__exact=0))
+                |
+                Operation.objects.filter(operationvalidation__isnull=True)
+        ).filter(year=2022).order_by('-number')
     )
     participant = forms.ModelChoiceField(queryset=Participant.objects.all().order_by("first_name", "last_name"))
 
