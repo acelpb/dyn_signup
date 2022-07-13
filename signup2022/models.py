@@ -70,7 +70,7 @@ class Signup(models.Model):
             self.bill.amount = new_amount
             self.bill.save()
             send_mail(
-                subject="Mddification d'inscription à dynamobile",
+                subject="Moddification d'inscription à dynamobile",
                 message=get_template('signup/email/email_modified.txt').render(),
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[self.owner.email, settings.EMAIL_HOST_USER],

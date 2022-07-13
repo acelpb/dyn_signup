@@ -93,7 +93,6 @@ class SignupDayFilter(SimpleListFilter):
 
 
 class ParticipantResource(resources.ModelResource):
-
     class Meta:
         model = Participant
 
@@ -130,7 +129,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
     )
     fields = []
 
-    def signup_link(self, obj:Participant):
+    def signup_link(self, obj: Participant):
         signup: Signup = obj.signup_group
         link = "<a href={}>{}</a>".format(
             reverse(
@@ -140,16 +139,17 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         )
         return mark_safe(link)
 
+
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
     list_display = ('id', "signup_link", 'amount', 'ballance', 'payed_at', 'created_at',)
     fields = ('signup', 'amount', 'ballance', 'payed_at', 'created_at',)
-    readonly_fields = ('signup', 'created_at', )
+    readonly_fields = ('signup', 'created_at',)
     list_filter = (
         ("payed_at", admin.EmptyFieldListFilter),
     )
 
-    def signup_link(self, obj:Bill):
+    def signup_link(self, obj: Bill):
         signup: Signup = obj.signup
         link = "<a href={}>{}</a>".format(
             reverse(
