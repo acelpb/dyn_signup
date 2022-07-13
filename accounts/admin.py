@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper
 from import_export.admin import ImportMixin
 
@@ -12,6 +13,28 @@ from .resource import OperationResource
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'IBAN')
+
+
+class JustifiedFilter(SimpleListFilter):
+    title = "Opération vérifiée"
+    parameter_name = "justified"  # you can put anything here
+
+    def lookups(self, request, model_admin):
+        # This is where you create filter options; we have two:
+        return [
+            ("valid", "✓"),
+            ("unkown", "?"),
+            ("invalid", "❌"),
+        ]
+
+    def queryset(self, request, queryset):
+        filters = {
+            "valid": {'_justified': True},
+            "unkown": {'_justified__isnull': True},
+            "invalid": {'_justified': False},
+            None: {},
+        }
+        return queryset.distinct().filter(**filters[self.value()])
 
 
 @admin.register(Operation)
@@ -32,7 +55,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
     ordering = ("-year", '-number')
 
     date_hierarchy = "date"
-    list_filter = ("year", 'account__name')
+    list_filter = ("year", 'account__name', JustifiedFilter)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
