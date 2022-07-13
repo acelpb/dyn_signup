@@ -173,6 +173,7 @@ def send_confirmation(modeladmin, request, queryset):
     for el in queryset:
         el.payed_at = timezone.now()
         el.amount_payed_at = el.amount - el.ballance
+        el.save()
         el.send_confirmation_email()
 
 
