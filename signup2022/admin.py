@@ -39,8 +39,21 @@ class ParticipantDaysInline(admin.TabularInline):
 
 @admin.register(Signup)
 class SignupAdmin(admin.ModelAdmin):
-    list_display = ('id', 'owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial')
+    list_display = ('id', 'owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', "still_to_be_payed")
+    fields = ('owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', 'still_to_be_payed')
+    readonly_fields = ('still_to_be_payed',)
     inlines = [ParticipantInfoInline, ParticipantDaysInline]
+
+    def still_to_be_payed(self, obj: Signup):
+        if obj.bill:
+            link = "<a href={}>{}</a>".format(
+                reverse(
+                    'admin:{}_{}_change'.format(Bill._meta.app_label, Bill._meta.model_name),
+                    args=(obj.bill.id,)),
+                str(obj.bill.ballance)
+            )
+            return mark_safe(link)
+
 
 
 class SignupStatusFilter(SimpleListFilter):
@@ -55,6 +68,7 @@ class SignupStatusFilter(SimpleListFilter):
             ("partial", "On Hold Partial"),
             ("validated", "Confirmé"),
             ("payed", "Payé"),
+            ('cancelled', "Annulé")
         ]
 
     def queryset(self, request, queryset):
@@ -65,8 +79,10 @@ class SignupStatusFilter(SimpleListFilter):
             "validated": {
                 'signup_group__validated_at__isnull': False,
                 'signup_group__on_hold': False,
+                'signup_group__cancelled_at__isnull': True,
             },
             "payed": {'signup_group__bill__ballance__lte': 0},
+            "cancelled": {'signup_group__cancelled_at__isnull': False},
             None: {},
         }
         return queryset.distinct().filter(**filters[self.value()])
@@ -172,3 +188,4 @@ class SignupAdmin(admin.ModelAdmin):
             str(signup)
         )
         return mark_safe(link)
+

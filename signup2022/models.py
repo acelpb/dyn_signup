@@ -190,9 +190,11 @@ class Participant(models.Model):
         :return: List of emails: str for all active participants
         """
         active_participants = set(
-            cls.objects.filter(signup_group__validated_at__isnull=False).values_list("email", flat=True))
+            cls.objects.filter(signup_group__validated_at__isnull=False,
+                               signup_group__cancelled_at__isnull=True).values_list("email", flat=True))
         active_participants |= set(
-            Signup.objects.filter(validated_at__isnull=False).values_list('owner__email', flat=True))
+            Signup.objects.filter(validated_at__isnull=False,
+                                  cancelled_at__isnull=True).values_list('owner__email', flat=True))
         active_participants.remove("")
         return {x.lower() for x in active_participants}
 
@@ -203,3 +205,13 @@ class Bill(models.Model):
     ballance = models.DecimalField(decimal_places=2, default=0, max_digits=10)
     created_at = models.DateTimeField(auto_now_add=True)
     payed_at = models.DateTimeField(default=None, null=True, blank=True)
+    amount_payed_at = models.DecimalField(decimal_places=2, default=0, max_digits=10)
+
+    def send_confirmation_email(self):
+        send_mail(
+            subject="Confirmation d'inscription à dynamobile",
+            message=get_template('signup/email/email_confirmation.txt').render(),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[self.signup.owner.email, settings.EMAIL_HOST_USER],
+            html_message=get_template('signup/email/email_confirmation.html').render({"signup": self.signup}),
+        )
