@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
 
@@ -26,13 +26,14 @@ def update_bill(sender, *, instance, **kwargs):
         instance.signup_group.update_bill()
 
 
-@receiver(post_save, sender=Bill)
+@receiver(pre_save, sender=Bill)
 def confirm_payment(sender, *, instance: Bill, **kwargs):
     if instance.payed_at is None and instance.ballance <= 0:
         instance.payed_at = timezone.now()
         instance.amount_payed_at = instance.amount - instance.ballance
         instance.save()
         instance.send_confirmation_email()
+
 
 @receiver(post_save, sender=SignupOperation)
 def confirm_payment(sender, *, instance: SignupOperation, **kwargs):
