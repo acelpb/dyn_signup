@@ -1,8 +1,8 @@
-from datetime import timezone
 
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.urls import reverse, path
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ExportMixin
