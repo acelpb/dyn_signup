@@ -2,6 +2,7 @@
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse, path
 from django.utils import timezone
 from django.utils.safestring import mark_safe
@@ -197,19 +198,16 @@ def send_confirmation(modeladmin, request, queryset):
         el.send_confirmation_email()
 
 
-
-
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
-    list_display = ('id', "signup_link", 'amount', 'ballance', 'payed_at', 'created_at',)
-    fields = ('signup', 'amount', 'ballance', 'payed_at', 'created_at',)
-    readonly_fields = ('signup', 'created_at',)
+    list_display = ('id', "signup_link", 'amount', 'ballance', 'calculated_to_pay', 'created_at', 'payed_at', "amount_payed_at", )
+    fields = ('signup', 'amount', 'ballance', "calculated_to_pay", 'payed_at', "amount_payed_at", 'created_at',)
+    readonly_fields = ('signup', 'created_at','payed_at', "amount_payed_at",  "calculated_to_pay")
     list_filter = (
         ("payed_at", admin.EmptyFieldListFilter),
     )
 
     actions = [send_confirmation]
-
 
     def signup_link(self, obj: Bill):
         signup: Signup = obj.signup
@@ -220,3 +218,8 @@ class SignupAdmin(admin.ModelAdmin):
             str(signup)
         )
         return mark_safe(link)
+
+    def calculated_to_pay(self, obj):
+        ct_type = ContentType.objects.get_for_model(Signup)
+        transfers = SignupOperation.objects.filter(object_id=obj.signup.id, content_type=ct_type)
+        return obj.amount - sum(transfers.values_list("amount", flat=True))
