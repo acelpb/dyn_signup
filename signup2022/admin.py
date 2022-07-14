@@ -1,12 +1,15 @@
 
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.urls import reverse, path
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.views import generic
 from import_export import resources
 from import_export.admin import ExportMixin
 
+from accounts.models import SignupOperation
 from .admin_views import SyncMailingListFormView
 from .models import Participant, Signup, Bill
 
@@ -38,12 +41,29 @@ class ParticipantDaysInline(admin.TabularInline):
     )
 
 
+class PaymentInline(GenericTabularInline):
+    verbose_name = "Payements liés"
+    model = SignupOperation
+    extra = 0
+    ct_field_name = 'content_type'
+    id_field_name = 'object_id'
+    readonly_fields = ('operation', 'amount',)
+    can_delete = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(Signup)
 class SignupAdmin(admin.ModelAdmin):
     list_display = ('id', 'owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', "still_to_be_payed")
-    fields = ('owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', 'still_to_be_payed')
-    readonly_fields = ('still_to_be_payed',)
-    inlines = [ParticipantInfoInline, ParticipantDaysInline]
+    fields = ('owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', 'amount', 'still_to_be_payed')
+    readonly_fields = ("amount", "still_to_be_payed",)
+    inlines = [PaymentInline, ParticipantInfoInline, ParticipantDaysInline]
+
+    def amount(self, obj: Signup):
+        if obj.bill:
+            return obj.bill.amount
 
     def still_to_be_payed(self, obj: Signup):
         if obj.bill:
@@ -177,6 +197,8 @@ def send_confirmation(modeladmin, request, queryset):
         el.send_confirmation_email()
 
 
+
+
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
     list_display = ('id', "signup_link", 'amount', 'ballance', 'payed_at', 'created_at',)
@@ -187,6 +209,7 @@ class SignupAdmin(admin.ModelAdmin):
     )
 
     actions = [send_confirmation]
+
 
     def signup_link(self, obj: Bill):
         signup: Signup = obj.signup
