@@ -58,7 +58,7 @@ class PaymentInline(GenericTabularInline):
 
 @admin.register(Signup)
 class SignupAdmin(admin.ModelAdmin):
-    list_display = ('id', 'owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', "still_to_be_payed")
+    list_display = ('id', 'owner', 'validated_at', 'cancelled_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', "still_to_be_payed")
     fields = ('owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', 'amount', 'still_to_be_payed')
     readonly_fields = ("amount", "still_to_be_payed",)
     inlines = [PaymentInline, ParticipantInfoInline, ParticipantDaysInline]
@@ -215,7 +215,8 @@ def reminder(modeladmin, request, queryset):
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
     list_display = (
-    'id', "signup_link", 'amount', 'ballance', 'calculated_to_pay', 'created_at', 'payed_at', "amount_payed_at",)
+    'id', "signup_link", 'amount', 'ballance', 'calculated_to_pay',
+    'created_at', 'cancelled_at', 'payed_at', "amount_payed_at",)
     fields = ('signup', 'amount', 'ballance', "calculated_to_pay", 'payed_at', "amount_payed_at", 'created_at',)
     readonly_fields = ('signup', 'created_at', 'payed_at', "amount_payed_at", "calculated_to_pay")
     list_filter = (
@@ -238,3 +239,6 @@ class SignupAdmin(admin.ModelAdmin):
         ct_type = ContentType.objects.get_for_model(Signup)
         transfers = SignupOperation.objects.filter(object_id=obj.signup.id, content_type=ct_type)
         return obj.amount - sum(transfers.values_list("amount", flat=True))
+
+    def cancelled_at(self, obj):
+        return obj.signup.cancelled_at
