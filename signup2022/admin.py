@@ -1,12 +1,13 @@
-
+from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail import send_mail
+from django.template.loader import get_template
 from django.urls import reverse, path
 from django.utils import timezone
 from django.utils.safestring import mark_safe
-from django.views import generic
 from import_export import resources
 from import_export.admin import ExportMixin
 
@@ -198,16 +199,30 @@ def send_confirmation(modeladmin, request, queryset):
         el.send_confirmation_email()
 
 
+@admin.action(description='Send payment reminder')
+def reminder(modeladmin, request, queryset):
+    for el in queryset:
+        if el.ballance > 0:
+            send_mail(
+                subject="Rappel de payement",
+                message=get_template('signup/email/payment_reminder.txt').render(),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[el.signup.owner.email, settings.EMAIL_HOST_USER],
+                html_message=get_template('signup/email/payment_reminder.html').render({"signup": el.signup}),
+            )
+
+
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
-    list_display = ('id', "signup_link", 'amount', 'ballance', 'calculated_to_pay', 'created_at', 'payed_at', "amount_payed_at", )
+    list_display = (
+    'id', "signup_link", 'amount', 'ballance', 'calculated_to_pay', 'created_at', 'payed_at', "amount_payed_at",)
     fields = ('signup', 'amount', 'ballance', "calculated_to_pay", 'payed_at', "amount_payed_at", 'created_at',)
-    readonly_fields = ('signup', 'created_at','payed_at', "amount_payed_at",  "calculated_to_pay")
+    readonly_fields = ('signup', 'created_at', 'payed_at', "amount_payed_at", "calculated_to_pay")
     list_filter = (
         ("payed_at", admin.EmptyFieldListFilter),
     )
 
-    actions = [send_confirmation]
+    actions = [send_confirmation, reminder]
 
     def signup_link(self, obj: Bill):
         signup: Signup = obj.signup
