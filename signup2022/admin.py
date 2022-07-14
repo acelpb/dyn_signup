@@ -59,7 +59,7 @@ class PaymentInline(GenericTabularInline):
 @admin.register(Signup)
 class SignupAdmin(admin.ModelAdmin):
     list_display = ('id', 'owner', 'validated_at', 'cancelled_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', "still_to_be_payed")
-    fields = ('owner', 'validated_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', 'amount', 'still_to_be_payed')
+    fields = ('owner', 'validated_at', 'cancelled_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', 'amount', 'still_to_be_payed')
     readonly_fields = ("amount", "still_to_be_payed",)
     inlines = [PaymentInline, ParticipantInfoInline, ParticipantDaysInline]
 
