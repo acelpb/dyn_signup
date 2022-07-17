@@ -15,13 +15,18 @@ def create_bill(sender, *, instance, **kwargs):
         except Signup.bill.RelatedObjectDoesNotExist as err:
             instance.create_bill()
     if group.cancelled_at is not None:
-        group.participant_set.delete()
+        group.participant_set.all().delete()
+        group.send_cancellation_email()
+
+
 
 
 @receiver(post_save, sender=Participant)
 @receiver(post_delete, sender=Participant)
 def update_bill(sender, *, instance, **kwargs):
     signup = instance.signup_group
+    if signup.cancelled_at:
+        return
     if signup.validated_at is not None and signup.on_hold is False and hasattr(signup, "bill"):
         instance.signup_group.update_bill()
 
