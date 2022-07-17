@@ -16,7 +16,6 @@ def create_bill(sender, *, instance, **kwargs):
             instance.create_bill()
     if group.cancelled_at is not None:
         group.participant_set.all().delete()
-        group.send_cancellation_email()
 
 
 
