@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'magiclink',
     "accounts",
     "import_export",
+    "django_tables2",
     "signup2022.apps.Signup2022Config",
 ]
 

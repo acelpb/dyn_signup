@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_utils %}
+{% load crispy_forms_field %}
+{% load i18n %}
+{% load render_table from django_tables2 %}
+
+{% block content %}
+    {% render_table table %}
+{% endblock %}

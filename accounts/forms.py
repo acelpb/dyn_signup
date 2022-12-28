@@ -1,8 +1,9 @@
-from django import forms
+from django import forms, db
+from django.db import transaction
 from django.db.models import Sum, F, Q
 
-from accounts.models import SignupOperation, Operation
-from signup2022.models import Participant
+from accounts.models import SignupOperation, Operation, Bill, OperationValidation
+from signup2022.models import Participant, Signup
 
 
 class SignupOperationForm(forms.ModelForm):
@@ -24,3 +25,33 @@ class SignupOperationForm(forms.ModelForm):
     class Meta:
         model = SignupOperation
         fields = ('operation', 'amount', 'participant')
+
+
+class LinkToBillForm(forms.Form):
+    operations = forms.ModelMultipleChoiceField(queryset=Operation.objects.all())
+    bill = forms.ModelChoiceField(queryset=Bill.objects.all())
+
+    def save(self):
+        bill = self.cleaned_data['bill']
+        with transaction.atomic():
+            for operation in self.cleaned_data['operations']:
+                OperationValidation.objects.create(
+                    operation=operation,
+                    amount=operation.amount,
+                    event=bill
+                )
+
+
+class LinkToSignupForm(forms.Form):
+    operations = forms.ModelMultipleChoiceField(queryset=Operation.objects.all())
+    signup = forms.ModelChoiceField(queryset=Signup.objects.all())
+
+    def save(self):
+        signup = self.cleaned_data['signup']
+        with transaction.atomic():
+            for operation in self.cleaned_data['operations']:
+                OperationValidation.objects.create(
+                    operation=operation,
+                    amount=operation.amount,
+                    event=signup
+                )

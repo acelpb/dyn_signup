@@ -1,9 +1,10 @@
 # Create your models here.
 
 from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.datetime_safe import datetime
 from django.utils.functional import cached_property
 
 from signup2022.models import Signup
@@ -43,7 +44,7 @@ class Operation(models.Model):
 
 class OperationValidation(models.Model):
     "Each operation should be validated, this is done by validating the operation against another event in the db"
-    operation = models.ForeignKey("Operation", on_delete=models.CASCADE)
+    operation = models.ForeignKey("Operation", null=True, on_delete=models.CASCADE)
     # If there is a single justification, this will be equal to the peration,
     # but we can imagine that an operation is justified by multiple events.
     amount = models.DecimalField(max_digits=11, decimal_places=2)
@@ -69,3 +70,22 @@ class SignupOperation(OperationValidation):
 
     class Meta:
         proxy = True
+
+
+class ExpenseReport(models.Model):
+    title = models.CharField(max_length=255)
+    beneficiary = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=False)
+
+class Justification(OperationValidation):
+    file = models.FileField(blank=True, null=True)
+
+
+class Bill(models.Model):
+    name = models.CharField(max_length=255)
+    file = models.FileField(blank=True, null=True)
+    amount = models.DecimalField(max_digits=11, decimal_places=2)
+    date = models.DateField(default=datetime.now)
+    payments = GenericRelation(OperationValidation)
+
+    def __str__(self):
+        return self.name

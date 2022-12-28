@@ -1,15 +1,14 @@
-import datetime
-
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db import transaction
-from django.db.models import Case, When, Value, Count, IntegerField, DateField, F, ExpressionWrapper, Q
-from django.db.models.functions import ExtractDay, Now, ExtractYear, Ceil, Sign, ExtractMonth, Cast, Coalesce
+from django.db.models import Case, When, Value, Count, IntegerField, F, Q
+from django.db.models.functions import ExtractDay, ExtractYear, ExtractMonth, Cast
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import TemplateView, UpdateView, FormView, DetailView
+from django_tables2 import SingleTableView, Table
 
 from .forms import ParticipantFormSet, ParticipantForm, DaySignupFormset, ParticipantListReviewForm
 from .mixins import SignupStartedMixin
@@ -150,3 +149,25 @@ class PhilippesParticipantListView(PermissionRequiredMixin, TemplateView):
             )
         )
         return super().get_context_data(**context)
+
+
+class ParticipantTable(Table):
+    class Meta:
+        model = Participant
+        fields = (
+            'last_name',
+            'first_name',
+            'vae',
+        )
+        template_name = "django_tables2/bootstrap4.html"
+
+
+class AttendanceView(SingleTableView):
+    model = Participant
+    template_name = "signup/participant_table.html"
+    table_class = ParticipantTable
+
+    def get_queryset(self):
+        return super().get_queryset().filter(
+            **{"d" + self.kwargs['date'].isoformat().replace("-", "_"): True}
+        ).order_by('last_name', "first_name",)
