@@ -59,7 +59,7 @@ class SignupOperationManager(models.Manager):
 
     @cached_property
     def content_type(self):
-        return ContentType.objects.get_for_model(Signup)
+        return ContentType.objects.get_by_natural_key("signup2022", "bill")
 
     def get_queryset(self):
         return super().get_queryset().filter(content_type=self.content_type)
@@ -70,6 +70,8 @@ class SignupOperation(OperationValidation):
 
     class Meta:
         proxy = True
+        verbose_name = "paiement inscriptions 2022"
+        verbose_name_plural = "paiements inscriptions 2022"
 
 
 class ExpenseReport(models.Model):

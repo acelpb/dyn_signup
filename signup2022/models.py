@@ -22,8 +22,12 @@ class Signup(models.Model):
     on_hold_partial = models.BooleanField(default=False)
     cancelled_at = models.DateTimeField(default=None, null=True, blank=True)
 
+    class Meta:
+        verbose_name = 'Inscription'
+        verbose_name_plural = 'Inscriptions'
+
     def __str__(self):
-        return f"Groupe de {self.owner.username}"
+        return f"{self.owner.username}"
 
     def calculate_amount(self):
         child_nb = 0
@@ -149,6 +153,10 @@ class Participant(models.Model):
     d2022_07_24 = models.BooleanField(_("24-07"), default=False)
     d2022_07_25 = models.BooleanField(_("25-07"), default=False)
 
+    class Meta:
+        verbose_name = 'Participant'
+        verbose_name_plural = 'Participants'
+
     def complete_signup(self):
         return (
                 self.d2022_07_18 and
@@ -206,6 +214,13 @@ class Bill(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     payed_at = models.DateTimeField(default=None, null=True, blank=True)
     amount_payed_at = models.DecimalField(decimal_places=2, default=0, max_digits=10)
+
+    class Meta:
+        verbose_name = 'paiement'
+        verbose_name_plural = 'paiements'
+
+    def __str__(self):
+        return f"Paiements pour {self.signup}"
 
     def send_confirmation_email(self):
         send_mail(

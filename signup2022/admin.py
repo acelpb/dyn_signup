@@ -43,29 +43,23 @@ class ParticipantDaysInline(admin.TabularInline):
     )
 
 
-class PaymentInline(GenericTabularInline):
-    verbose_name = "Payements liés"
-    model = SignupOperation
-    extra = 0
-    ct_field_name = 'content_type'
-    id_field_name = 'object_id'
-    readonly_fields = ('operation', 'amount',)
-    can_delete = True
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
 @admin.register(Signup)
 class SignupAdmin(admin.ModelAdmin):
-    list_display = ('id', 'owner', 'validated_at', 'cancelled_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', "still_to_be_payed")
-    fields = ('owner', 'validated_at', 'cancelled_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', 'amount', 'still_to_be_payed')
+    list_display = (
+        'id', 'owner', 'participants', 'validated_at', 'cancelled_at', 'on_hold', 'on_hold_vae', 'on_hold_partial',
+        "still_to_be_payed")
+    fields = (
+        'owner', 'validated_at', 'cancelled_at', 'on_hold', 'on_hold_vae', 'on_hold_partial', 'amount',
+        'still_to_be_payed')
     readonly_fields = ("amount", "still_to_be_payed",)
-    inlines = [PaymentInline, ParticipantInfoInline, ParticipantDaysInline]
+    inlines = [ParticipantInfoInline, ParticipantDaysInline]
 
     def amount(self, obj: Signup):
         if obj.bill:
             return obj.bill.amount
+
+    def participants(self, obj: Signup):
+        return obj.participant_set.count()
 
     def still_to_be_payed(self, obj: Signup):
         if obj.bill:
@@ -140,7 +134,7 @@ class ParticipantResource(resources.ModelResource):
 @admin.register(Participant)
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
     resource_class = ParticipantResource
-    change_list_template = 'admin/signups/participant_changelist.html'
+    import_export_change_list_template = 'admin/signups/participant_changelist.html'
 
     def get_urls(self):
         urls = super().get_urls()
@@ -212,16 +206,31 @@ def reminder(modeladmin, request, queryset):
             )
 
 
+class PaymentInline(GenericTabularInline):
+    verbose_name = "Paiement lié"
+    verbose_name_plural = "Paiements liés"
+    model = SignupOperation
+    extra = 0
+    ct_field_name = 'content_type'
+    id_field_name = 'object_id'
+    readonly_fields = ('operation', 'amount',)
+    can_delete = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
     list_display = (
-    'id', "signup_link", 'amount', 'ballance', 'calculated_to_pay',
-    'created_at', 'cancelled_at', 'payed_at', "amount_payed_at",)
+        'id', "signup", 'amount', 'ballance', 'calculated_to_pay',
+        'created_at', 'cancelled_at', 'payed_at', "amount_payed_at",)
     fields = ('signup', 'amount', 'ballance', "calculated_to_pay", 'payed_at', "amount_payed_at", 'created_at',)
     readonly_fields = ('signup', 'created_at', 'payed_at', "amount_payed_at", "calculated_to_pay")
     list_filter = (
         ("payed_at", admin.EmptyFieldListFilter),
     )
+    inlines = [PaymentInline]
 
     actions = [send_confirmation, reminder]
 

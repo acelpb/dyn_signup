@@ -20,7 +20,7 @@ class SignupOperationForm(forms.ModelForm):
 
     def full_clean(self):
         super().full_clean()
-        self.instance.event = self.cleaned_data.pop("participant").signup_group
+        self.instance.event = self.cleaned_data.pop("participant").signup_group.bill
 
     class Meta:
         model = SignupOperation
