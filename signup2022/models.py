@@ -1,11 +1,19 @@
 import decimal
+import time
+from functools import cached_property
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
-from django.db import models, transaction
+from django.db import models
+from django.db.models import Subquery, OuterRef, F
+
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+from accounts.models import SignupOperation, OperationValidation
 
 
 # Create your models here.
@@ -30,25 +38,8 @@ class Signup(models.Model):
         return f"{self.owner.username}"
 
     def calculate_amount(self):
-        child_nb = 0
-        total_price = 0
-        for participant in self.participant_set.all().order_by('birthday'):
-            age = participant.age_at_dynamobile_end()
-            for min_age, max_age, all_days_price, upfront_price in settings.DYNAMOBILE_PRICES:
-                if age < max_age:
-                    if participant.complete_signup():
-                        price = upfront_price + all_days_price
-                    else:
-                        price = upfront_price + (all_days_price / 7 * participant.nb_of_days())
-
-                    if age < 18:
-                        price *= 1 - min(0.5, 0.25 * child_nb)
-                        child_nb += 1
-                    total_price += price
-                    break
-            else:
-                raise Exception('Apparently participant is older than 999.')
-        return total_price
+        return self.bill.amount or 0
+        raise Exception("Don't use this anymore")
 
     def create_bill(self):
         amount = self.calculate_amount()
@@ -74,7 +65,7 @@ class Signup(models.Model):
             self.bill.amount = new_amount
             self.bill.save()
             send_mail(
-                subject="Moddification d'inscription à dynamobile",
+                subject="Modification d'inscription à dynamobile",
                 message=get_template('signup/email/email_modified.txt').render(),
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[self.owner.email, settings.EMAIL_HOST_USER],
@@ -207,13 +198,30 @@ class Participant(models.Model):
         return {x.lower() for x in active_participants}
 
 
+class BillManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().annotate(
+            payed=models.Sum('payments__amount')
+        ).annotate(
+            ballance=F('amount') - F("payed")
+        )
+
+
 class Bill(models.Model):
     signup = models.OneToOneField(Signup, on_delete=models.CASCADE)
     amount = models.DecimalField(decimal_places=2, default=0, max_digits=10)
-    ballance = models.DecimalField(decimal_places=2, default=0, max_digits=10)
+
     created_at = models.DateTimeField(auto_now_add=True)
     payed_at = models.DateTimeField(default=None, null=True, blank=True)
     amount_payed_at = models.DecimalField(decimal_places=2, default=0, max_digits=10)
+    calculation = models.TextField(blank=True, default="")
+    calculated_amount = models.DecimalField(decimal_places=2, default=0, max_digits=10, null=True)
+    corrected_amount = models.DecimalField(decimal_places=2, default=0, max_digits=10, null=True)
+
+    payments = GenericRelation(OperationValidation)
+
+    objects = BillManager()
 
     class Meta:
         verbose_name = 'paiement'
@@ -223,6 +231,9 @@ class Bill(models.Model):
         return f"Paiements pour {self.signup}"
 
     def send_confirmation_email(self):
+        if timezone.now().date() > settings.DYNAMOBILE_LAST_DAY:
+            # don't send emails after the end of dynamobile.
+            return
         send_mail(
             subject="Confirmation d'inscription à dynamobile",
             message=get_template('signup/email/email_confirmation.txt').render(),
@@ -230,3 +241,34 @@ class Bill(models.Model):
             recipient_list=[self.signup.owner.email, settings.EMAIL_HOST_USER],
             html_message=get_template('signup/email/email_confirmation.html').render({"signup": self.signup}),
         )
+
+    def calculate_amount_and_explain(self):
+        description = ""
+        child_nb = 0
+        total_price = 0
+        for participant in self.signup.participant_set.all().order_by('birthday'):
+            age = participant.age_at_dynamobile_end()
+            description += f"prix pour {participant.first_name} {participant.last_name}: "
+            for min_age, max_age, all_days_price, upfront_price in settings.DYNAMOBILE_PRICES:
+                if age < max_age:
+                    if participant.complete_signup():
+                        price = upfront_price + all_days_price
+                        description += f"(totalité) {upfront_price} + {all_days_price} "
+                    else:
+                        nb_days = participant.nb_of_days()
+                        price = upfront_price + (all_days_price / 7 * nb_days)
+                        description += f"(partiel) {upfront_price} + {all_days_price} / 7 * {nb_days} "
+
+                    if age < 18:
+                        child_reduction = min(0.5, 0.25 * child_nb)
+                        price *= 1 - child_reduction
+                        child_nb += 1
+                        description += f"enfant {child_nb} réduction {child_reduction:.0%} "
+
+                    total_price += price
+                    description += f"        = {price:.2f}€\n"
+                    break
+            else:
+                raise Exception('Apparently participant is older than 999.')
+        description += f"total: {total_price:.2f}€"
+        return (total_price, description)

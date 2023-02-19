@@ -32,18 +32,18 @@ def update_bill(sender, *, instance, **kwargs):
 
 @receiver(pre_save, sender=Bill)
 def confirm_payment(sender, *, instance: Bill, **kwargs):
-    if instance.payed_at is None and instance.ballance <= 0:
+    ballance = instance.amount - sum(instance.payments.all().values_list("amount", flat=True))
+    if instance.payed_at is None and ballance <= 0:
         instance.payed_at = timezone.now()
-        instance.amount_payed_at = instance.amount - instance.ballance
+        instance.amount_payed_at = instance.amount - ballance
         instance.save()
         instance.send_confirmation_email()
 
 
 @receiver(post_save, sender=SignupOperation)
 def confirm_payment(sender, *, instance: SignupOperation, **kwargs):
-    bill = instance.event.bill
+    bill = instance.event
     if bill.payed_at and bill.amount_payed_at == instance.amount:
         pass
     else:
-        bill.ballance -= instance.amount
         bill.save()

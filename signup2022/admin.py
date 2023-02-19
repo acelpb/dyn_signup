@@ -1,9 +1,8 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from django.contrib.contenttypes.admin import GenericTabularInline
-from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
+from django.db.models import Sum, F, Q
 from django.template.loader import get_template
 from django.urls import reverse, path
 from django.utils import timezone
@@ -11,7 +10,7 @@ from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ExportMixin
 
-from accounts.models import SignupOperation
+from accounts.admin import PaymentInline
 from .admin_views import SyncMailingListFormView
 from .models import Participant, Signup, Bill
 
@@ -54,6 +53,11 @@ class SignupAdmin(admin.ModelAdmin):
     readonly_fields = ("amount", "still_to_be_payed",)
     inlines = [ParticipantInfoInline, ParticipantDaysInline]
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).annotate(
+            payed=Sum('bill__payments__amount')
+        ).annotate(ballance=F("bill__amount") - F("payed"))
+
     def amount(self, obj: Signup):
         if obj.bill:
             return obj.bill.amount
@@ -67,10 +71,11 @@ class SignupAdmin(admin.ModelAdmin):
                 reverse(
                     'admin:{}_{}_change'.format(Bill._meta.app_label, Bill._meta.model_name),
                     args=(obj.bill.id,)),
-                str(obj.bill.ballance)
+                f"{obj.ballance:.2f} €" if obj.ballance else "0€"
             )
             return mark_safe(link)
 
+    still_to_be_payed.admin_order_field = 'ballance'
 
 class SignupStatusFilter(SimpleListFilter):
     title = "Statut de l'inscription"
@@ -206,29 +211,36 @@ def reminder(modeladmin, request, queryset):
             )
 
 
-class PaymentInline(GenericTabularInline):
-    verbose_name = "Paiement lié"
-    verbose_name_plural = "Paiements liés"
-    model = SignupOperation
-    extra = 0
-    ct_field_name = 'content_type'
-    id_field_name = 'object_id'
-    readonly_fields = ('operation', 'amount',)
-    can_delete = True
+class PriceIsOddFilter(SimpleListFilter):
+    title = "Prix calculé"
+    parameter_name = "price_diff"
 
-    def has_add_permission(self, request, obj=None):
-        return False
+    def lookups(self, request, model_admin):
+        # This is where you create filter options; we have two:
+        return [
+            ("different", "Prix calculé et montant divergent."),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.annotate(
+                diff=F("amount") - F("calculated_amount")
+            ).filter(~Q(diff=0))
 
 
 @admin.register(Bill)
 class SignupAdmin(admin.ModelAdmin):
     list_display = (
-        'id', "signup", 'amount', 'ballance', 'calculated_to_pay',
-        'created_at', 'cancelled_at', 'payed_at', "amount_payed_at",)
-    fields = ('signup', 'amount', 'ballance', "calculated_to_pay", 'payed_at', "amount_payed_at", 'created_at',)
-    readonly_fields = ('signup', 'created_at', 'payed_at', "amount_payed_at", "calculated_to_pay")
+        'id', "signup", 'amount', 'calculated_amount', 'ballance',
+        'created_at', 'cancelled_at', 'payed_at',)
+    fields = (
+        'signup', 'amount', 'calculated_amount', 'ballance', 'payed_at',
+        'created_at',
+        'calculation')
+    readonly_fields = ('signup', 'ballance', 'calculated_amount', 'created_at', 'payed_at', "amount_payed_at",)
     list_filter = (
         ("payed_at", admin.EmptyFieldListFilter),
+        PriceIsOddFilter,
     )
     inlines = [PaymentInline]
 
@@ -244,10 +256,11 @@ class SignupAdmin(admin.ModelAdmin):
         )
         return mark_safe(link)
 
-    def calculated_to_pay(self, obj):
-        ct_type = ContentType.objects.get_for_model(Signup)
-        transfers = SignupOperation.objects.filter(object_id=obj.signup.id, content_type=ct_type)
-        return obj.amount - sum(transfers.values_list("amount", flat=True))
-
     def cancelled_at(self, obj):
         return obj.signup.cancelled_at
+
+    def ballance(self, obj):
+        if obj.ballance is not None:
+            return f"{obj.ballance:.2f}"
+
+    ballance.admin_order_field = "ballance"
