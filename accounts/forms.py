@@ -53,5 +53,5 @@ class LinkToSignupForm(forms.Form):
                 OperationValidation.objects.create(
                     operation=operation,
                     amount=operation.amount,
-                    event=signup
+                    event=signup.bill
                 )

@@ -11,6 +11,9 @@ from accounts.models import Account
 class BPostCSV(Format):
     CONTENT_TYPE = 'text/csv'
 
+    def __init__(self, encoding=None):
+        super().__init__()
+
     def get_title(self):
         return "csv extract from bpost"
 

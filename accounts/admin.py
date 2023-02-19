@@ -1,5 +1,6 @@
 from django.contrib import admin
-from django.contrib.admin import SimpleListFilter
+from django.contrib.admin import SimpleListFilter, TabularInline
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper
 from django.http import HttpResponseRedirect
 from django.urls import path, reverse
@@ -11,6 +12,33 @@ from .forms import SignupOperationForm
 from .models import Operation, Account, OperationValidation, SignupOperation, Justification, Bill
 # Register your models here.
 from .resource import OperationResource
+
+
+class PaymentInline(GenericTabularInline):
+    verbose_name = "Paiement lié"
+    verbose_name_plural = "Paiements liés"
+    model = OperationValidation
+    extra = 0
+    ct_field_name = 'content_type'
+    id_field_name = 'object_id'
+    readonly_fields = ('operation', 'amount',)
+    can_delete = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+class JustificationInline(TabularInline):
+    verbose_name = "Paiement lié"
+    verbose_name_plural = "Paiements liés"
+    model = OperationValidation
+    extra = 0
+    readonly_fields = ('operation', 'amount',)
+    can_delete = True
+    can_edit = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
 
 
 @admin.register(Account)
@@ -60,6 +88,8 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
 
     date_hierarchy = "date"
     list_filter = ("year", 'account__name', JustifiedFilter)
+
+    inlines = [JustificationInline]
 
     actions = ["link_selected_operations_to_bill", "link_selected_operations_to_signup"]
 
@@ -178,3 +208,5 @@ class BillAdmin(admin.ModelAdmin):
 
     payed.boolean = True
     payed.admin_order_field = '_payed'
+
+

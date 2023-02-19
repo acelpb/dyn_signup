@@ -6,8 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.datetime_safe import datetime
 from django.utils.functional import cached_property
-
-from signup2022.models import Signup
+from django.utils.translation import gettext as _
 
 
 class Account(models.Model):
@@ -42,6 +41,49 @@ class Operation(models.Model):
         return f"{self.year} {self.number} - {self.amount}€ - {self.counterparty_name}"
 
 
+class ExpenditureChoices(models.IntegerChoices):
+    # 60 Sourcing and merch
+    EQUIPMENT = 6010, _('matériel')
+    EQUIPMENT_RENTAL = 6015, _('location de matériel')
+    MOBILE_KITCHEN = 6030, _('cuisine mobile')
+    SNACK = 6031, _('encas / collations')
+    MERCH = 6041, _('marchandises(t-shirts etc)')
+    # 61 goods and services
+    ROOM_RENTAL = 6104, _('location salles')
+    MEETING_EXPENSES = 6111, _('frais réunions')
+    OFFICE_SUPPLIES = 6120, _('fournitures bureau')
+    POST = 6124, _('poste')
+    CULTURAL_ACTIVITIES = 6131, _('activités culturelles')
+    PHOTOCOPY = 6132, _('photocopies')
+    CONFERENCES = 6133, _('conférences communiqués presse')
+    BOOKLET = 6135, _("brochures")
+    SPORT_ACTIVITIES = 6136, _('activités sportives')
+    GROUP_INSURANCE = 6141, _('assurance sportive groupe')
+    GOODWILL = 6142, _('goodwill - cadeaux')
+    ORGANISER_TRANSPORT = 6150, _('transport organisateurs')
+    ORGANISER_KM_ALLOWANCE = 6151, _('indemnités km organisateurs')
+    ORGANISER_ROOM_BOARD = 6152, _('logement repas organisateurs')
+    CAR_FOLLOWING = 6153, _('voitures suiveuses')
+    PARTICIPANT_TRANSPORT = 6154, _('transport participants')
+    PARTICIPANT_HOUSING = 6156, _('logement participants')
+    TELECOM = 6160, _('telecom')
+    WEBSITE = 6161, _('site web')
+    DOC_MAPS = 6171, _('documentation - cartes')
+    TRAINING = 6173, _('formation')
+    # 65 OTHER
+    BANK_FEES = 6501, _('frais bancaires')
+    ADMINISTRATIVE_FEES = 6502, _('frais administratifs')
+
+
+class IncomeChoices(models.IntegerChoices):
+    SIGNUP = 7000, _('INSCRIPTIONS')
+    DONATION = 7001, _('DONS')
+    SUBSIDY = 7002, _('SUBSIDES')
+    MERCH_SALES = 7003, _('VENTE MARCHANDISES')
+
+    INTERESTS = 7512, _('PRODUITS BANCAIRES')
+
+
 class OperationValidation(models.Model):
     "Each operation should be validated, this is done by validating the operation against another event in the db"
     operation = models.ForeignKey("Operation", null=True, on_delete=models.CASCADE)
@@ -53,6 +95,10 @@ class OperationValidation(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     event = GenericForeignKey()
+    validation_type = models.IntegerField(choices=(
+        'Expenses', ExpenditureChoices.choices(),
+        'Incomes', IncomeChoices.choices(),
+    ))
 
 
 class SignupOperationManager(models.Manager):
@@ -77,6 +123,7 @@ class SignupOperation(OperationValidation):
 class ExpenseReport(models.Model):
     title = models.CharField(max_length=255)
     beneficiary = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=False)
+
 
 class Justification(OperationValidation):
     file = models.FileField(blank=True, null=True)
