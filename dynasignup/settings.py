@@ -31,6 +31,10 @@ SECRET_KEY = config("SECRET_KEY", default='django-insecure-hmv)rcew6libys3k1an7k
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ["inscriptions.dynamobile.net", '127.0.0.1', 'inscriptions.acelpb.com']
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}"
+    for host in ALLOWED_HOSTS
+]
 
 # Application definition
 
