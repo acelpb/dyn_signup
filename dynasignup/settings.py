@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     "whitenoise",
     'crispy_forms',
-    "bootstrap4",
+    'crispy_bootstrap4',
     'magiclink',
     "accounts",
     "import_export",
