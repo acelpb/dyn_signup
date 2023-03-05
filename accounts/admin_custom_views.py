@@ -46,4 +46,8 @@ class LinkToSignupView(LinkPaymentGenericView):
     form_class = LinkToSignupForm
     model_class = Bill
 
+class LinkToSignupView(LinkPaymentGenericView):
+    template_name = "admin/operations/link_to_bill.html"
+    form_class = LinkToSignupForm
+    model_class = Bill
 

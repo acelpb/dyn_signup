@@ -2,7 +2,7 @@ from django import forms, db
 from django.db import transaction
 from django.db.models import Sum, F, Q
 
-from accounts.models import SignupOperation, Operation, Bill, OperationValidation
+from accounts.models import SignupOperation, Operation, Bill, OperationValidation, ExpenseReport
 from signup2022.models import Participant, Signup
 
 
@@ -55,3 +55,23 @@ class LinkToSignupForm(forms.Form):
                     amount=operation.amount,
                     event=signup.bill
                 )
+
+
+class VentilationForm(forms.ModelForm):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        print(self.fields['operation'].queryset)
+        instance = kwargs.get('instance')
+        qs = Operation.objects.alias(
+            _justified_amount=Sum('operationvalidation__amount') - F('amount')
+        ).filter(_justified_amount__isnull=True, year=2022)
+        if instance is not None:
+            qs |= Operation.objects.filter(id=instance.operation_id)
+
+        self.fields['operation'].queryset = qs.order_by('amount')
+        self.fields['operation'].required = False
+
+    class Meta:
+        model = OperationValidation
+        fields = ('operation', 'amount', 'validation_type')

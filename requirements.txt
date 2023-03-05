@@ -9,4 +9,4 @@ ovh~=1.0.0
 pytest-bdd~=5.0.0
 python-decouple
 tablib~=3.3
-whitenoise²
+whitenoise

@@ -1,35 +1,34 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter, TabularInline
 from django.contrib.contenttypes.admin import GenericTabularInline
-from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper
+from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper, Func
+from django.db.models.functions import Round
 from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 from import_export.admin import ImportMixin
 
 from .admin_custom_views import LinkToBillView, LinkToSignupView
 from .format import BPostCSV
-from .forms import SignupOperationForm
-from .models import Operation, Account, OperationValidation, SignupOperation, Justification, Bill
+from .forms import SignupOperationForm, VentilationForm
+from .models import Operation, Account, OperationValidation, SignupOperation, Bill, ExpenseReport, Justification
 # Register your models here.
 from .resource import OperationResource
 
 
 class PaymentInline(GenericTabularInline):
-    verbose_name = "Paiement lié"
-    verbose_name_plural = "Paiements liés"
+    verbose_name = "ventilation"
+    verbose_name_plural = "ventilation"
+    form = VentilationForm
     model = OperationValidation
-    extra = 0
+    extra = 3
     ct_field_name = 'content_type'
     id_field_name = 'object_id'
-    readonly_fields = ('operation', 'amount',)
     can_delete = True
 
-    def has_add_permission(self, request, obj=None):
-        return False
 
 class JustificationInline(TabularInline):
-    verbose_name = "Paiement lié"
-    verbose_name_plural = "Paiements liés"
+    verbose_name = "Justificatif lié"
+    verbose_name_plural = "Justificatifs liés"
     model = OperationValidation
     extra = 0
     readonly_fields = ('operation', 'amount',)
@@ -38,7 +37,6 @@ class JustificationInline(TabularInline):
 
     def has_add_permission(self, request, obj=None):
         return False
-
 
 
 @admin.register(Account)
@@ -82,6 +80,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
         "communication",
         "reference",
         'justified',
+        'justified_amount',
     )
     ordering = ("-year", '-number')
     search_fields = ["counterparty_IBAN", "counterparty_name", "communication"]
@@ -89,9 +88,10 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
     date_hierarchy = "date"
     list_filter = ("year", 'account__name', JustifiedFilter)
 
-    inlines = [JustificationInline]
-
-    actions = ["link_selected_operations_to_bill", "link_selected_operations_to_signup"]
+    actions = ["link_selected_operations_to_bill",
+               "link_selected_operations_to_signup",
+               "cancel_each_other_out",
+               ]
 
     @admin.action(description='Link selected operations to bill')
     def link_selected_operations_to_bill(self, request, queryset):
@@ -101,6 +101,32 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 ','.join(str(pk) for pk in selected),
             )
         )
+
+    @admin.action(description="Annule l'un l'autre")
+    def cancel_each_other_out(self, request, queryset):
+        try:
+            first, second = queryset.all()
+        except ValueError:
+            messages.add_message(request, messages.ERROR, "Select exactly two operations")
+            return HttpResponseRedirect(reverse("admin:accounts_operation_changelist"))
+
+        if first.amount != -second.amount:
+            messages.add_message(request, messages.ERROR, "Select only operations that cancel each other.")
+            return HttpResponseRedirect(reverse("admin:accounts_operation_changelist"))
+
+        OperationValidation.objects.create(
+            operation=first,
+            created_by=request.user,
+            event=second,
+            amount=first.amount,
+        )
+        OperationValidation.objects.create(
+            operation=second,
+            created_by=request.user,
+            event=first,
+            amount=second.amount,
+        )
+        return HttpResponseRedirect(reverse("admin:accounts_operation_changelist"))
 
     @admin.action(description='Link selected operations to signup')
     def link_selected_operations_to_signup(self, request, queryset):
@@ -113,9 +139,15 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.alias(justified_amount=Sum('operationvalidation__amount') - F('amount')).annotate(
-            _justified=ExpressionWrapper(Q(justified_amount__exact=0), output_field=BooleanField())
+        return qs.alias(_justified_amount=Round(
+            Sum('operationvalidation__amount') - F('amount'), 2)
+        ).annotate(
+            _justified_amount=F('_justified_amount'),
+            _justified=ExpressionWrapper(Q(_justified_amount__exact=0), output_field=BooleanField())
         )
+
+    def justified_amount(self, inst):
+        return inst._justified_amount
 
     def justified(self, inst):
         return inst._justified
@@ -151,6 +183,7 @@ class OperationValidationAdmin(admin.ModelAdmin):
         'id',
         'operation',
         'amount',
+        'validation_type',
         'content_type',
     )
 
@@ -185,14 +218,19 @@ class InscriptionValidationAdmin(admin.ModelAdmin):
 
 @admin.register(Justification)
 class JustificationAdmin(admin.ModelAdmin):
+    list_display = ('title', 'file',)
+    inlines = [PaymentInline]
+
     pass
-    # list_display = ('name', 'file', 'amount')
 
 
 @admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
-    list_display = ('name', 'file', 'remaining_to_pay', 'payed')
-    pass
+    list_display = ('date', 'name', 'file', 'remaining_to_pay', 'payed')
+
+    inlines = [PaymentInline]
+
+    ordering = ('-date', )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -210,3 +248,8 @@ class BillAdmin(admin.ModelAdmin):
     payed.admin_order_field = '_payed'
 
 
+@admin.register(ExpenseReport)
+class ExpenseReportAdmin(admin.ModelAdmin):
+    list_display = ('title', 'submitted_date', 'beneficiary', 'total')
+    fields = ('title', 'beneficiary', 'submitted_date', 'signed', 'validated', 'comments')
+    inlines = [PaymentInline]

@@ -87,18 +87,18 @@ class IncomeChoices(models.IntegerChoices):
 class OperationValidation(models.Model):
     "Each operation should be validated, this is done by validating the operation against another event in the db"
     operation = models.ForeignKey("Operation", null=True, on_delete=models.CASCADE)
-    # If there is a single justification, this will be equal to the peration,
+    # If there is a single justification, this will be equal to the operation,
     # but we can imagine that an operation is justified by multiple events.
     amount = models.DecimalField(max_digits=11, decimal_places=2)
     created_on = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=False)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    object_id = models.PositiveIntegerField(null=True)
     event = GenericForeignKey()
-    validation_type = models.IntegerField(choices=(
-        'Expenses', ExpenditureChoices.choices(),
-        'Incomes', IncomeChoices.choices(),
-    ))
+    validation_type = models.IntegerField(choices=[
+        ('Expenses', ExpenditureChoices.choices),
+        ('Incomes', IncomeChoices.choices),
+    ], null=True)
 
 
 class SignupOperationManager(models.Manager):
@@ -122,11 +122,32 @@ class SignupOperation(OperationValidation):
 
 class ExpenseReport(models.Model):
     title = models.CharField(max_length=255)
-    beneficiary = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=False)
+    beneficiary = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=True)
+    submitted_date = models.DateField(null=True, blank=False)
+    signed = models.BooleanField(default=False)
+    validated = models.BooleanField(default=False)
+    comments = models.TextField(blank=True, default='')
+    expenses = GenericRelation(OperationValidation)
+
+    def __str__(self):
+        if beneficiary := self.beneficiary:
+            if (first_name := beneficiary.first_name) and (last_name := beneficiary.last_name):
+                user = f"{first_name} {last_name}"
+            else:
+                user = beneficiary.email
+        else:
+            user = ""
+        return f'{self.submitted_date.year}-{self.title} {user} {self.total}'
+
+    @property
+    def total(self):
+        return sum(self.expenses.values_list('amount', flat=True))
 
 
-class Justification(OperationValidation):
+class Justification(models.Model):
+    title = models.CharField(max_length=255)
     file = models.FileField(blank=True, null=True)
+    payment = GenericRelation(OperationValidation)
 
 
 class Bill(models.Model):
