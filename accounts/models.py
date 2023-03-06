@@ -159,3 +159,8 @@ class Bill(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class ExpenseFile(models.Model):
+    expense_report = models.ForeignKey(ExpenseReport, on_delete=models.SET_NULL, null=True)
+    file = models.FileField(blank=True, null=True)

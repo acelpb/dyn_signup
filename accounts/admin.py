@@ -10,7 +10,7 @@ from import_export.admin import ImportMixin
 from .admin_custom_views import LinkToBillView, LinkToSignupView
 from .format import BPostCSV
 from .forms import SignupOperationForm, VentilationForm
-from .models import Operation, Account, OperationValidation, SignupOperation, Bill, ExpenseReport, Justification
+from .models import Operation, Account, OperationValidation, SignupOperation, Bill, ExpenseReport, Justification, ExpenseFile
 # Register your models here.
 from .resource import OperationResource
 
@@ -23,7 +23,34 @@ class PaymentInline(GenericTabularInline):
     extra = 3
     ct_field_name = 'content_type'
     id_field_name = 'object_id'
-    can_delete = True
+    can_delete = False
+    can_edit = False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj):
+        if obj is None:
+            return True
+        else:
+            return False
+
+
+class ExpenseFileInline(TabularInline):
+    verbose_name = "pièce lié"
+    verbose_name_plural = "pièces liés"
+    model = ExpenseFile
+    can_delete = False
+    can_edit = False
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj=None):
+        if obj is None:
+            return True
+        else:
+            return False
 
 
 class JustificationInline(TabularInline):
@@ -32,14 +59,20 @@ class JustificationInline(TabularInline):
     model = OperationValidation
     extra = 0
     readonly_fields = ('operation', 'amount',)
-    can_delete = True
+    can_delete = False
     can_edit = False
 
+    def has_view_permission(self, request, obj=None):
+        return True
+
     def has_add_permission(self, request, obj=None):
-        return False
+        if obj is None:
+            return True
+        else:
+            return False
 
 
-@admin.register(Account)
+# @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'IBAN')
 
@@ -216,7 +249,7 @@ class InscriptionValidationAdmin(admin.ModelAdmin):
         return instance.object_id
 
 
-@admin.register(Justification)
+# @admin.register(Justification)
 class JustificationAdmin(admin.ModelAdmin):
     list_display = ('title', 'file',)
     inlines = [PaymentInline]
@@ -230,7 +263,7 @@ class BillAdmin(admin.ModelAdmin):
 
     inlines = [PaymentInline]
 
-    ordering = ('-date', )
+    ordering = ('-date',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -252,4 +285,4 @@ class BillAdmin(admin.ModelAdmin):
 class ExpenseReportAdmin(admin.ModelAdmin):
     list_display = ('title', 'submitted_date', 'beneficiary', 'total')
     fields = ('title', 'beneficiary', 'submitted_date', 'signed', 'validated', 'comments')
-    inlines = [PaymentInline]
+    inlines = [PaymentInline, ExpenseFileInline]

@@ -226,3 +226,22 @@ DYNAMOBILE_PRICES = (
 OVH_API_KEY = config("OVH_API_KEY", default="")
 OVH_API_SECRET = config("OVH_API_SECRET", default="")
 OVH_API_CONSUMER = config("OVH_API_CONSUMER", default="")
+
+MEMBERS_OF_CA = {
+    'a.borsu@acelpb.com',
+    'a.borsu@gmail.com',
+    'frangallez@gmail.com',
+    'bernie.ide@gmail.com',
+    'jacques.terwagne@yahoo.fr',
+    'agilbert2407@gmail.com',
+    'denise.maerevoet@belgacom.net',
+    'jcolot@scarlet.be',
+    'marcel.pepin10@gmail.com',
+    'philippe.langenaken@gmail.com',
+}
+
+MEMBERS_OF_SECRETARIAT = {
+    'a.borsu@gmail.com',
+    'frangallez@gmail.com',
+    'marcel.pepin10@gmail.com',
+}
