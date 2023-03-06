@@ -3,13 +3,6 @@
 {% load i18n %}
 {% load l10n %}
 
-{% block extrameta %}
-    {% if not registration_open %}
-        <meta http-equiv="refresh" content="5;url=https://www.dynamobile.net/"/>
-    {% endif %}
-
-{% endblock extrameta %}
-
 {% block content %}
     {% if not registration_open %}
         <div class="row">
@@ -17,13 +10,9 @@
             <div class="col-sm-12 col-md-8 col-lg-8 ">
                 {% with date=dynamobile_signup_period_start.date time=dynamobile_signup_period_start.time %}
                     <p>{% blocktrans %}
-                        Les inscriptions n'ont pas encore débuté, merci de revenir après {{ time }} le {{ date }}.
+                        Les inscriptions n'ont pas encore débuté.
                     {% endblocktrans %}</p>
                     <p>
-                        {% blocktrans %}
-                            Vous allez maintenant être redirigé vers la page d'acceuil de dynamobile.
-                        {% endblocktrans %}
-
                         {% blocktrans %}
                             <a href="https://www.dynamobile.net/">Cliquez ici</a> si ce n'est pas le cas.
                         {% endblocktrans %}
