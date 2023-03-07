@@ -1,6 +1,7 @@
 from django import forms, db
 from django.db import transaction
 from django.db.models import Sum, F, Q
+from django.core.exceptions import ValidationError
 
 from accounts.models import SignupOperation, Operation, Bill, OperationValidation, ExpenseReport
 from signup2022.models import Participant, Signup
@@ -40,6 +41,29 @@ class LinkToBillForm(forms.Form):
                     amount=operation.amount,
                     event=bill
                 )
+
+
+class LinkToExpenseReportForm(forms.Form):
+    operation = forms.ModelChoiceField(queryset=Operation.objects.all())
+    expense_report = forms.ModelChoiceField(queryset=ExpenseReport.objects.all())
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        expense_report: ExpenseReport = cleaned_data['expense_report']
+        operation = cleaned_data['operation']
+        total = round(sum(ex.amount for ex in expense_report.expenses.all()), 2)
+        if total != operation.amount:
+            self.add_error('operation', 'Expense report and operation should cancel each other out')
+            self.add_error('expense_report', 'Expense report and operation should cancel each other out')
+            raise ValidationError("NOT WORKING", code='error1')
+
+    def save(self):
+        expense_report = self.cleaned_data['expense_report']
+        operation = self.cleaned_data['operation']
+        with transaction.atomic():
+            for operation_validation in expense_report.expenses.all():
+                operation_validation.operation = operation
+                operation_validation.save()
 
 
 class LinkToSignupForm(forms.Form):

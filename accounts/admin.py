@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 from import_export.admin import ImportMixin
 
-from .admin_custom_views import LinkToBillView, LinkToSignupView
+from .admin_custom_views import LinkToBillView, LinkToSignupView, LinkToExpenseReportView
 from .format import BPostCSV
 from .forms import SignupOperationForm, VentilationForm
 from .models import Operation, Account, OperationValidation, SignupOperation, Bill, ExpenseReport, Justification, ExpenseFile
@@ -124,6 +124,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
     actions = ["link_selected_operations_to_bill",
                "link_selected_operations_to_signup",
                "cancel_each_other_out",
+               "link_expense",
                ]
 
     @admin.action(description='Link selected operations to bill')
@@ -134,6 +135,16 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 ','.join(str(pk) for pk in selected),
             )
         )
+
+    @admin.action(description="Link selected operation to expense note")
+    def link_expense(self, request, queryset):
+        selected = queryset.values_list('pk', flat=True)
+        if len(selected) != 1:
+            messages.add_message(request, messages.ERROR, 'Can only annotate one operation at a time.')
+            return HttpResponseRedirect(reverse('admin:accounts_operation_changelist'))
+
+        return HttpResponseRedirect(
+            reverse('admin:accounts_operation_link_to_expense') + '?operation=%s' % selected[0])
 
     @admin.action(description="Annule l'un l'autre")
     def cancel_each_other_out(self, request, queryset):
@@ -206,6 +217,9 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
             path('link_to_signup/',
                  self.admin_site.admin_view(LinkToSignupView.as_view()),
                  name='%s_%s_link_to_signup' % self.get_model_info()),
+            path('link_to_expense/',
+                 self.admin_site.admin_view(LinkToExpenseReportView.as_view()),
+                 name='%s_%s_link_to_expense' % self.get_model_info()),
         ]
         return my_urls + urls
 

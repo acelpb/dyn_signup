@@ -1,8 +1,8 @@
 from django import views
 from django.urls import reverse_lazy
 
-from accounts.forms import LinkToBillForm, LinkToSignupForm
-from accounts.models import Operation, Bill
+from accounts.forms import LinkToBillForm, LinkToSignupForm, LinkToExpenseReportForm
+from accounts.models import Operation, Bill, ExpenseReport
 from signup2022.admin_views import AdminRequiredMixin
 
 
@@ -41,13 +41,14 @@ class LinkToBillView(LinkPaymentGenericView):
     form_class = LinkToBillForm
     model_class = Bill
 
-class LinkToSignupView(LinkPaymentGenericView):
-    template_name = "admin/operations/link_to_bill.html"
-    form_class = LinkToSignupForm
-    model_class = Bill
 
 class LinkToSignupView(LinkPaymentGenericView):
     template_name = "admin/operations/link_to_bill.html"
     form_class = LinkToSignupForm
     model_class = Bill
 
+
+class LinkToExpenseReportView(LinkPaymentGenericView):
+    template_name = "admin/operations/link_to_bill.html"
+    form_class = LinkToExpenseReportForm
+    model_class = ExpenseReport
