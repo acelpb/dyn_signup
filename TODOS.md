@@ -7,3 +7,19 @@
 - [x] limite vae
 - [ ] export de l'admin
 - [ ] login using one time token via email
+
+
+++++====++++====++++====++++====++++====
+
+24 Avril - Inscriptions complètes
+24 Mai -  Inscriptions Partielles
+MAX 120 MANGEURS PAR JOUR
+
+- 380 50
+- 280 40
+- 180 30
+- 80 10
+- [ ] numéro de téléphonne
+- [ ] 25 / 5
+- date d'ouverture
+-

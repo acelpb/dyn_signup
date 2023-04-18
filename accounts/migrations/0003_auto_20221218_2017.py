@@ -6,40 +6,77 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('accounts', '0002_signupoperation'),
+        ("accounts", "0002_signupoperation"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Bill',
+            name="Bill",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('file', models.FileField(blank=True, null=True, upload_to='')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                ("file", models.FileField(blank=True, null=True, upload_to="")),
             ],
         ),
         migrations.CreateModel(
-            name='Justification',
+            name="Justification",
             fields=[
-                ('operationvalidation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='accounts.operationvalidation')),
-                ('file', models.FileField(blank=True, null=True, upload_to='')),
+                (
+                    "operationvalidation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="accounts.operationvalidation",
+                    ),
+                ),
+                ("file", models.FileField(blank=True, null=True, upload_to="")),
             ],
-            bases=('accounts.operationvalidation',),
+            bases=("accounts.operationvalidation",),
         ),
         migrations.AlterField(
-            model_name='operationvalidation',
-            name='operation',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='accounts.operation'),
+            model_name="operationvalidation",
+            name="operation",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="accounts.operation",
+            ),
         ),
         migrations.CreateModel(
-            name='ExpenseReport',
+            name="ExpenseReport",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255)),
-                ('beneficiary', models.ForeignKey(editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=255)),
+                (
+                    "beneficiary",
+                    models.ForeignKey(
+                        editable=False,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

@@ -1,0 +1,1 @@
+Votre inscription a été modifiée.  Pour la visualiser suivez le lien suivant: https://inscriptions.dynamobile.net{% url "completed_signup" %} .

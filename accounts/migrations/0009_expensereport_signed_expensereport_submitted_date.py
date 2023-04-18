@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0008_alter_operationvalidation_content_type_and_more'),
+        ("accounts", "0008_alter_operationvalidation_content_type_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='expensereport',
-            name='signed',
+            model_name="expensereport",
+            name="signed",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='expensereport',
-            name='submitted_date',
+            model_name="expensereport",
+            name="submitted_date",
             field=models.DateField(null=True),
         ),
     ]

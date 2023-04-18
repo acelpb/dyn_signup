@@ -1,9 +1,0 @@
-{% extends 'base.html' %}
-{% load i18n %}
-
-{% block title %}{% trans "Goodbye" %}{% endblock %}
-
-{% block smallcontent %}
-    <p class="p-3">{% trans "You have been successfully logged out." %}</p>
-    <p class="p-3"><a href="{% url "login"  %}">{% trans 'Log back in' %}</a></p>
-{% endblock %}

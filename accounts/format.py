@@ -9,7 +9,7 @@ from accounts.models import Account
 
 
 class BPostCSV(Format):
-    CONTENT_TYPE = 'text/csv'
+    CONTENT_TYPE = "text/csv"
 
     def __init__(self, encoding=None):
         super().__init__()
@@ -18,7 +18,7 @@ class BPostCSV(Format):
         return "csv extract from bpost"
 
     def create_dataset(self, in_stream):
-        csv_reader = csv.reader(StringIO(in_stream), delimiter=';')
+        csv_reader = csv.reader(StringIO(in_stream), delimiter=";")
 
         _, iban, account_type = next(csv_reader)
         account, _ = Account.objects.get_or_create(IBAN=iban, name=account_type)
@@ -41,25 +41,36 @@ class BPostCSV(Format):
         )
 
         for row in csv_reader:
-            (number, date, description,
-             amount, currency, effective_date,
-             counterparty_IBAN, counterparty_name, *communication,
-             reference, _) = row
-            transaction_date = datetime.strptime(date, "%Y-%m-%d")
-            data.append((
-                account_id,
+            (
                 number,
-                transaction_date.year,
-                transaction_date,
+                date,
                 description,
-                float(amount.replace(',', '.')),
+                amount,
                 currency,
-                datetime.strptime(effective_date, "%d/%m/%Y"),
+                effective_date,
                 counterparty_IBAN,
                 counterparty_name,
-                '\n'.join(communication),
-                reference
-            ))
+                *communication,
+                reference,
+                _,
+            ) = row
+            transaction_date = datetime.strptime(date, "%Y-%m-%d")
+            data.append(
+                (
+                    account_id,
+                    number,
+                    transaction_date.year,
+                    transaction_date,
+                    description,
+                    float(amount.replace(",", ".")),
+                    currency,
+                    datetime.strptime(effective_date, "%d/%m/%Y"),
+                    counterparty_IBAN,
+                    counterparty_name,
+                    "\n".join(communication),
+                    reference,
+                )
+            )
 
         return data
 
@@ -73,13 +84,13 @@ class BPostCSV(Format):
         return False
 
     def get_read_mode(self):
-        return 'r'
+        return "r"
 
     def get_extension(self):
         return ("csv",)
 
     def get_content_type(self):
-        return 'text/csv'
+        return "text/csv"
 
     @classmethod
     def is_available(cls):

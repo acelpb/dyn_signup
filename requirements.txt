@@ -11,3 +11,4 @@ pytest-bdd~=5.0.0
 python-decouple
 tablib~=3.3
 whitenoise
+django-phonenumber-field[phonenumbers]~=7.0.2

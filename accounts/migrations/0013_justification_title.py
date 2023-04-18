@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0012_justification'),
+        ("accounts", "0012_justification"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='justification',
-            name='title',
-            field=models.CharField(default='', max_length=255),
+            model_name="justification",
+            name="title",
+            field=models.CharField(default="", max_length=255),
             preserve_default=False,
         ),
     ]

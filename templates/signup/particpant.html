@@ -24,39 +24,23 @@
 
             <table class="table table-striped table-sm">
                 <thead>
-                <tr>
-                    {% for field in form.forms.0 %}
-                        {% if field.label and not field.is_hidden %}
-                            <th for="{{ field.auto_id }}"
-                                class="col-form-label {% if field.field.required %}requiredField{% endif %}">
-                                {{ field.label|safe }}{% if field.field.required and not field|is_checkbox %}
-                                    <span class="asteriskField">*</span>{% endif %}
-                            </th>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
+                    <tr>
+                        {% for field in form.forms.0 %}
+                            {% if field.label and not field.is_hidden %}
+                                <th for="{{ field.auto_id }}"
+                                    class="col-form-label {% if field.field.required %}requiredField{% endif %}">
+                                    {{ field.label|safe }}{% if field.field.required and not field|is_checkbox %}
+                                        <span class="asteriskField">*</span>{% endif %}
+                                </th>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
 
                 </thead>
 
                 <tbody>
-                <tr class="d-none empty-form">
-                    {% for field in form.empty_form %}
-                        {% if field|is_checkbox %}
-                            <td id="div_{{ field.auto_id }}" class="form-group">
-                                {{ field }}
-                            </td>
-                        {% else %}
-                            {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-
-                {% for subform in form %}
-                    {% if form_show_errors and not subform.is_extra %}
-                        {% include "bootstrap4/errors.html" %}
-                    {% endif %}
-                    <tr>
-                        {% for field in subform %}
+                    <tr class="d-none empty-form">
+                        {% for field in form.empty_form %}
                             {% if field|is_checkbox %}
                                 <td id="div_{{ field.auto_id }}" class="form-group">
                                     {{ field }}
@@ -66,7 +50,23 @@
                             {% endif %}
                         {% endfor %}
                     </tr>
-                {% endfor %}
+
+                    {% for subform in form %}
+                        {% if form_show_errors and not subform.is_extra %}
+                            {% include "bootstrap4/errors.html" %}
+                        {% endif %}
+                        <tr>
+                            {% for field in subform %}
+                                {% if field|is_checkbox %}
+                                    <td id="div_{{ field.auto_id }}" class="form-group">
+                                        {{ field }}
+                                    </td>
+                                {% else %}
+                                    {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
             {% if reviewing_form %}

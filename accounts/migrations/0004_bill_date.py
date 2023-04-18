@@ -5,15 +5,14 @@ import django.utils.datetime_safe
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0003_auto_20221218_2017'),
+        ("accounts", "0003_auto_20221218_2017"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bill',
-            name='date',
+            model_name="bill",
+            name="date",
             field=models.DateField(default=django.utils.datetime_safe.datetime.now),
         ),
     ]

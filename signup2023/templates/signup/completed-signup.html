@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_utils %}
+{% load crispy_forms_field %}
+{% load i18n %}
+
+{% block smallcontent %}
+    {% if signup  and signup.validated_at %}
+        <h1>Votre inscription est validée.</h1>
+        <p>
+            Les informations reprises sur cette page vous ont-été envoyée à l'adresse
+            email {{ signup.owner.email }}.<br>
+            Si ce n'est pas le cas, vous pouvez nous contacter à <a
+                href="mailto:inscriptions@dynamobile.net?subject=Question à propos de l'inscription n°{{ signup.id }}">inscriptions@dynamobile.net</a>.
+        </p>
+
+        {% include "signup/partials/completed-signup.html" %}
+
+    {% else %}
+        Vous n'avez pas encore validé votre inscription.
+        Pour commencer une nouvelle inscription our continuer une inscription en cours,
+        <a href="{% url "group_edit" %}">cliquez-ici</a>.
+
+    {% endif %}
+{% endblock smallcontent %}

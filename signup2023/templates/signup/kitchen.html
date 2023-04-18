@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load l10n %}
+
+
+{% block content %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">0 - 6 ans</th>
+                <th scope="col">6 - 12 ans</th>
+                <th scope="col">12 - 18 ans</th>
+                <th scope="col">18+ ans</th>
+                <th scope="col">total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for day, counts in days.items %}
+                <tr>
+                    <th scope="row">{{ day }}</th>
+                    <td>{{ counts.a0_6 }}</td>
+                    <td>{{ counts.a6_12 }}</td>
+                    <td>{{ counts.a12_18 }}</td>
+                    <td>{{ counts.a18plus }}</td>
+                    <td>{{ counts.total }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

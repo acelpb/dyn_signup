@@ -5,15 +5,18 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('accounts', '0014_expensefile'),
+        ("accounts", "0014_expensefile"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='expensefile',
-            name='expense_report',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='accounts.expensereport'),
+            model_name="expensefile",
+            name="expense_report",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="accounts.expensereport",
+            ),
         ),
     ]

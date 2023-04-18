@@ -25,56 +25,57 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config("SECRET_KEY", default='django-insecure-hmv)rcew6libys3k1an7k-b#)jqsdlkqsdnzuauzeqsdiz*#7-')
+SECRET_KEY = config(
+    "SECRET_KEY",
+    default="django-insecure-hmv)rcew6libys3k1an7k-b#)jqsdlkqsdnzuauzeqsdiz*#7-",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ["inscriptions.dynamobile.net", '127.0.0.1', 'inscriptions.acelpb.com']
-CSRF_TRUSTED_ORIGINS = [
-    f"https://{host}"
-    for host in ALLOWED_HOSTS
-]
+ALLOWED_HOSTS = ["inscriptions.dynamobile.net", "127.0.0.1", "inscriptions.acelpb.com"]
+CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
     "whitenoise",
-    'crispy_forms',
-    'crispy_bootstrap4',
-    'magiclink',
+    "crispy_forms",
+    "crispy_bootstrap4",
+    "magiclink",
     "accounts",
     "import_export",
     "django_tables2",
-    "signup2022.apps.Signup2022Config",
+    "phonenumber_field",
+    "signup2023.apps.Signup2023Config",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = 'dynasignup.urls'
+ROOT_URLCONF = "dynasignup.urls"
 
 AUTHENTICATION_BACKENDS = [
-    'magiclink.backends.MagicLinkBackend',
-    'django.contrib.auth.backends.ModelBackend',
+    "magiclink.backends.MagicLinkBackend",
+    "django.contrib.auth.backends.ModelBackend",
 ]
 
 # Set Djangos login URL to the magiclink login page
-LOGIN_URL = 'magiclink:login'
+LOGIN_URL = "magiclink:login"
 LOGOUT_REDIRECT_URL = "index"
 
 # Optional:
@@ -86,29 +87,30 @@ MAGICLINK_REQUIRE_SAME_IP = False
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'dynasignup.wsgi.application'
+WSGI_APPLICATION = "dynasignup.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'data' / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "data" / "db.sqlite3",
     }
 }
 
@@ -117,23 +119,23 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-TIME_ZONE = 'Europe/Brussels'
+TIME_ZONE = "Europe/Brussels"
 
 USE_I18N = True
 
@@ -144,15 +146,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
-STATIC_ROOT = BASE_DIR / 'static'
-STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / "static"
+STATIC_URL = "/static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = "bootstrap4"
 CRISPY_FAIL_SILENTLY = True
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
@@ -162,34 +164,30 @@ MEDIA_URL = "/uploads/"
 
 LOGIN_REDIRECT_URL = reverse_lazy("index")
 
-LANGUAGE_CODE = 'fr'  # default language
+LANGUAGE_CODE = "fr"  # default language
 
 LANGUAGES = (
-    ('fr', _('French')),
-    ('nl', _('Dutch')),
+    ("fr", _("French")),
+    ("nl", _("Dutch")),
 )
 
-LOCALE_PATHS = [
-    BASE_DIR / "locale"
-]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 
 brussels_tz = zoneinfo.ZoneInfo("Europe/Brussels")
 
 DYNAMOBILE_START_SIGNUP = parse_datetime(
-    config("DYNAMOBILE_START_SIGNUP", default="2022-05-02 20:00:00")
-).replace(
+    config("DYNAMOBILE_START_SIGNUP", default="2023-04-24 20:00:00")
+).replace(tzinfo=brussels_tz)
+DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2023-05-24 17:00:00").replace(
     tzinfo=brussels_tz
 )
-DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2022-05-20 17:00:00").replace(
+DYNAMOBILE_END_SIGNUP = parse_datetime("2023-07-20 18:00:00").replace(
     tzinfo=brussels_tz
 )
-DYNAMOBILE_END_SIGNUP = parse_datetime("2022-05-20 17:00:00").replace(
-    tzinfo=brussels_tz
-)
-DYNAMOBILE_FIRST_DAY = parse_date("2022-07-18")
-DYNAMOBILE_LAST_DAY = parse_date("2022-07-25")
+DYNAMOBILE_FIRST_DAY = parse_date("2023-07-21")
+DYNAMOBILE_LAST_DAY = parse_date("2023-07-28")
 
 DYNAMOBILE_DAYS = [
     (day, day.strftime("%Y-%m-%d"))
@@ -200,26 +198,35 @@ DYNAMOBILE_DAYS = [
 ]
 
 # We reserve the right to accept up to 150 people on a case by case basis
-DYNAMOBILE_MAX_PARTICIPANTS = config('DYNAMOBILE_MAX_PARTICIPANTS', default=135, cast=int)
+DYNAMOBILE_MAX_PARTICIPANTS = config(
+    "DYNAMOBILE_MAX_PARTICIPANTS", default=120, cast=int
+)
 # We reserve the right to accept up to 25 people on a case by case basis
-DYNAMOBILE_MAX_VAE_PARTICIPANTS = config('DYNAMOBILE_MAX_VAE_PARTICIPANTS', default=20, cast=int)
+DYNAMOBILE_MAX_VAE_PARTICIPANTS = config(
+    "DYNAMOBILE_MAX_VAE_PARTICIPANTS", default=20, cast=int
+)
 
-EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
-EMAIL_HOST = config('EMAIL_HOST', default='localhost')
-EMAIL_PORT = config('EMAIL_PORT', default=25, cast=int)
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='inscriptions@dynamobile.net')
+EMAIL_BACKEND = config(
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = config("EMAIL_HOST", default="localhost")
+EMAIL_PORT = config("EMAIL_PORT", default=25, cast=int)
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD", default="")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER", default="inscriptions@dynamobile.net")
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", default=True, cast=bool)
 
 SERVER_EMAIL = EMAIL_HOST_USER
-ADMINS = [("Augustin", EMAIL_HOST_USER), ]
+ADMINS = [
+    ("Augustin", EMAIL_HOST_USER),
+]
 
 DYNAMOBILE_PRICES = (
-    (0, 6, 80, 10),
-    (6, 12, 160, 20),
-    (12, 18, 240, 30),
-    (18, 999, 325, 40),
+    (0, 2, 0, 0),
+    (2, 6, 80, 10),
+    (6, 12, 150, 30),
+    (12, 18, 240, 40),
+    (18, 999, 330, 50),
 )
 
 
@@ -228,20 +235,23 @@ OVH_API_SECRET = config("OVH_API_SECRET", default="")
 OVH_API_CONSUMER = config("OVH_API_CONSUMER", default="")
 
 MEMBERS_OF_CA = {
-    'a.borsu@acelpb.com',
-    'a.borsu@gmail.com',
-    'frangallez@gmail.com',
-    'bernie.ide@gmail.com',
-    'jacques.terwagne@yahoo.fr',
-    'agilbert2407@gmail.com',
-    'denise.maerevoet@belgacom.net',
-    'jcolot@scarlet.be',
-    'marcel.pepin10@gmail.com',
-    'philippe.langenaken@gmail.com',
+    "a.borsu@acelpb.com",
+    "a.borsu@gmail.com",
+    "frangallez@gmail.com",
+    "bernie.ide@gmail.com",
+    "jacques.terwagne@yahoo.fr",
+    "agilbert2407@gmail.com",
+    "denise.maerevoet@belgacom.net",
+    "jcolot@scarlet.be",
+    "marcel.pepin10@gmail.com",
+    "philippe.langenaken@gmail.com",
 }
 
 MEMBERS_OF_SECRETARIAT = {
-    'a.borsu@gmail.com',
-    'frangallez@gmail.com',
-    'marcel.pepin10@gmail.com',
+    "a.borsu@gmail.com",
+    "frangallez@gmail.com",
+    "marcel.pepin10@gmail.com",
 }
+
+PHONENUMBER_DEFAULT_REGION = "BE"
+PHONENUMBER_DEFAULT_FORMAT = "INTERNATIONAL"

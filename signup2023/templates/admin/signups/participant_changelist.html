@@ -1,0 +1,15 @@
+{% extends "admin/import_export/change_list.html" %}
+
+{% load i18n %}
+{% load admin_urls %}
+
+{% block object-tools-items %}
+    {% if user.is_superuser %}
+        <li><a href="{% url opts|admin_urlname:'mailinglist' %}" class="export_link">{% trans "Sync Mailing List" %}</a>
+        </li>
+    {% endif %}
+
+
+    {% include "admin/import_export/change_list_export_item.html" %}
+    {{ block.super }}
+{% endblock %}
