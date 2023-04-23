@@ -56,14 +56,21 @@
             En cas de désistement nous vous contacterons.
         </p>
     {% endif %}
-{% elif signup.bill.ballance <= 0 %}
+{% elif signup.bill.payed %}
     <p>
         Votre inscription est validée (nous avons bien reçu votre paiement).
     </p>
-{% elif signup.bill.ballance > 0 %}
+{% elif signup.bill.calculated_amount  %}
     <p>
-        Merci d'effectuer un virement de {{ signup.bill.ballance|floatformat:2 }}€
-        sur le compte de Dynamobile: BE16 0001 6308 3874
+        Le solde de votre inscription est de {{ signup.bill.calculated_amount|floatformat:2 }}€ <br />
+        {{ signup.bill.calculation|linebreaks }}
+
+    </p>
+    <p>
+        Nous n'avons malheureusement pas de numéro de compte à vous communiquer pour le moment.
+    </p>
+    <p>
+        Vous recevrez un e-mail dans les prochaines semaines avec le numéro de compte sur lequel procéder au payement de votre inscription.
     </p>
     <p>
         Votre inscription ne sera complètement valide qu'une fois le paiement de celle-ci aura été confirmé.

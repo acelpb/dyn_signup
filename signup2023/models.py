@@ -21,10 +21,10 @@ class Signup(models.Model):
     year = models.IntegerField(default=settings.DYNAMOBILE_LAST_DAY.year)
     created_at = models.DateTimeField(auto_now_add=True)
     validated_at = models.DateTimeField(default=None, null=True)
+    cancelled_at = models.DateTimeField(default=None, null=True, blank=True)
     on_hold = models.BooleanField(default=False)
     on_hold_vae = models.BooleanField(default=False)
     on_hold_partial = models.BooleanField(default=False)
-    cancelled_at = models.DateTimeField(default=None, null=True, blank=True)
 
     class Meta:
         verbose_name = "Inscription"
@@ -36,16 +36,15 @@ class Signup(models.Model):
 
     def calculate_amount(self):
         return self.bill.amount or 0
-        raise Exception("Don't use this anymore")
 
     def create_bill(self):
-        amount = self.calculate_amount()
-        bill = Bill.objects.create(
+        bill = Bill(
             signup=self,
-            amount=amount,
-            ballance=amount,
             created_at=timezone.now(),
         )
+        bill.calculate_amount_and_explain()
+        bill.ballance = bill.amount
+        bill.save()
         send_mail(
             subject="Votre inscription à dynamobile",
             message=get_template("signup/email/email.txt").render(),
@@ -336,4 +335,6 @@ class Bill(models.Model):
             else:
                 raise Exception("Apparently participant is older than 999.")
         description += f"total: {total_price:.2f}€"
+        self.calculation = description
+        self.calculated_amount = total_price
         return (total_price, description)

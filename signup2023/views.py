@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db import transaction
 from django.db.models import Case, When, Value, Count, IntegerField, F, Q
 from django.db.models.functions import ExtractDay, ExtractYear, ExtractMonth, Cast
 from django.forms import inlineformset_factory
@@ -96,33 +95,13 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
     form_class = ParticipantListReviewForm
 
     def form_valid(self, form):
-        participants = list(self.get_object().participant_set.all())
-        for participant in participants:
-            participant.d2023_07_21 = True
-            participant.d2023_07_22 = True
-            participant.d2023_07_23 = True
-            participant.d2023_07_24 = True
-            participant.d2023_07_25 = True
-            participant.d2023_07_26 = True
-            participant.d2023_07_27 = True
-            participant.d2023_07_28 = True
-        self.object.validated_at = timezone.now()
-        with transaction.atomic():
-            Participant.objects.bulk_update(
-                participants,
-                fields=(
-                    "d2023_07_21",
-                    "d2023_07_22",
-                    "d2023_07_23",
-                    "d2023_07_24",
-                    "d2023_07_25",
-                    "d2023_07_26",
-                    "d2023_07_27",
-                    "d2023_07_28",
-                ),
-            )
-            self.object.check_if_on_hold()
-            self.object.save()
+        from django.utils.timezone import localdate
+
+        signup: Signup = self.object
+        signup.validated_at = localdate()
+        signup.check_if_on_hold()
+        signup.save()
+        signup.create_bill()
         return HttpResponseRedirect(self.success_url)
 
 

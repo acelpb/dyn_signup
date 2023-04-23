@@ -22,7 +22,17 @@ class ParticipantInfoInline(admin.StackedInline):
     verbose_name = "Information Participants"
     model = Participant
     extra = 0
-    fields = ("first_name", "last_name", "email", "birthday", "city", "country", "vae")
+    fields = (
+        "first_name",
+        "last_name",
+        "email",
+        "birthday",
+        "city",
+        "country",
+        "vae",
+        "pre_departure",
+        "extra_activities",
+    )
 
 
 class ParticipantDaysInline(admin.TabularInline):
@@ -30,7 +40,6 @@ class ParticipantDaysInline(admin.TabularInline):
     model = Participant
     extra = 0
     fields = (
-        "d2023_07_20",
         "d2023_07_21",
         "d2023_07_22",
         "d2023_07_23",
