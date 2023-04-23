@@ -3,32 +3,34 @@
         <tr>
             <th scope="col" rowspan="2" colspan="1">Participant</th>
             <th scope="col" rowspan="2" colspan="1">VAE</th>
+            <th scope="col" rowspan="2" colspan="1">loge la veille du départ</th>
             <th scope="col" rowspan="1" colspan="8">Jours de participation</th>
         </tr>
         <tr>
-            <th>18</th>
-            <th>19</th>
-            <th>20</th>
             <th>21</th>
             <th>22</th>
             <th>23</th>
             <th>24</th>
             <th>25</th>
+            <th>26</th>
+            <th>27</th>
+            <th>28</th>
         </tr>
     </thead>
     <tbody>
         {% for participant in signup.participant_set.all %}
             <tr>
                 <td>{{ participant.first_name }} {{ participant.last_name }}</td>
-                <td>{% if participant.vae %}🔋{% else %}🦵{% endif %}</td>
-                <td>{% if participant.d2022_07_18 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2022_07_19 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2022_07_20 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2022_07_21 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2022_07_22 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2022_07_23 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2022_07_24 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2022_07_25 %}✅{% else %}❌{% endif %}</td>
+                <td>{{  participant.get_vae_display }}</td>
+                <td>{{  participant.get_pre_departure_display }}</td>
+                <td>{% if participant.d2023_07_21 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.d2023_07_22 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.d2023_07_23 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.d2023_07_24 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.d2023_07_25 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.d2023_07_26 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.d2023_07_27 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.d2023_07_28 %}✅{% else %}❌{% endif %}</td>
             </tr>
         {% endfor %}
     </tbody>

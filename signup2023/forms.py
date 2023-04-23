@@ -32,9 +32,6 @@ def ensure_mixed_case(name: str):
 
 class ParticipantForm(forms.ModelForm):
     birthday = forms.DateField(widget=DatePickerInput())
-    vae = forms.ChoiceField(
-        choices=(("", "----"), (True, "oui"), (False, "non")), initial=""
-    )
 
     class Meta:
         model = Participant
@@ -46,7 +43,6 @@ class ParticipantForm(forms.ModelForm):
             "birthday",
             "city",
             "country",
-            "vae",
         )
 
     def clean_first_name(self):
@@ -62,8 +58,28 @@ class ParticipantForm(forms.ModelForm):
         return ensure_mixed_case(value)
 
 
+class ParticipantExtraForm(forms.ModelForm):
+    first_name = forms.CharField(disabled=True)
+    last_name = forms.CharField(disabled=True)
+
+    class Meta:
+        model = Participant
+        fields = (
+            "first_name",
+            "last_name",
+            "vae",
+            "pre_departure",
+            "extra_activities",
+        )
+
+
 ParticipantFormSet = inlineformset_factory(
     Signup, Participant, form=ParticipantForm, min_num=1, extra=0, can_delete=True
+)
+
+
+ParticipantExtraFormSet = inlineformset_factory(
+    Signup, Participant, form=ParticipantExtraForm, min_num=1, extra=0, can_delete=False
 )
 
 
@@ -110,15 +126,14 @@ class DaySignupForm(forms.ModelForm):
         fields = [
             "first_name",
             "last_name",
-            "d2022_07_20",
-            "d2022_07_21",
-            "d2022_07_22",
-            "d2022_07_23",
-            "d2022_07_24",
-            "d2022_07_25",
-            "d2022_07_26",
-            "d2022_07_27",
-            "d2022_07_28",
+            "d2023_07_21",
+            "d2023_07_22",
+            "d2023_07_23",
+            "d2023_07_24",
+            "d2023_07_25",
+            "d2023_07_26",
+            "d2023_07_27",
+            "d2023_07_28",
         ]
 
 

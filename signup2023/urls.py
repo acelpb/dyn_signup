@@ -7,9 +7,10 @@ register_converter(converters.DateConverter, "yyyy-mm-dd")
 
 urlpatterns = [
     path("", views.HomePage.as_view(), name="index"),
-    path("signup-1/", views.GroupEditView.as_view(), name="group_edit"),
-    path("signup-2/", views.GroupReviewView.as_view(), name="participant_review"),
-    path("signup-3/", views.ParticipantEditView.as_view(), name="day_edit"),
+    path("participants/", views.CreateGroupView.as_view(), name="group_edit"),
+    path("select_days/", views.SelectDayView.as_view(), name="day_edit"),
+    path("extra_info/", views.GroupExtraEditView.as_view(), name="group_extra_info"),
+    path("validate/", views.GroupReviewView.as_view(), name="validate"),
     path("review/", views.CompletedSignupView.as_view(), name="completed_signup"),
     path("kitchen/", views.KitchenView.as_view(), name="kitchen"),
     path(

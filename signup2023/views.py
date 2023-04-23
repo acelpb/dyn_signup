@@ -12,9 +12,11 @@ from django_tables2 import SingleTableView, Table
 
 from .forms import (
     ParticipantFormSet,
+    ParticipantExtraFormSet,
     ParticipantForm,
     DaySignupFormset,
     ParticipantListReviewForm,
+    ParticipantExtraForm,
 )
 from .mixins import SignupStartedMixin
 from .models import Signup, Participant
@@ -32,9 +34,11 @@ class HomePage(TemplateView):
         return kwargs
 
 
-class GroupEditView(SignupStartedMixin, FormView):
-    template_name = "signup/particpant.html"
-    success_url = "/signup-2"
+class CreateGroupView(SignupStartedMixin, FormView):
+    """Define the list of participants for a group."""
+
+    template_name = "signup/createg_group.html"
+    success_url = reverse_lazy("day_edit")
 
     form_class = inlineformset_factory(
         Signup, Participant, form=ParticipantForm, extra=0, can_delete=False
@@ -51,9 +55,28 @@ class GroupEditView(SignupStartedMixin, FormView):
         return super().form_valid(form)
 
 
-class ParticipantEditView(SignupStartedMixin, FormView):
+class GroupExtraEditView(SignupStartedMixin, FormView):
+    template_name = "signup/particpant.html"
+    success_url = reverse_lazy("validate")
+
+    form_class = inlineformset_factory(
+        Signup, Participant, form=ParticipantExtraForm, extra=0, can_delete=False
+    )
+
+    def get_form(self, form_class=None):
+        return ParticipantExtraFormSet(
+            **self.get_form_kwargs(),
+            instance=self.get_object(),
+        )
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+
+class SelectDayView(SignupStartedMixin, FormView):
     template_name = "signup/select-days.html"
-    success_url = reverse_lazy("completed_signup")
+    success_url = reverse_lazy("group_extra_info")
 
     def get_form(self, form_class=None):
         return DaySignupFormset(
@@ -63,9 +86,6 @@ class ParticipantEditView(SignupStartedMixin, FormView):
 
     def form_valid(self, form):
         form.save()
-        signup = self.get_object()
-        signup.validated_at = timezone.now()
-        signup.save()
         return super().form_valid(form)
 
 
@@ -78,27 +98,27 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
     def form_valid(self, form):
         participants = list(self.get_object().participant_set.all())
         for participant in participants:
-            participant.d2022_07_18 = True
-            participant.d2022_07_19 = True
-            participant.d2022_07_20 = True
-            participant.d2022_07_21 = True
-            participant.d2022_07_22 = True
-            participant.d2022_07_23 = True
-            participant.d2022_07_24 = True
-            participant.d2022_07_25 = True
+            participant.d2023_07_21 = True
+            participant.d2023_07_22 = True
+            participant.d2023_07_23 = True
+            participant.d2023_07_24 = True
+            participant.d2023_07_25 = True
+            participant.d2023_07_26 = True
+            participant.d2023_07_27 = True
+            participant.d2023_07_28 = True
         self.object.validated_at = timezone.now()
         with transaction.atomic():
             Participant.objects.bulk_update(
                 participants,
                 fields=(
-                    "d2022_07_18",
-                    "d2022_07_19",
-                    "d2022_07_20",
-                    "d2022_07_21",
-                    "d2022_07_22",
-                    "d2022_07_23",
-                    "d2022_07_24",
-                    "d2022_07_25",
+                    "d2023_07_21",
+                    "d2023_07_22",
+                    "d2023_07_23",
+                    "d2023_07_24",
+                    "d2023_07_25",
+                    "d2023_07_26",
+                    "d2023_07_27",
+                    "d2023_07_28",
                 ),
             )
             self.object.check_if_on_hold()

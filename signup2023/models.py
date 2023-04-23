@@ -138,6 +138,14 @@ class Signup(models.Model):
         )
 
 
+_TEXT = (
+    "Nous cherchons des signaleurs, des capitaines de route. "
+    "Si vous avez des talents de mécanicien, de secouriste, ou"
+    "si vous vous proposez pour animer une activité en soirée,"
+    "merci de nous le faire savoir."
+)
+
+
 class Participant(models.Model):
     signup_group = models.ForeignKey(Signup, on_delete=models.CASCADE)
     first_name = models.CharField(_("Prénom"), max_length=150, blank=False)
@@ -150,17 +158,34 @@ class Participant(models.Model):
         _("pays de résidence"), max_length=150, blank=False, default="Belgique"
     )
     vae = models.BooleanField(
-        _("VAE"), help_text=_("Vélo à assistance électrique"), null=False
+        _("VAE"),
+        max_length=17,
+        choices=(
+            (False, "🚲🦵"),
+            (True, "🚲🔋"),
+        ),
+        default=False,
+        help_text=_("Vélo à assistance électrique"),
+        null=False,
     )
-    d2022_07_20 = models.BooleanField(_("20-07"), default=False)
-    d2022_07_21 = models.BooleanField(_("21-07"), default=False)
-    d2022_07_22 = models.BooleanField(_("22-07"), default=False)
-    d2022_07_23 = models.BooleanField(_("23-07"), default=False)
-    d2022_07_24 = models.BooleanField(_("24-07"), default=False)
-    d2022_07_25 = models.BooleanField(_("25-07"), default=False)
-    d2022_07_26 = models.BooleanField(_("26-07"), default=False)
-    d2022_07_27 = models.BooleanField(_("27-07"), default=False)
-    d2022_07_28 = models.BooleanField(_("28-07"), default=False)
+    extra_activities = models.CharField(max_length=300, help_text=_TEXT, blank=True)
+    pre_departure = models.BooleanField(
+        _("veille"),
+        choices=(
+            (False, "Non"),
+            (True, "Oui"),
+        ),
+        default=False,
+        help_text="Je souhaite venir la veille du départ",
+    )
+    d2023_07_21 = models.BooleanField(_("21-07"), default=True)
+    d2023_07_22 = models.BooleanField(_("22-07"), default=True)
+    d2023_07_23 = models.BooleanField(_("23-07"), default=True)
+    d2023_07_24 = models.BooleanField(_("24-07"), default=True)
+    d2023_07_25 = models.BooleanField(_("25-07"), default=True)
+    d2023_07_26 = models.BooleanField(_("26-07"), default=True)
+    d2023_07_27 = models.BooleanField(_("27-07"), default=True)
+    d2023_07_28 = models.BooleanField(_("28-07"), default=True)
 
     class Meta:
         verbose_name = "Participant"
@@ -168,26 +193,26 @@ class Participant(models.Model):
 
     def complete_signup(self):
         return (
-            self.d2022_07_18
-            and self.d2022_07_19
-            and self.d2022_07_20
-            and self.d2022_07_21
-            and self.d2022_07_22
-            and self.d2022_07_23
-            and self.d2022_07_24
-            and self.d2022_07_25
+            self.d2023_07_21
+            and self.d2023_07_22
+            and self.d2023_07_23
+            and self.d2023_07_24
+            and self.d2023_07_25
+            and self.d2023_07_26
+            and self.d2023_07_27
+            and self.d2023_07_28
         )
 
     def nb_of_days(self):
         return (
-            self.d2022_07_18
-            + self.d2022_07_19
-            + self.d2022_07_20
-            + self.d2022_07_21
-            + self.d2022_07_22
-            + self.d2022_07_23
-            + self.d2022_07_24
-            + self.d2022_07_25
+            self.d2023_07_21
+            + self.d2023_07_22
+            + self.d2023_07_23
+            + self.d2023_07_24
+            + self.d2023_07_25
+            + self.d2023_07_26
+            + self.d2023_07_27
+            + self.d2022_07_28
         )
 
     def __str__(self):
