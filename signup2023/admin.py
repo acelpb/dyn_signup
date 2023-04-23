@@ -150,14 +150,14 @@ class SignupDayFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         # This is where you create filter options; we have two:
         return [
-            ("d2022_07_21", "21 Juillet"),
-            ("d2022_07_22", "22 Juillet"),
-            ("d2022_07_23", "23 Juillet"),
-            ("d2022_07_24", "24 Juillet"),
-            ("d2022_07_25", "25 Juillet"),
-            ("d2022_07_26", "26 Juillet"),
-            ("d2022_07_27", "27 Juillet"),
-            ("d2022_07_28", "28 Juillet"),
+            ("d2023_07_21", "21 Juillet"),
+            ("d2023_07_22", "22 Juillet"),
+            ("d2023_07_23", "23 Juillet"),
+            ("d2023_07_24", "24 Juillet"),
+            ("d2023_07_25", "25 Juillet"),
+            ("d2023_07_26", "26 Juillet"),
+            ("d2023_07_27", "27 Juillet"),
+            ("d2023_07_28", "28 Juillet"),
         ]
 
     def queryset(self, request, queryset):

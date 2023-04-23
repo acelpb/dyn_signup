@@ -113,6 +113,11 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
     def get_object(self, queryset=None):
         return Signup.objects.filter(owner=self.request.user).first()
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["partial_open"] = settings.DYNAMOBILE_START_PARTIAL_SIGNUP
+        return context
+
 
 class KitchenView(TemplateView):
     template_name = "signup/kitchen.html"

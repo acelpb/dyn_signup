@@ -211,7 +211,7 @@ class Participant(models.Model):
             + self.d2023_07_25
             + self.d2023_07_26
             + self.d2023_07_27
-            + self.d2022_07_28
+            + self.d2023_07_28
         )
 
     def __str__(self):

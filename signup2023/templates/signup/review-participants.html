@@ -9,12 +9,8 @@
     <p>
         Voici les participants renseignés pour votre groupe.<br>
         Veuillez relire attentivement afin de vérifier que les informations introduites soient complètes.<br>
-        Si vous souhaitez modifier les informations entrées, cliqurz-sur le bouton si dessous.<br>
-        Si les informations sont correctes choississez soit:
-        <ul>
-            <li>une inscription complète (vous participerez à toutes les journées de dynamobile) ,</li>
-            <li>soit une inscription partielle (vous souhaitez sélectionner les jours auxquels vous participerez).</li>
-        </ul>
+        Une fois l'inscription validée, vous ne pourrez plus la modifier vous même.
+        Si les informations sont correctes confirmez votre inscription en cliquant sur le bouton <ci-dessous class=""></ci-dessous>
     </p>
 
     <table class="table table-striped">
@@ -26,6 +22,9 @@
                 <th>Date de naissance</th>
                 <th>Lieu de résidence</th>
                 <th data-toggle="tooltip" title="Vélo à Assistance Electrique">V.A.E.</th>
+                <th>Arrive le 20</th>
+                <th>Extra</th>
+                <th>Type</th>
             </tr>
         </thead>
         <tbody>
@@ -36,11 +35,12 @@
                     <td>{{ participant.email }}</td>
                     <td>{{ participant.birthday }}</td>
                     <td>{{ participant.city }}, {{ participant.country }}</td>
+                    <td> {{ participant.get_vae_display }}</td>
+                    <td> {{ participant.get_pre_departure_display }}</td>
+                    <td> {{ participant.extra_activities }}</td>
                     <td>
-                        {% if participant.vae %}
-                            <div data-toggle="tooltip" title="Vélo Electrique">🔋</div>
-                        {% else %}
-                            <div data-toggle="tooltip" title="Vélo à Jambe">🦵</div>
+                        {% if participant.complete_signup %}Inscription complète
+                        {% else %}Inscription partielle
                         {% endif %}
                     </td>
                 </tr>
@@ -54,7 +54,7 @@
         {% else %}
             {{ form|as_crispy_errors }}
         {% endif %}
-        <a href="/signup-1" class="btn btn-danger">{% trans "previous page" %}</a>
+        <a href="/signup-1" class="btn btn-danger">{% trans "Page précédente" %}</a>
         <button type="submit" class="btn btn-primary">{% trans "Confirmer l'inscription" %}</button>
     </form>
 
