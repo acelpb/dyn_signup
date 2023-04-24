@@ -59,8 +59,8 @@ class ParticipantForm(forms.ModelForm):
 
 
 class ParticipantExtraForm(forms.ModelForm):
-    first_name = forms.CharField(disabled=True)
-    last_name = forms.CharField(disabled=True)
+    first_name = forms.CharField(label="Prénom", disabled=True)
+    last_name = forms.CharField(label="Nom", disabled=True)
 
     class Meta:
         model = Participant
@@ -76,7 +76,6 @@ class ParticipantExtraForm(forms.ModelForm):
 ParticipantFormSet = inlineformset_factory(
     Signup, Participant, form=ParticipantForm, min_num=1, extra=0, can_delete=True
 )
-
 
 ParticipantExtraFormSet = inlineformset_factory(
     Signup, Participant, form=ParticipantExtraForm, min_num=1, extra=0, can_delete=False
@@ -118,8 +117,8 @@ class ParticipantListReviewForm(forms.ModelForm):
 
 
 class DaySignupForm(forms.ModelForm):
-    first_name = forms.CharField(disabled=True)
-    last_name = forms.CharField(disabled=True)
+    first_name = forms.CharField(label="Prénom", disabled=True)
+    last_name = forms.CharField(label="Nom", disabled=True)
 
     class Meta:
         model = Participant
