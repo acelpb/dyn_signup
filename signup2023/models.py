@@ -160,8 +160,8 @@ class Participant(models.Model):
         _("VAE"),
         max_length=17,
         choices=(
-            (False, "🚲🦵"),
-            (True, "🚲🔋"),
+            (False, "non"),
+            (True, "oui"),
         ),
         default=False,
         help_text=_("Vélo à assistance électrique"),
