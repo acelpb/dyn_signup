@@ -242,7 +242,7 @@ def reminder(modeladmin, request, queryset):
     for el in queryset:
         if el.ballance > 0:
             send_mail(
-                subject="Rappel de payement",
+                subject="Rappel de paiement",
                 message=get_template("signup/email/payment_reminder.txt").render(),
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[el.signup.owner.email, settings.EMAIL_HOST_USER],

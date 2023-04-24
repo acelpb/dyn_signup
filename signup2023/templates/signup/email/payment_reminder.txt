@@ -1,6 +1,6 @@
 Sauf erreur de notre part, vous n'avez pas encore régler le solde de votre inscription.
 
-Les instructions de payement peuvent être visualisée en  utilisant le lien suivant: https://inscriptions.dynamobile.net{% url "completed_signup" %}.
+Les instructions de paiement peuvent être visualisée en  utilisant le lien suivant: https://inscriptions.dynamobile.net{% url "completed_signup" %}.
 
 Pour toute question, ou en cas d'erreur de ma part, merci de répondre à cet e-mail.
 
