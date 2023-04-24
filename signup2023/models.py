@@ -147,8 +147,8 @@ _TEXT = (
 
 class Participant(models.Model):
     signup_group = models.ForeignKey(Signup, on_delete=models.CASCADE)
-    first_name = models.CharField(_("Prénom"), max_length=150, blank=False)
-    last_name = models.CharField(_("Nom"), max_length=150, blank=False)
+    first_name = models.CharField("Prénom", max_length=150, blank=False)
+    last_name = models.CharField("Nom", max_length=150, blank=False)
     email = models.EmailField(_("e-mail"), blank=True)
     phone = PhoneNumberField(_("N° tel"), blank=True, null=True)
     birthday = models.DateField(_("date de naissance"), blank=False)
@@ -167,7 +167,9 @@ class Participant(models.Model):
         help_text=_("Vélo à assistance électrique"),
         null=False,
     )
-    extra_activities = models.CharField(max_length=300, help_text=_TEXT, blank=True)
+    extra_activities = models.CharField(
+        "proposition d'aide", max_length=300, help_text=_TEXT, blank=True
+    )
     pre_departure = models.BooleanField(
         _("veille"),
         choices=(
@@ -175,7 +177,7 @@ class Participant(models.Model):
             (True, "Oui"),
         ),
         default=False,
-        help_text="Je souhaite venir la veille du départ (petit-déjeuner et pique-nique pour le 21)",
+        help_text="Je souhaite venir la veille du départ (petit-déjeuner et pique-nique pour le 21 seront prévus)",
     )
     d2023_07_21 = models.BooleanField(_("21-07"), default=True)
     d2023_07_22 = models.BooleanField(_("22-07"), default=True)

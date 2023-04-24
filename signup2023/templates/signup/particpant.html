@@ -72,8 +72,8 @@
             {% if reviewing_form %}
                 <a class="btn btn-primary disabled" disabled>Edit</a>
             {% else %}
-                <a href="{% url "day_edit" %}"  class="btn btn-secondary">{% trans "previous page" %}</a>
-                <button type="submit" class="btn btn-primary">{% trans "next page" %}</button>
+                <a href="{% url "day_edit" %}"  class="btn btn-secondary">{% trans "Page précédente" %}</a>
+                <button type="submit" class="btn btn-primary">{% trans "Page suivante" %}</button>
             {% endif %}
         </form>
     {% else %}

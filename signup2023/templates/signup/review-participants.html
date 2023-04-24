@@ -54,7 +54,7 @@
         {% else %}
             {{ form|as_crispy_errors }}
         {% endif %}
-        <a href="/signup-1" class="btn btn-danger">{% trans "Page précédente" %}</a>
+        <a href="{% url "group_extra_info" %}" class="btn btn-danger">{% trans "Page précédente" %}</a>
         <button type="submit" class="btn btn-primary">{% trans "Confirmer l'inscription" %}</button>
     </form>
 
