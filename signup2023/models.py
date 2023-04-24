@@ -139,7 +139,7 @@ class Signup(models.Model):
 
 _TEXT = (
     "Nous cherchons des signaleurs, des capitaines de route. "
-    "Si vous avez des talents de mécanicien, de secouriste, ou"
+    "Si vous avez des talents de mécanicien, de secouriste, ou "
     "si vous vous proposez pour animer une activité en soirée,"
     "merci de nous le faire savoir."
 )
@@ -175,7 +175,7 @@ class Participant(models.Model):
             (True, "Oui"),
         ),
         default=False,
-        help_text="Je souhaite venir la veille du départ",
+        help_text="Je souhaite venir la veille du départ (petit-déjeuner et pique-nique pour le 21)",
     )
     d2023_07_21 = models.BooleanField(_("21-07"), default=True)
     d2023_07_22 = models.BooleanField(_("22-07"), default=True)
