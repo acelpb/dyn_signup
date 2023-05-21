@@ -5,7 +5,6 @@ from django.core.mail import send_mail
 from django.db.models import Sum, F, Q
 from django.template.loader import get_template
 from django.urls import reverse, path
-from django.utils import timezone
 from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ExportMixin
@@ -228,19 +227,19 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         return mark_safe(link)
 
 
-@admin.action(description="Send payment confirmation email")
-def send_confirmation(modeladmin, request, queryset):
-    for el in queryset:
-        el.payed_at = timezone.now()
-        el.amount_payed_at = el.amount - el.ballance
-        el.save()
-        el.send_confirmation_email()
+# @admin.action(description="Send payment confirmation email")
+# def send_confirmation(modeladmin, request, queryset):
+#     for el in queryset:
+#         el.payed_at = timezone.now()
+#         el.amount_payed_at = el.amount - el.ballance
+#         el.save()
+#         el.send_confirmation_email()
 
 
 @admin.action(description="Send payment reminder")
 def reminder(modeladmin, request, queryset):
     for el in queryset:
-        if el.ballance > 0:
+        if el.calculated_amount is not None:
             send_mail(
                 subject="Rappel de paiement",
                 message=get_template("signup/email/payment_reminder.txt").render(),
@@ -304,7 +303,7 @@ class BillAdmin(admin.ModelAdmin):
     )
     inlines = [PaymentInline]
 
-    actions = [send_confirmation, reminder]
+    actions = [reminder]
 
     def signup_link(self, obj: Bill):
         signup: Signup = obj.signup

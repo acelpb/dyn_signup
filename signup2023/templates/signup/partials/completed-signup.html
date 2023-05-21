@@ -64,16 +64,20 @@
     <p>
         Le solde de votre inscription est de {{ signup.bill.calculated_amount|floatformat:2 }}€ <br />
         {{ signup.bill.calculation|linebreaks }}
-
     </p>
     <p>
-        Nous n'avons malheureusement pas de numéro de compte à vous communiquer pour le moment.
+        Merci d'effectuer un paiement sur le compte de dynamobile:
+        <span class="font-weight-bold">Attention nouveau compte: </span>
+        <span>BE96 0019 5174 7205</span>
     </p>
     <p>
-        Vous recevrez un e-mail dans les prochaines semaines avec le numéro de compte sur lequel procéder au paiement de votre inscription.
+        Comme communication merci de mentionner <span class="font-weight-bold">inscription {{ signup.id }}</span>
     </p>
     <p>
-        Votre inscription ne sera complètement valide qu'une fois le paiement de celle-ci confirmé.
+        Le paiement de l'inscription doit être fait avant le 5 juin.
+        En cas de non paiement, votre place sera donnée à quelqu'un sur la liste d'attente.
+        Si vous n'êtes pas en mesure de régler le solde de votre inscription d'ici au 5 juin,
+        mais que vous souhaitez participer contactez nous ici: <a href="mailto:inscriptions@dynamobile.net?subject=VAE n°{{ signup.id }}">inscriptions@dynamobile.net</a>.
     </p>
 {% else %}
     <p>
