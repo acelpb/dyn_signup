@@ -239,9 +239,9 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
 @admin.action(description="Send payment reminder")
 def reminder(modeladmin, request, queryset):
     for el in queryset:
-        if el.calculated_amount is not None:
+        if el.calculated_amount is not None and not el.signup.on_hold:
             send_mail(
-                subject="Rappel de paiement",
+                subject="Dynamobile paiement inscription",
                 message=get_template("signup/email/payment_reminder.txt").render(),
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[el.signup.owner.email, settings.EMAIL_HOST_USER],
