@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "import_export",
     "django_tables2",
     "phonenumber_field",
+    "django_object_actions",
     "signup2023.apps.Signup2023Config",
 ]
 
