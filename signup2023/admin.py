@@ -260,6 +260,21 @@ def reminder(modeladmin, request, queryset):
             )
 
 
+@admin.action(description="Send place on waiting list")
+def waiting_list(modeladmin, request, queryset):
+    for el in queryset:
+        if el.signup.on_hold:
+            send_mail(
+                subject="Dynamobile place sur la liste d'attente",
+                message=get_template("signup/email/payment_reminder.txt").render(),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[el.signup.owner.email, settings.EMAIL_HOST_USER],
+                html_message=get_template("signup/email/payment_reminder.html").render(
+                    {"signup": el.signup}
+                ),
+            )
+
+
 class PriceIsOddFilter(SimpleListFilter):
     title = "Prix calculé"
     parameter_name = "price_diff"
@@ -331,7 +346,7 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
         "send_payment_confirmation",
     )
 
-    actions = [reminder]
+    actions = [reminder, waiting_list]
 
     def signup_link(self, obj: Bill):
         signup: Signup = obj.signup
