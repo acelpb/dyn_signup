@@ -312,7 +312,16 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
         self.message_user(request, "Mail de confirmation envoyé.")
         pass
 
-    change_actions = ("send_payment_confirmation",)
+    def recalculate(self, request, obj: Bill):
+        obj.calculate_amount_and_explain()
+        obj.save()
+        self.message_user(request, "ok")
+        pass
+
+    change_actions = (
+        "recalculate",
+        "send_payment_confirmation",
+    )
 
     actions = [reminder]
 
