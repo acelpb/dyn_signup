@@ -195,6 +195,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "first_name",
         "last_name",
         "birthday",
+        "age",
         "d2023_07_21",
         "d2023_07_22",
         "d2023_07_23",
@@ -214,6 +215,11 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "country",
     )
     fields = []
+
+    def age(self, obj: Participant):
+        return obj.age
+
+    age.admin_order_field = "age"
 
     def signup_link(self, obj: Participant):
         signup: Signup = obj.signup_group
