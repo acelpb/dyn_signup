@@ -4,7 +4,8 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import F, Q, Window
+from django.db.models.functions import RowNumber
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -84,12 +85,34 @@ class Signup(models.Model):
         return True
 
     def waiting_number(self):
-        return (
-            Signup.objects.filter(
-                validated_at__lt=self.validated_at, on_hold=True
-            ).count()
-            + 1
+        waiting_participants = Participant.objects.filter(signup_group__on_hold=True)
+        ordered_participants = waiting_participants.annotate(
+            ranking=models.Case(
+                models.When(
+                    signup_group__validated_at__lt="2023-05-24",
+                    signup_group__on_hold_partial=False,
+                    then=models.Value(1),
+                ),
+                models.When(
+                    signup_group__validated_at__lt="2023-05-24",
+                    signup_group__on_hold_partial=True,
+                    then=models.Value(2),
+                ),
+                default=models.Value(3),
+            )
+        ).annotate(
+            final_ranking=Window(
+                RowNumber(), order_by=["ranking", "signup_group__validated_at"]
+            )
         )
+
+        collect = {
+            k: v
+            for k, v in ordered_participants.values_list(
+                "signup_group_id", "final_ranking"
+            )[::-1]
+        }
+        return collect.get(self.id, 0)
 
     def check_on_hold_partial(self):
         if (

@@ -79,6 +79,7 @@ class SignupAdmin(admin.ModelAdmin):
         "amount",
         "still_to_be_payed",
     )
+    list_filter = ("on_hold",)
     inlines = [ParticipantInfoInline, ParticipantDaysInline]
 
     def get_queryset(self, request):
@@ -307,6 +308,7 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     )
     list_filter = (
         ("payed_at", admin.EmptyFieldListFilter),
+        ("signup__on_hold", admin.BooleanFieldListFilter),
         PriceIsOddFilter,
     )
     inlines = [PaymentInline]
