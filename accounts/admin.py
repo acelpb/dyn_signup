@@ -12,7 +12,7 @@ from .admin_custom_views import (
     LinkToSignupView,
     LinkToExpenseReportView,
 )
-from .format import BPostCSV
+from .format import BPostCSV, FortisCSV
 from .forms import VentilationForm
 from .models import (
     Operation,
@@ -20,6 +20,7 @@ from .models import (
     Bill,
     ExpenseReport,
     ExpenseFile,
+    Account,
 )
 
 # Register your models here.
@@ -86,7 +87,7 @@ class JustificationInline(TabularInline):
             return False
 
 
-# @admin.register(Account)
+@admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "IBAN")
 
@@ -231,7 +232,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
             return False
 
     def get_import_formats(self):
-        return [BPostCSV]
+        return [BPostCSV, FortisCSV]
 
     def get_urls(self):
         urls = super().get_urls()

@@ -8,4 +8,4 @@ class OperationResource(resources.ModelResource):
         model = Operation
         skip_unchanged = True
         report_skipped = False
-        import_id_fields = ("year", "number")
+        import_id_fields = ("account", "year", "number")

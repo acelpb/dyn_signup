@@ -32,7 +32,11 @@ class Operation(models.Model):
     reference = models.CharField(max_length=255)
 
     class Meta:
-        unique_together = ("year", "number")
+        unique_together = (
+            "account",
+            "year",
+            "number",
+        )
 
     def __str__(self):
         return f"{self.year} {self.number} - {self.amount}€ - {self.counterparty_name}"

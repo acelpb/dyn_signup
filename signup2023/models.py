@@ -32,7 +32,7 @@ class Signup(models.Model):
         unique_together = ("owner_id", "year")
 
     def __str__(self):
-        return f"{self.owner.username}"
+        return f"{self.id} - {self.owner.username}"
 
     def calculate_amount(self):
         return self.bill.amount or 0
@@ -291,6 +291,17 @@ class Bill(models.Model):
             return
         send_mail(
             subject="Confirmation d'inscription à dynamobile",
+            message=get_template("signup/email/email_confirmation.txt").render(),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[self.signup.owner.email, settings.EMAIL_HOST_USER],
+            html_message=get_template("signup/email/email_confirmation.html").render(
+                {"signup": self.signup}
+            ),
+        )
+
+    def send_payment_confirmation_mail(self):
+        return send_mail(
+            subject="Confirmation de réception du paiement",
             message=get_template("signup/email/email_confirmation.txt").render(),
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=[self.signup.owner.email, settings.EMAIL_HOST_USER],

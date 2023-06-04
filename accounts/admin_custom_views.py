@@ -1,5 +1,5 @@
 from django import views
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 
 from accounts.forms import LinkToBillForm, LinkToSignupForm, LinkToExpenseReportForm
 from accounts.models import Operation, Bill, ExpenseReport
@@ -47,6 +47,11 @@ class LinkToSignupView(LinkPaymentGenericView):
     template_name = "admin/operations/link_to_bill.html"
     form_class = LinkToSignupForm
     model_class = Bill
+
+    def form_valid(self, form):
+        bill = form.cleaned_data["signup"].bill
+        self.success_url = reverse("admin:signup2023_bill_change", args=(bill.id,))
+        return super().form_valid(form)
 
 
 class LinkToExpenseReportView(LinkPaymentGenericView):

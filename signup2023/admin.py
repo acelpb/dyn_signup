@@ -5,7 +5,9 @@ from django.core.mail import send_mail
 from django.db.models import Sum, F, Q
 from django.template.loader import get_template
 from django.urls import reverse, path
+from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django_object_actions import DjangoObjectActions
 from import_export import resources
 from import_export.admin import ExportMixin
 
@@ -135,7 +137,7 @@ class SignupStatusFilter(SimpleListFilter):
                 "signup_group__on_hold": False,
                 "signup_group__cancelled_at__isnull": True,
             },
-            "payed": {"signup_group__bill__ballance__lte": 0},
+            "payed": {"signup_group__bill__payed_at__isnull": False},
             "cancelled": {"signup_group__cancelled_at__isnull": False},
             None: {},
         }
@@ -269,7 +271,7 @@ class PriceIsOddFilter(SimpleListFilter):
 
 
 @admin.register(Bill)
-class BillAdmin(admin.ModelAdmin):
+class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     list_display = (
         "id",
         "signup",
@@ -302,6 +304,15 @@ class BillAdmin(admin.ModelAdmin):
         PriceIsOddFilter,
     )
     inlines = [PaymentInline]
+
+    def send_payment_confirmation(self, request, obj):
+        obj.send_payment_confirmation_mail()
+        obj.payed_at = timezone.now()
+        obj.save()
+        self.message_user(request, "Mail de confirmation envoyé.")
+        pass
+
+    change_actions = ("send_payment_confirmation",)
 
     actions = [reminder]
 

@@ -3,7 +3,13 @@ from django.db import transaction
 from django.db.models import Sum, F
 from django.core.exceptions import ValidationError
 
-from accounts.models import Operation, Bill, OperationValidation, ExpenseReport
+from accounts.models import (
+    Operation,
+    Bill,
+    OperationValidation,
+    ExpenseReport,
+    IncomeChoices,
+)
 from signup2023.models import Signup
 
 
@@ -78,7 +84,10 @@ class LinkToSignupForm(forms.Form):
         with transaction.atomic():
             for operation in self.cleaned_data["operations"]:
                 OperationValidation.objects.create(
-                    operation=operation, amount=operation.amount, event=signup.bill
+                    operation=operation,
+                    amount=operation.amount,
+                    event=signup.bill,
+                    validation_type=IncomeChoices.SIGNUP,
                 )
 
 
