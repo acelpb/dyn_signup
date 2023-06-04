@@ -55,6 +55,7 @@ class BPostCSV(Format):
                 _,
             ) = row
             transaction_date = datetime.strptime(date, "%Y-%m-%d")
+            effective_date = datetime.strptime(effective_date, "%Y-%m-%d")
             data.append(
                 (
                     account_id,
@@ -64,7 +65,7 @@ class BPostCSV(Format):
                     description,
                     float(amount.replace(",", ".")),
                     currency,
-                    datetime.strptime(effective_date, "%d/%m/%Y"),
+                    effective_date,
                     counterparty_IBAN,
                     counterparty_name,
                     "\n".join(communication),
