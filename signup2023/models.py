@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import send_mail
 from django.db import models
-from django.db.models import F
+from django.db.models import F, Q
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -145,6 +145,29 @@ _TEXT = (
 )
 
 
+class ParticipantManager(models.Manager):
+    def get_queryset(self):
+        last_day = settings.DYNAMOBILE_LAST_DAY
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                age=(
+                    last_day.year
+                    - F("birthday__year")
+                    - models.ExpressionWrapper(
+                        Q(birthday__month__gt=last_day.month)
+                        | (
+                            Q(birthday__month=last_day.month)
+                            & Q(birthday__day__gt=last_day.day)
+                        ),
+                        output_field=models.IntegerField(),
+                    )
+                )
+            )
+        )
+
+
 class Participant(models.Model):
     signup_group = models.ForeignKey(Signup, on_delete=models.CASCADE)
     first_name = models.CharField("Prénom", max_length=150, blank=False)
@@ -187,6 +210,8 @@ class Participant(models.Model):
     d2023_07_26 = models.BooleanField(_("26-07"), default=True)
     d2023_07_27 = models.BooleanField(_("27-07"), default=True)
     d2023_07_28 = models.BooleanField(_("28-07"), default=True)
+
+    objects = ParticipantManager()
 
     class Meta:
         verbose_name = "Participant"

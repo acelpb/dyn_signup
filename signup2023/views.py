@@ -123,27 +123,20 @@ class KitchenView(TemplateView):
     template_name = "signup/kitchen.html"
 
     def get_context_data(self, **context):
-        def _get_x_years_before(x):
-            return settings.DYNAMOBILE_LAST_DAY.replace(
-                year=settings.DYNAMOBILE_LAST_DAY.year - x
-            )
-
         context["days"] = {
             day_formatted: {
                 k: v
                 for k, v in Participant.objects.filter(
                     signup_group__validated_at__isnull=False,
+                    signup_group__on_hold=False,
+                    signup_group__cancelled_at__isnull=True,
                     **{"d" + day_formatted.replace("-", "_"): True},
                 )
                 .values(
                     age_group=Case(
-                        When(birthday__gte=_get_x_years_before(6), then=Value("a0_6")),
-                        When(
-                            birthday__gte=_get_x_years_before(12), then=Value("a6_12")
-                        ),
-                        When(
-                            birthday__gte=_get_x_years_before(18), then=Value("a12_18")
-                        ),
+                        When(age__lte=6, then=Value("a0_6")),
+                        When(age__lte=12, then=Value("a6_12")),
+                        When(age__lt=18, then=Value("a12_18")),
                         default=Value("a18plus"),
                     ),
                 )
