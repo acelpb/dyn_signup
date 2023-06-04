@@ -266,10 +266,10 @@ def waiting_list(modeladmin, request, queryset):
         if el.signup.on_hold:
             send_mail(
                 subject="Dynamobile place sur la liste d'attente",
-                message=get_template("signup/email/payment_reminder.txt").render(),
+                message=get_template("signup/email/waiting_list.txt").render(),
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[el.signup.owner.email, settings.EMAIL_HOST_USER],
-                html_message=get_template("signup/email/payment_reminder.html").render(
+                html_message=get_template("signup/email/waiting_list.html").render(
                     {"signup": el.signup}
                 ),
             )
