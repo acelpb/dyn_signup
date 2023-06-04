@@ -125,6 +125,7 @@ class SignupStatusFilter(SimpleListFilter):
             ("partial", "On Hold Partial"),
             ("validated", "Confirmé"),
             ("payed", "Payé"),
+            ("needs_to_pay", "Impayé"),
             ("cancelled", "Annulé"),
         ]
 
@@ -137,6 +138,12 @@ class SignupStatusFilter(SimpleListFilter):
                 "signup_group__validated_at__isnull": False,
                 "signup_group__on_hold": False,
                 "signup_group__cancelled_at__isnull": True,
+            },
+            "needs_to_pay": {
+                "signup_group__validated_at__isnull": False,
+                "signup_group__on_hold": False,
+                "signup_group__cancelled_at__isnull": True,
+                "signup_group__bill__payed_at__isnull": True,
             },
             "payed": {"signup_group__bill__payed_at__isnull": False},
             "cancelled": {"signup_group__cancelled_at__isnull": False},
@@ -323,6 +330,7 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     )
     list_filter = (
         ("payed_at", admin.EmptyFieldListFilter),
+        ("signup__cancelled_at", admin.EmptyFieldListFilter),
         ("signup__on_hold", admin.BooleanFieldListFilter),
         PriceIsOddFilter,
     )
