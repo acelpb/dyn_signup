@@ -123,14 +123,21 @@ class KitchenView(TemplateView):
     template_name = "signup/kitchen.html"
 
     def get_context_data(self, **context):
+        days = (
+            ("pre_departure", "Veille"),
+            *(
+                ("d" + day_label.replace("-", "_"), day_label)
+                for _, day_label in settings.DYNAMOBILE_DAYS
+            ),
+        )
         context["days"] = {
-            day_formatted: {
+            label: {
                 k: v
                 for k, v in Participant.objects.filter(
                     signup_group__validated_at__isnull=False,
                     signup_group__on_hold=False,
                     signup_group__cancelled_at__isnull=True,
-                    **{"d" + day_formatted.replace("-", "_"): True},
+                    **{field: True},
                 )
                 .values(
                     age_group=Case(
@@ -143,12 +150,11 @@ class KitchenView(TemplateView):
                 .annotate(participants=Count("age_group"))
                 .values_list("age_group", "participants")
             }
-            for day, day_formatted in settings.DYNAMOBILE_DAYS
+            for field, label in days
         }
-        for _, day_formatted in settings.DYNAMOBILE_DAYS:
-            context["days"][day_formatted]["total"] = sum(
-                context["days"][day_formatted].values()
-            )
+
+        for _, label in days:
+            context["days"][label]["total"] = sum(context["days"][label].values())
 
         return super().get_context_data(**context)
 
