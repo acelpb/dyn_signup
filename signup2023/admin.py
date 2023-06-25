@@ -159,6 +159,7 @@ class SignupDayFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         # This is where you create filter options; we have two:
         return [
+            ("pre_departure", "vient la veille"),
             ("d2023_07_21", "21 Juillet"),
             ("d2023_07_22", "22 Juillet"),
             ("d2023_07_23", "23 Juillet"),
@@ -175,6 +176,17 @@ class SignupDayFilter(SimpleListFilter):
 
 
 class ParticipantResource(resources.ModelResource):
+    def get_export_headers(self):
+        headers = []
+        for field in self.get_fields():
+            model_fields = self.Meta.model._meta.get_fields()
+            header = next(
+                (x.verbose_name for x in model_fields if x.name == field.column_name),
+                field.column_name,
+            )
+            headers.append(header)
+        return headers
+
     class Meta:
         model = Participant
 
@@ -204,6 +216,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "last_name",
         "birthday",
         "age",
+        "pre_departure",
         "d2023_07_21",
         "d2023_07_22",
         "d2023_07_23",
@@ -241,15 +254,6 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
             str(signup),
         )
         return mark_safe(link)
-
-
-# @admin.action(description="Send payment confirmation email")
-# def send_confirmation(modeladmin, request, queryset):
-#     for el in queryset:
-#         el.payed_at = timezone.now()
-#         el.amount_payed_at = el.amount - el.ballance
-#         el.save()
-#         el.send_confirmation_email()
 
 
 @admin.action(description="Send payment reminder")
