@@ -32,7 +32,7 @@ class PaymentInline(GenericTabularInline):
     verbose_name_plural = "ventilation"
     form = VentilationForm
     model = OperationValidation
-    extra = 3
+    extra = 0
     ct_field_name = "content_type"
     id_field_name = "object_id"
     can_delete = False
@@ -40,12 +40,6 @@ class PaymentInline(GenericTabularInline):
 
     def has_view_permission(self, request, obj=None):
         return True
-
-    def has_add_permission(self, request, obj):
-        if obj is None:
-            return True
-        else:
-            return False
 
 
 class ExpenseFileInline(TabularInline):
