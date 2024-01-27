@@ -20,6 +20,7 @@ from django.contrib.auth import views as auth_views
 from django.urls import path, include
 
 urlpatterns = [
+    path("", include("accounts.urls")),
     path("", include("signup2023.urls")),
     path("auth/", include("magiclink.urls", namespace="magiclink")),
     path(

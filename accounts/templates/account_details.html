@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-2 col-lg-2"></div>
+        <div class="col-sm-12 col-md-8 col-lg-8 ">
+
+            <h2>Reste a justifier</h2>
+            <p>Un total de {{ positive_pending_transactions|floatformat:2|intcomma }} € en rentrée</p>
+            <p>Un total de {{ negative_pending_transactions|floatformat:2|intcomma }} € en dépense</p>
+
+            <h2>B Etat des dépenses et recettes</h2>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <tr></tr>
+                    </thead>
+                    <tbody>
+                        {% for key, value in charges.items %}
+                            {% for validation_type, amount in value.items %}
+                                {% if validation_type == "sum" %}
+                                {% else %}
+                                    <tr>
+                                        <td></td>
+                                        <td>{{ validation_type.0 }}</td>
+                                        <td>{{ validation_type.1|upper }}</td>
+                                        <td>{{ amount|floatformat:2|intcomma }} €</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                            <tr>
+                                <td>{{ key.0 }}</td>
+                                <td colspan="2">{{ key.1| upper}}</td>
+                                <td>{{ value.sum|floatformat:2|intcomma }} €</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="3">TOTAL DES CHARGES</td>
+                            <td>{{ total_spends|floatformat:2|intcomma }}</td>
+                        </tr>
+                        <tr><td colspan="4"> </td></tr>
+                        {% for key, value in incomes.items %}
+                            {% for validation_type, amount in value.items %}
+                                {% if validation_type == "sum" %}
+                                {% else %}
+                                    <tr>
+                                        <td></td>
+                                        <td>{{ validation_type.0 }}</td>
+                                        <td>{{ validation_type.1|upper }}</td>
+                                        <td>{{ amount|floatformat:2|intcomma }} €</td>
+                                    </tr>
+                                {% endif %}
+                            {% endfor %}
+                            <tr>
+                                <td>{{ key.0 }}</td>
+                                <td colspan="2">{{ key.1| upper}}</td>
+                                <td>{{ value.sum|floatformat:2|intcomma }} €</td>
+                            </tr>
+                        {% endfor %}
+                        <tr>
+                            <td colspan="3">TOTAL DES PRODUITS</td>
+                            <td>{{ total_incomes|floatformat:2|intcomma }}</td>
+                        </tr>
+                        <tr><td colspan="4"> </td></tr>
+                        <tr><td colspan="3">BENEFICE / PERTE</td>
+                            <td>{{ total|floatformat:2|intcomma }}</td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-2 col-lg-2"></div>
+        </div>
+{% endblock %}

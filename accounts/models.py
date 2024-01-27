@@ -4,7 +4,9 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.urls import reverse
 from django.utils.datetime_safe import datetime
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 
@@ -81,12 +83,12 @@ class IncomeChoices(models.IntegerChoices):
     DONATION = 7001, _("DONS")
     SUBSIDY = 7002, _("SUBSIDES")
     MERCH_SALES = 7003, _("VENTE MARCHANDISES")
-
     INTERESTS = 7512, _("PRODUITS BANCAIRES")
 
 
 class OperationValidation(models.Model):
     "Each operation should be validated, this is done by validating the operation against another event in the db"
+
     operation = models.ForeignKey("Operation", null=True, on_delete=models.CASCADE)
     # If there is a single justification, this will be equal to the operation,
     # but we can imagine that an operation is justified by multiple events.
@@ -105,6 +107,16 @@ class OperationValidation(models.Model):
         ],
         null=True,
     )
+
+    def justification_link(self):
+        if event := self.event:
+            url_name = "admin:%s_%s_change" % (
+                event._meta.app_label,
+                event._meta.model_name,
+            )
+            change_url = reverse(url_name, args=[event.id])
+            return mark_safe('<a href="%s">%s</a>' % (change_url, str(event)))
+        return "-"
 
 
 #

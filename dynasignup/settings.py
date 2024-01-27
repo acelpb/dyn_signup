@@ -33,7 +33,12 @@ SECRET_KEY = config(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ["inscriptions.dynamobile.net", "127.0.0.1", "inscriptions.acelpb.com"]
+ALLOWED_HOSTS = [
+    "inscriptions.dynamobile.net",
+    "127.0.0.1",
+    "inscriptions.acelpb.com",
+    "localhost",
+]
 CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 
 # Application definition
@@ -45,6 +50,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
     "whitenoise",
     "crispy_forms",
     "crispy_bootstrap4",

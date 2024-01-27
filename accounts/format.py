@@ -171,7 +171,7 @@ class FortisCSV(Format):
                     transaction_date.year,
                     transaction_date,
                     description,
-                    float(amount),
+                    float(amount.replace(",", ".")),
                     currency,
                     datetime.strptime(effective_date, "%d/%m/%Y"),
                     counterparty_IBAN,

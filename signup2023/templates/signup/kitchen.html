@@ -13,7 +13,7 @@
                 <th scope="col">6 - 12 ans</th>
                 <th scope="col">12 - 18 ans</th>
                 <th scope="col">18+ ans</th>
-                <th scope="col">total</th>
+                <th scope="col">total (eaters)</th>
             </tr>
         </thead>
         <tbody>
@@ -24,7 +24,7 @@
                     <td>{{ counts.a6_12 }}</td>
                     <td>{{ counts.a12_18 }}</td>
                     <td>{{ counts.a18plus }}</td>
-                    <td>{{ counts.total }}</td>
+                    <td>{{ counts.total }} ({{ counts.eaters }})</td>
                 </tr>
             {% endfor %}
         </tbody>
