@@ -10,7 +10,7 @@
             <div class="col-sm-12 col-md-8 col-lg-8 ">
                 {% with date=dynamobile_signup_period_start.date time=dynamobile_signup_period_start.time %}
                     <p>{% blocktrans %}
-                        Les inscriptions n'ont pas encore débuté.
+                        Les inscriptions débuterons le {{ date|date:"d/m/Y" }} à {{ time|time:"H:i" }}.
                     {% endblocktrans %}</p>
                     <p>
                         {% blocktrans %}
