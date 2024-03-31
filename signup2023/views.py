@@ -35,7 +35,7 @@ class HomePage(TemplateView):
 class CreateGroupView(SignupStartedMixin, FormView):
     """Define the list of participants for a group."""
 
-    template_name = "signup/createg_group.html"
+    template_name = "signup/create_group.html"
     success_url = reverse_lazy("day_edit")
 
     form_class = inlineformset_factory(
