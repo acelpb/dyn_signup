@@ -1,5 +1,5 @@
 crispy-bootstrap4
-Django~=4.0
+Django~=4.2
 django-bootstrap4
 django-crispy-forms
 django-import-export

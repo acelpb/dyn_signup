@@ -185,16 +185,16 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 brussels_tz = zoneinfo.ZoneInfo("Europe/Brussels")
 
 DYNAMOBILE_START_SIGNUP = parse_datetime(
-    config("DYNAMOBILE_START_SIGNUP", default="2023-04-24 20:00:00")
+    config("DYNAMOBILE_START_SIGNUP", default="2024-04-22 20:00:00")
 ).replace(tzinfo=brussels_tz)
-DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2023-05-24 17:00:00").replace(
+DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2024-05-22 17:00:00").replace(
     tzinfo=brussels_tz
 )
-DYNAMOBILE_END_SIGNUP = parse_datetime("2023-07-20 18:00:00").replace(
+DYNAMOBILE_END_SIGNUP = parse_datetime("2024-07-18 18:00:00").replace(
     tzinfo=brussels_tz
 )
-DYNAMOBILE_FIRST_DAY = parse_date("2023-07-21")
-DYNAMOBILE_LAST_DAY = parse_date("2023-07-28")
+DYNAMOBILE_FIRST_DAY = parse_date("2024-07-19")
+DYNAMOBILE_LAST_DAY = parse_date("2024-07-26")
 
 DYNAMOBILE_DAYS = [
     (day, day.strftime("%Y-%m-%d"))
@@ -213,6 +213,15 @@ DYNAMOBILE_MAX_VAE_PARTICIPANTS = config(
     "DYNAMOBILE_MAX_VAE_PARTICIPANTS", default=20, cast=int
 )
 
+DYNAMOBILE_PRICES = (
+    (0, 2, 0, 0),
+    (2, 6, 80, 10),
+    (6, 12, 150, 30),
+    (12, 18, 240, 40),
+    (18, 999, 330, 50),
+)
+
+
 EMAIL_BACKEND = config(
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
 )
@@ -227,14 +236,6 @@ SERVER_EMAIL = EMAIL_HOST_USER
 ADMINS = [
     ("Augustin", EMAIL_HOST_USER),
 ]
-
-DYNAMOBILE_PRICES = (
-    (0, 2, 0, 0),
-    (2, 6, 80, 10),
-    (6, 12, 150, 30),
-    (12, 18, 240, 40),
-    (18, 999, 330, 50),
-)
 
 OVH_API_KEY = config("OVH_API_KEY", default="")
 OVH_API_SECRET = config("OVH_API_SECRET", default="")

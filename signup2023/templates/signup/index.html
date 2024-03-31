@@ -14,7 +14,8 @@
                     {% endblocktrans %}</p>
                     <p>
                         {% blocktrans %}
-                            <a href="https://www.dynamobile.net/">Cliquez ici</a> pour retourner sur la page d'accueil de Dynamobile.
+                            <a href="https://www.dynamobile.net/">Cliquez ici</a> pour retourner sur la page d'accueil
+                            de Dynamobile.
                         {% endblocktrans %}
                     </p>
                 {% endwith %}
@@ -23,7 +24,7 @@
         </div>
     {% else %}
         <h2>Du {{ start.day }} au {{ end|date }}</h2>
-        <h3>Hasselt - Bree/Tongerlo - Leopoldsburg - Heusden-Zolder </h3>
+        <h3>Tournai - Lens - Armentières - Kortrijk</h3>
         <p class="pt-3">
             <strong>A lire avant de s'inscrire:</strong>
         </p>
@@ -31,13 +32,15 @@
             Avant de commencer, il vous sera demandé de vous inscrire avec une adresse mail valide. Vous pourrez ensuite
             visualiser facilement votre inscription (et celle de votre famille).
             Afin de faciliter une bonne cohésion du groupe, Dynamobile privilégiera les inscriptions complètes. Par
-            conséquent, les inscriptions partielles seront mises en suspens au plus tard jusqu’au {{ partial_open|date }}. Dans ce cas,
+            conséquent, les inscriptions partielles seront mises en suspens au plus tard
+            jusqu’au {{ partial_open|date }}. Dans ce cas,
             vous en serez informé.
             Le nombre de vélos électriques étant très limité, vous devrez l’indiquer au moment de l’inscription. Dès que
             la limite sera atteinte, on vous demandera si vous maintenez votre inscription en vélo "musculaire". Merci
-            pour votre compréhension.<br />
-            Lors de l'inscription, nous vous demanderons également de préciser si vous souhaitez arriver au logement à Hasselt
-            dès le jeudi 20 juillet au soir (le petit-déjeuner et le pique-nique du vendredi 21 juillet seront prévus).<br />
+            pour votre compréhension.<br/>
+            Lors de l'inscription, nous vous demanderons également de préciser si vous souhaitez arriver au logement
+            à Tournai dès le jeudi 18 juillet au soir (le petit-déjeuner et le pique-nique du vendredi 19 juillet
+            seront prévus).<br/>
             Après inscription, vous recevrez par courriel un accusé de réception dans lequel vous trouverez les
             informations relatives au paiement.
             L'inscription sera validée après réception de la totalité du paiement. Pour un paiement échelonné, merci de
@@ -46,27 +49,33 @@
             Dans le courant du mois de juin, les inscrits recevront un courriel avec des informations pratiques sur la
             préparation du voyage.
         </p>
-
-        <bold>Prix:</bold>
-        <ul>
-            <li>Adulte: 330 euros + 50 euros d'inscription = 380 euros</li>
-            <li>Enfant de moins de 18 ans: 240 euros + 40 euros d'inscription = 280 euros</li>
-            <li>Enfant de moins de 12 ans: 150 euros + 30 euros d'inscription = 180 euros</li>
-            <li>Enfant de moins de 6 ans: 80 euros + 10 euros d'inscription = 90 euros</li>
-            <li>Enfant de moins de 2 ans: gratuit</li>
-            <li>Réduction de 25% pour le 2e enfant (de moins de 18 ans)
-                et de 50% pour le 3 e enfant (de moins de 18 ans)
-                d’une même famille vivant sous le même toit.
-            </li>
-        </ul>
-        <bold>
-            Annulations : formulées par écrit, elles donneront lieu à un remboursement intégral
-            si elles sont reçues avant le 15 juin prochain.
-            Passé ce délai, 50 % du montant total sera retenu. Merci pour votre compréhension.
-        </bold>
+        <p>
+            <b>Prix:</b>
+            <ul>
+                <li>Adulte: 330 euros + 50 euros d'inscription = 380 euros</li>
+                <li>Enfant de moins de 18 ans: 240 euros + 40 euros d'inscription = 280 euros</li>
+                <li>Enfant de moins de 12 ans: 150 euros + 30 euros d'inscription = 180 euros</li>
+                <li>Enfant de moins de 6 ans: 80 euros + 10 euros d'inscription = 90 euros</li>
+                <li>Enfant de moins de 2 ans: gratuit</li>
+                <li>Réduction de 25% pour le 2e enfant (de moins de 18 ans)
+                    et de 50% pour le 3 e enfant (de moins de 18 ans)
+                    d’une même famille vivant sous le même toit.
+                </li>
+            </ul>
+        </p>
+        <p>
+            <b>Annulations</b> :
+            <ul>
+                <li>formulées par écrit, elles donneront lieu à un remboursement intégral
+                    si elles sont reçues avant le 15 juin prochain.
+                </li>
+                <li>Au delà du 15 juin et jusq'au 15 juillet, 50 % du montant total sera retenu.</li>
+                <li>Passé le 15 juillet, aucun remboursement ne sera effectué.</li>
+            </ul>
+            Ces règles s'appliquent également en cas de force majeure ou de certificat maladie.
+            Merci pour votre compréhension.
+        </p>
         <p class="pt-3">
-            <div class="alert alert-danger">La limite de participants a été atteinte, toute inscription future sera placée sur liste d'attente.</div>
-            <br>
             <a href="{% url "group_edit" %}" class="btn btn-primary">Commencez l'inscription</a>
         </p>
         </div>

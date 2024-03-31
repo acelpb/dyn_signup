@@ -225,14 +225,14 @@ class Participant(models.Model):
         default=False,
         help_text="Je souhaite venir la veille du départ (petit-déjeuner et pique-nique pour le 21 seront prévus)",
     )
-    d2023_07_21 = models.BooleanField(_("21-07"), default=True)
-    d2023_07_22 = models.BooleanField(_("22-07"), default=True)
-    d2023_07_23 = models.BooleanField(_("23-07"), default=True)
-    d2023_07_24 = models.BooleanField(_("24-07"), default=True)
-    d2023_07_25 = models.BooleanField(_("25-07"), default=True)
-    d2023_07_26 = models.BooleanField(_("26-07"), default=True)
-    d2023_07_27 = models.BooleanField(_("27-07"), default=True)
-    d2023_07_28 = models.BooleanField(_("28-07"), default=True)
+    d2023_07_21 = models.BooleanField(_("19-07"), default=True)
+    d2023_07_22 = models.BooleanField(_("20-07"), default=True)
+    d2023_07_23 = models.BooleanField(_("21-07"), default=True)
+    d2023_07_24 = models.BooleanField(_("22-07"), default=True)
+    d2023_07_25 = models.BooleanField(_("23-07"), default=True)
+    d2023_07_26 = models.BooleanField(_("24-07"), default=True)
+    d2023_07_27 = models.BooleanField(_("25-07"), default=True)
+    d2023_07_28 = models.BooleanField(_("26-07"), default=True)
 
     objects = ParticipantManager()
 
