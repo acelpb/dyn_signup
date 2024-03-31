@@ -8,10 +8,9 @@
         <div class="row">
             <div class="col-md-2 col-lg-2"></div>
             <div class="col-sm-12 col-md-8 col-lg-8 ">
-                {% with date=dynamobile_signup_period_start.date time=dynamobile_signup_period_start.time %}
-                    <p>{% blocktrans %}
-                        Les inscriptions débuterons le {{ date|date:"d/m/Y" }} à {{ time|time:"H:i" }}.
-                    {% endblocktrans %}</p>
+                {% with date=start_signup.date time=start_signup.time %}
+                    <p>Les inscriptions débuterons le {{ start_signup|date:"l d M" }} à
+                        {{ start_signup.time|time:"H:i" }}.</p>
                     <p>
                         {% blocktrans %}
                             <a href="https://www.dynamobile.net/">Cliquez ici</a> pour retourner sur la page d'accueil

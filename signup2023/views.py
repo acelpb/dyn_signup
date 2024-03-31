@@ -19,14 +19,13 @@ from .forms import (
 )
 from .mixins import SignupStartedMixin
 from .models import Signup, Participant
-
-
 class HomePage(TemplateView):
     template_name = "signup/index.html"
 
     def get_context_data(self, **kwargs):
         kwargs = super().get_context_data(**kwargs)
         kwargs["registration_open"] = timezone.now() >= settings.DYNAMOBILE_START_SIGNUP
+        kwargs["start_signup"] = settings.DYNAMOBILE_START_SIGNUP
         kwargs["partial_open"] = settings.DYNAMOBILE_START_PARTIAL_SIGNUP
         kwargs["start"] = settings.DYNAMOBILE_FIRST_DAY
         kwargs["end"] = settings.DYNAMOBILE_LAST_DAY
