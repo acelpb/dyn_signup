@@ -145,6 +145,8 @@ class Signup(models.Model):
             Participant.objects.filter(
                 signup_group__validated_at__isnull=False,
                 signup_group__on_hold=False,
+                signup_group__cancelled_at__isnull=True,
+                signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
             )
             | self.participant_set.all()
         ).count()
