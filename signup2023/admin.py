@@ -88,6 +88,7 @@ class SignupAdmin(admin.ModelAdmin):
             .get_queryset(request)
             .annotate(payed=Sum("bill__payments__amount"))
             .annotate(ballance=F("bill__amount") - F("payed"))
+            .filter(year=settings.DYNAMOBILE_LAST_DAY.year)
         )
 
     def amount(self, obj: Signup):
@@ -255,6 +256,9 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         )
         return mark_safe(link)
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(signup_group__year=settings.DYNAMOBILE_LAST_DAY.year)
+
 
 @admin.action(description="Send payment reminder")
 def reminder(modeladmin, request, queryset):
@@ -381,3 +385,6 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
             return f"{obj.ballance:.2f}"
 
     ballance.admin_order_field = "ballance"
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(signup__year=settings.DYNAMOBILE_LAST_DAY.year)
