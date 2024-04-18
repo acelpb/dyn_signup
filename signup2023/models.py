@@ -21,7 +21,7 @@ class Signup(models.Model):
     )
     year = models.IntegerField(default=settings.DYNAMOBILE_LAST_DAY.year)
     created_at = models.DateTimeField(auto_now_add=True)
-    validated_at = models.DateTimeField(default=None, null=True)
+    validated_at = models.DateTimeField(default=None, null=True, blank=True)
     cancelled_at = models.DateTimeField(default=None, null=True, blank=True)
     on_hold = models.BooleanField(default=False)
     on_hold_vae = models.BooleanField(default=False)

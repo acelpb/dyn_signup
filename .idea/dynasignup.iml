@@ -25,8 +25,8 @@
     <option name="TEMPLATE_FOLDERS">
       <list>
         <option value="$MODULE_DIR$/templates" />
-        <option value="$MODULE_DIR$/signup2022/templates" />
         <option value="$MODULE_DIR$/accounts/templates" />
+        <option value="$MODULE_DIR$/signup2023/templates" />
       </list>
     </option>
   </component>

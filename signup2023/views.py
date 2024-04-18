@@ -110,7 +110,7 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
     context_object_name = "signup"
 
     def get_object(self, queryset=None):
-        return Signup.objects.filter(owner=self.request.user).first()
+        return Signup.objects.filter(owner=self.request.user, year=settings.DYNAMOBILE_LAST_DAY.year).first()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
