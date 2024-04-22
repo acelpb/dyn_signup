@@ -18,6 +18,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import path, include
+from newsletter.views import SignupToNewsletterView
 
 urlpatterns = [
     path("", include("accounts.urls")),
@@ -44,4 +45,5 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     path("admin/", admin.site.urls),
+    path("newsletter/", SignupToNewsletterView.as_view(), name='newsletter'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

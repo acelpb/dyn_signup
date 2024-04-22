@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "django_object_actions",
     "signup2023.apps.Signup2023Config",
+    "newsletter.apps.NewsletterConfig",
 ]
 
 MIDDLEWARE = [
@@ -266,3 +267,5 @@ MEMBERS_OF_SECRETARIAT = {
 
 PHONENUMBER_DEFAULT_REGION = "BE"
 PHONENUMBER_DEFAULT_FORMAT = "INTERNATIONAL"
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

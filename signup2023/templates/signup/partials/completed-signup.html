@@ -51,9 +51,9 @@
 {#        </p>#}
 {#    {% else %}#}
     <p>
-        La limite maximale de participant semble être atteinte. Vous occupez actuellement la place
-        numéro: {{ signup.waiting_number }}.
-        En cas de désistement nous vous contacterons.
+        La limite maximale de participants semble être atteinte. Vous occupez actuellement la place
+        numéro: {{ signup.waiting_number }} dans la liste d'attente.
+        Si des désistements permettent de libérer des places, nous vous contacterons.
     </p>
 {% elif signup.bill.payed %}
     <p>

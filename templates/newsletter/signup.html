@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <form>
+        {{ form|crispy }}
+        <input type="submit" name="btn" value="yes">
+        <input type="submit" name="btn" value="no">
+    </form>
+
+
+    <form method="post">
+        <fieldset>
+            <legend><h3>Mailing List</h3></legend>
+            <p><label for="email">Adresse e-mail</label><br>
+                <input type="email" name="email" id="email" required></p>
+            <p>
+                {% for choice in form.method.choices %}
+                    <input type="submit" name=" " value="S'inscrire">
+                {% endfor %}
+
+                <input type="submit" name="subscribe" value="S'inscrire"> <input type="submit" name="unsubscribe"
+                                                                                 value="Se désinscrire"></p>
+        </fieldset>
+    </form>
+
+{% endblock %}
