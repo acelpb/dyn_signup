@@ -128,7 +128,9 @@ class Signup(models.Model):
     def check_max_vae(self):
         if additional_vae := self.has_vae():
             registered_vae_bikes = Participant.objects.filter(
-                signup_group__validated_at__isnull=False, vae=True
+                signup_group__validated_at__isnull=False,
+                vae=True,
+                signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
             ).count()
             if (
                     registered_vae_bikes + additional_vae
