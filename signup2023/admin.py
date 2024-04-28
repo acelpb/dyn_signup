@@ -17,6 +17,46 @@ from .models import Participant, Signup, Bill
 
 
 # Register your models here.
+@admin.action(description="Send payment confirmation")
+def confirmation(modeladmin, request, queryset):
+    for signup in queryset:
+        if (signup.validated_at is not None and
+                signup.bill.payed_at is None and
+                signup.cancelled_at is None and
+                signup.on_hold is False):
+            signup.bill.send_payment_confirmation_mail()
+
+
+@admin.action(description="Send payment reminder")
+def reminder(modeladmin, request, queryset):
+    for signup in queryset:
+        bill = signup.bill
+        if bill.calculated_amount is not None and not bill.signup.on_hold:
+            send_mail(
+                subject="Dynamobile paiement inscription",
+                message=get_template("signup/email/payment_reminder.txt").render(),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
+                html_message=get_template("signup/email/payment_reminder.html").render(
+                    {"signup": signup}
+                ),
+            )
+
+
+@admin.action(description="Send place on waiting list")
+def waiting_list(modeladmin, request, queryset):
+    for el in queryset:
+        if el.signup.on_hold:
+            send_mail(
+                subject="Dynamobile place sur la liste d'attente",
+                message=get_template("signup/email/waiting_list.txt").render(),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[el.signup.owner.email, settings.EMAIL_HOST_USER],
+                html_message=get_template("signup/email/waiting_list.html").render(
+                    {"signup": el.signup}
+                ),
+            )
+
 
 
 class ParticipantInfoInline(admin.StackedInline):
@@ -117,6 +157,8 @@ class SignupAdmin(admin.ModelAdmin):
 class SignupStatusFilter(SimpleListFilter):
     title = "Statut de l'inscription"
     parameter_name = "statut"  # you can put anything here
+
+    actions = [confirmation, reminder, waiting_list]
 
     def lookups(self, request, model_admin):
         # This is where you create filter options; we have two:
@@ -260,34 +302,6 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         return super().get_queryset(request).filter(signup_group__year=settings.DYNAMOBILE_LAST_DAY.year)
 
 
-@admin.action(description="Send payment reminder")
-def reminder(modeladmin, request, queryset):
-    for el in queryset:
-        if el.calculated_amount is not None and not el.signup.on_hold:
-            send_mail(
-                subject="Dynamobile paiement inscription",
-                message=get_template("signup/email/payment_reminder.txt").render(),
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[el.signup.owner.email, settings.EMAIL_HOST_USER],
-                html_message=get_template("signup/email/payment_reminder.html").render(
-                    {"signup": el.signup}
-                ),
-            )
-
-
-@admin.action(description="Send place on waiting list")
-def waiting_list(modeladmin, request, queryset):
-    for el in queryset:
-        if el.signup.on_hold:
-            send_mail(
-                subject="Dynamobile place sur la liste d'attente",
-                message=get_template("signup/email/waiting_list.txt").render(),
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[el.signup.owner.email, settings.EMAIL_HOST_USER],
-                html_message=get_template("signup/email/waiting_list.html").render(
-                    {"signup": el.signup}
-                ),
-            )
 
 
 class PriceIsOddFilter(SimpleListFilter):
@@ -361,8 +375,6 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
         "recalculate",
         "send_payment_confirmation",
     )
-
-    actions = [reminder, waiting_list]
 
     def signup_link(self, obj: Bill):
         signup: Signup = obj.signup

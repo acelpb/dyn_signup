@@ -1,7 +1,7 @@
-Bonjour,
+Bonjour à toutes et tous,
 
-Vous êtes toujours sur liste d'attente.
-Pour voir la place que vous occupez, suivez ce lien: https://inscriptions.dynamobile.net{% url "completed_signup" %}.
-Bien à vous,
+Le succès de Dynamobile ne se dément pas, et au stade actuel, nous avons atteint la limite du nombre de participant.es pour l'édition 2024. Vous êtes donc dans la liste d'attente. C'est une situation inconfortable, nous en sommes conscient.es. Nous ferons le point sur les éventuels désistements et annulations la dernière semaine du mois de mai et reviendrons vers vous dans la foulée.
 
-Augustin Borsu
+Amitiés cyclistes,
+
+L'équipe de Dynamobile

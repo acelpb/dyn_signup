@@ -1,4 +1,6 @@
-Sauf erreur de notre part, vous n'avez pas encore régler le solde de votre inscription.
+Bonjour,
+
+Nous avons bien reçu votre demande d'inscription pour Dynamobile 2024.
 
 Les instructions de paiement peuvent être visualisée en  utilisant le lien suivant: https://inscriptions.dynamobile.net{% url "completed_signup" %}.
 
