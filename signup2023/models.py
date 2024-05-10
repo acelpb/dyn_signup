@@ -8,6 +8,7 @@ from django.db.models import F, Q, Window
 from django.db.models.functions import RowNumber
 from django.template.loader import get_template
 from django.utils import timezone
+from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -162,6 +163,12 @@ class Signup(models.Model):
                 or self.check_max_vae()
                 or self.check_max_participants()
         )
+
+    def payed(self):
+        if self.bill and self.bill.payed_at is not None:
+            return True
+        else:
+            return False
 
 
 _TEXT = (
@@ -354,6 +361,8 @@ class Bill(models.Model):
         )
 
     def send_payment_confirmation_mail(self):
+        self.payed_at = now()
+        self.save()
         return send_mail(
             subject="Confirmation de réception du paiement",
             message=get_template("signup/email/email_confirmation.txt").render(),

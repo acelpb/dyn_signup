@@ -94,7 +94,6 @@ class LinkToSignupForm(forms.Form):
 class VentilationForm(forms.ModelForm):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        print(self.fields["operation"].queryset)
         instance = kwargs.get("instance")
         qs = Operation.objects.alias(
             _justified_amount=Sum("operationvalidation__amount") - F("amount")
