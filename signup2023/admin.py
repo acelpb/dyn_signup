@@ -27,21 +27,6 @@ def confirmation(modeladmin, request, queryset):
             signup.bill.send_payment_confirmation_mail()
 
 
-@admin.action(description="Send payment reminder")
-def reminder(modeladmin, request, queryset):
-    for signup in queryset:
-        bill = signup.bill
-        if bill.calculated_amount is not None and not bill.signup.on_hold:
-            send_mail(
-                subject="Dynamobile paiement inscription",
-                message=get_template("signup/email/payment_reminder.txt").render(),
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
-                html_message=get_template("signup/email/payment_reminder.html").render(
-                    {"signup": signup}
-                ),
-            )
-
 
 @admin.action(description="Send place on waiting list")
 def waiting_list(modeladmin, request, queryset):
@@ -157,8 +142,6 @@ class SignupAdmin(admin.ModelAdmin):
 class SignupStatusFilter(SimpleListFilter):
     title = "Statut de l'inscription"
     parameter_name = "statut"  # you can put anything here
-
-    actions = [confirmation, reminder, waiting_list]
 
     def lookups(self, request, model_admin):
         # This is where you create filter options; we have two:
@@ -357,6 +340,26 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
         PriceIsOddFilter,
     )
     inlines = [PaymentInline]
+
+    actions = ["send_reminder"]
+
+    @admin.action(description="Send payment reminder")
+    def send_reminder(modeladmin, request, queryset):
+        for bill in queryset:
+            signup = bill.signup
+            if signup.cancelled_at is not None or signup.validated_at is None or signup.on_hold:
+                continue
+            if bill.payed_at is not None or bill.calculated_amount == 0:
+                continue
+            send_mail(
+                subject="Dynamobile paiement inscription",
+                message=get_template("signup/email/payment_reminder.txt").render(),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
+                html_message=get_template("signup/email/payment_reminder.html").render(
+                    {"signup": signup}
+                ),
+            )
 
     def send_payment_confirmation(self, request, obj):
         obj.send_payment_confirmation_mail()
