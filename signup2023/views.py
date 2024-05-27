@@ -137,7 +137,7 @@ class KitchenView(TemplateView):
             label: {
                 k: v
                 for k, v in Participant.objects.filter(
-                    signup_group__year=2023,
+                    signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
                     signup_group__validated_at__isnull=False,
                     signup_group__on_hold=False,
                     signup_group__cancelled_at__isnull=True,
