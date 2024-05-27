@@ -113,7 +113,6 @@ class SignupAdmin(admin.ModelAdmin):
             .get_queryset(request)
             .annotate(payed=Sum("bill__payments__amount"))
             .annotate(ballance=F("bill__amount") - F("payed"))
-            .filter(year=settings.DYNAMOBILE_LAST_DAY.year)
         )
 
     def amount(self, obj: Signup):
@@ -157,9 +156,15 @@ class SignupStatusFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         filters = {
-            "on_hold": {"signup_group__on_hold": True},
-            "on_hold_vae": {"signup_group__on_hold_vae": True},
-            "partial": {"signup_group__on_hold_partial": True},
+            "on_hold": {"signup_group__on_hold": True,
+                        "signup_group__validated_at__isnull": False,
+                        "signup_group__cancelled_at__isnull": True},
+            "on_hold_vae": {"signup_group__on_hold_vae": True,
+                        "signup_group__validated_at__isnull": False,
+                        "signup_group__cancelled_at__isnull": True},
+            "partial": {"signup_group__on_hold_partial": True,
+                        "signup_group__validated_at__isnull": False,
+                        "signup_group__cancelled_at__isnull": True},
             "validated": {
                 "signup_group__validated_at__isnull": False,
                 "signup_group__on_hold": False,
@@ -171,7 +176,10 @@ class SignupStatusFilter(SimpleListFilter):
                 "signup_group__cancelled_at__isnull": True,
                 "signup_group__bill__payed_at__isnull": True,
             },
-            "payed": {"signup_group__bill__payed_at__isnull": False},
+            "payed": {"signup_group__bill__payed_at__isnull": False,
+                      "signup_group__validated_at__isnull": False,
+                      "signup_group__cancelled_at__isnull": True
+                      },
             "cancelled": {"signup_group__cancelled_at__isnull": False},
             None: {},
         }

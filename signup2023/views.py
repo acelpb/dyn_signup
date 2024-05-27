@@ -124,15 +124,20 @@ class KitchenView(TemplateView):
     def get_context_data(self, **context):
         days = (
             ("pre_departure", "Veille"),
-            *(
-                ("d" + day_label.replace("-", "_"), day_label)
-                for _, day_label in settings.DYNAMOBILE_DAYS
-            ),
+            ("d2023_07_21", "day 1"),
+            ("d2023_07_22", "day 2"),
+            ("d2023_07_23", "day 3"),
+            ("d2023_07_24", "day 4"),
+            ("d2023_07_25", "day 5"),
+            ("d2023_07_26", "day 6"),
+            ("d2023_07_27", "day 7"),
+            ("d2023_07_28", "day 8"),
         )
         context["days"] = {
             label: {
                 k: v
                 for k, v in Participant.objects.filter(
+                    signup_group__year=2023,
                     signup_group__validated_at__isnull=False,
                     signup_group__on_hold=False,
                     signup_group__cancelled_at__isnull=True,
