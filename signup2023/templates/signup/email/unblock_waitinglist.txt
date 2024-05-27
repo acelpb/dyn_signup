@@ -1,0 +1,13 @@
+Bonjour,
+
+J'ai le plaisir de vous informer que vous êtes maintenant inscrit à cette édition de Dynamobile.
+
+Afin de valider votre inscription, merci de régler le solde de votre inscription.
+
+Les instructions de paiement peuvent être visualisée en  utilisant le lien suivant: https://inscriptions.dynamobile.net{% url "completed_signup" %}.
+
+Pour toute question, ou en cas d'erreur de ma part, merci de répondre à cet e-mail.
+
+Bien à vous,
+
+Augustin Borsu

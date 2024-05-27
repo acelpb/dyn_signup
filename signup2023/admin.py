@@ -349,7 +349,7 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     )
     inlines = [PaymentInline]
 
-    actions = ["send_reminder"]
+    actions = ["send_reminder", "unblock_waiting_list"]
 
     @admin.action(description="Send payment reminder")
     def send_reminder(modeladmin, request, queryset):
@@ -365,6 +365,28 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
                 html_message=get_template("signup/email/payment_reminder.html").render(
+                    {"signup": signup}
+                ),
+            )
+
+    @admin.action(description="Unblock from waiting list")
+    def unblock_waiting_list(modeladmin, request, queryset):
+        for bill in queryset:
+            signup = bill.signup
+            if signup.cancelled_at is not None or signup.validated_at is None:
+                continue
+            if signup.on_hold:
+                signup.on_hold = False
+                signup.on_hold_vae = False
+                signup.on_hold_partial = False
+                signup.save()
+
+            send_mail(
+                subject="Dynamobile: vous avez une place.",
+                message=get_template("signup/email/unblock_waitinglist.txt").render(),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
+                html_message=get_template("signup/email/unblock_waitinglist.html").render(
                     {"signup": signup}
                 ),
             )
