@@ -349,7 +349,7 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     )
     inlines = [PaymentInline]
 
-    actions = ["send_reminder", "unblock_waiting_list"]
+    actions = ["send_reminder"]
 
     @admin.action(description="Send payment reminder")
     def send_reminder(modeladmin, request, queryset):
@@ -369,27 +369,25 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
                 ),
             )
 
-    @admin.action(description="Unblock from waiting list")
-    def unblock_waiting_list(modeladmin, request, queryset):
-        for bill in queryset:
-            signup = bill.signup
-            if signup.cancelled_at is not None or signup.validated_at is None:
-                continue
-            if signup.on_hold:
-                signup.on_hold = False
-                signup.on_hold_vae = False
-                signup.on_hold_partial = False
-                signup.save()
+    def unblock_waiting_list(self, request, obj: Bill):
+        signup = obj.signup
+        if signup.cancelled_at is not None or signup.validated_at is None:
+            return
+        if signup.on_hold:
+            signup.on_hold = False
+            signup.on_hold_vae = False
+            signup.on_hold_partial = False
+            signup.save()
 
-            send_mail(
-                subject="Dynamobile: vous avez une place.",
-                message=get_template("signup/email/unblock_waitinglist.txt").render(),
-                from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
-                html_message=get_template("signup/email/unblock_waitinglist.html").render(
-                    {"signup": signup}
-                ),
-            )
+        send_mail(
+            subject="Dynamobile: vous avez une place.",
+            message=get_template("signup/email/unblock_waitinglist.txt").render(),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
+            html_message=get_template("signup/email/unblock_waitinglist.html").render(
+                {"signup": signup}
+            ),
+        )
 
     def send_payment_confirmation(self, request, obj):
         obj.send_payment_confirmation_mail()
@@ -407,6 +405,7 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     change_actions = (
         "recalculate",
         "send_payment_confirmation",
+        "unblock_waiting_list",
     )
 
     def signup_link(self, obj: Bill):
