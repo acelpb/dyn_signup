@@ -238,14 +238,14 @@ class Participant(models.Model):
             "Je souhaite venir la veille du départ (petit-déjeuner et "
             "pique-nique seront prévus pour vous le jour du départ)"),
     )
-    d2023_07_21 = models.BooleanField(_("19-07"), default=True)
-    d2023_07_22 = models.BooleanField(_("20-07"), default=True)
-    d2023_07_23 = models.BooleanField(_("21-07"), default=True)
-    d2023_07_24 = models.BooleanField(_("22-07"), default=True)
-    d2023_07_25 = models.BooleanField(_("23-07"), default=True)
-    d2023_07_26 = models.BooleanField(_("24-07"), default=True)
-    d2023_07_27 = models.BooleanField(_("25-07"), default=True)
-    d2023_07_28 = models.BooleanField(_("26-07"), default=True)
+    day1 = models.BooleanField(_("19-07"), default=True)
+    day2 = models.BooleanField(_("20-07"), default=True)
+    day3 = models.BooleanField(_("21-07"), default=True)
+    day4 = models.BooleanField(_("22-07"), default=True)
+    day5 = models.BooleanField(_("23-07"), default=True)
+    day6 = models.BooleanField(_("24-07"), default=True)
+    day7 = models.BooleanField(_("25-07"), default=True)
+    day8 = models.BooleanField(_("26-07"), default=True)
 
     objects = ParticipantManager()
 
@@ -255,26 +255,26 @@ class Participant(models.Model):
 
     def complete_signup(self):
         return (
-                self.d2023_07_21
-                and self.d2023_07_22
-                and self.d2023_07_23
-                and self.d2023_07_24
-                and self.d2023_07_25
-                and self.d2023_07_26
-                and self.d2023_07_27
-                and self.d2023_07_28
+                self.day1
+                and self.day2
+                and self.day3
+                and self.day4
+                and self.day5
+                and self.day6
+                and self.day7
+                and self.day8
         )
 
     def nb_of_days(self):
         return (
-                self.d2023_07_21
-                + self.d2023_07_22
-                + self.d2023_07_23
-                + self.d2023_07_24
-                + self.d2023_07_25
-                + self.d2023_07_26
-                + self.d2023_07_27
-                + self.d2023_07_28
+                self.day1
+                + self.day2
+                + self.day3
+                + self.day4
+                + self.day5
+                + self.day6
+                + self.day7
+                + self.day8
         )
 
     def __str__(self):

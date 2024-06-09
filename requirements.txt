@@ -7,6 +7,7 @@ django-magiclink
 django-object-actions~=4.1.0
 django-tables2
 gunicorn
+openpyxl~=3.1.2
 ovh~=1.0.0
 pytest-bdd~=5.0.0
 python-decouple

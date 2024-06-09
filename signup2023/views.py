@@ -124,14 +124,14 @@ class KitchenView(TemplateView):
     def get_context_data(self, **context):
         days = (
             ("pre_departure", "Veille"),
-            ("d2023_07_21", "day 1"),
-            ("d2023_07_22", "day 2"),
-            ("d2023_07_23", "day 3"),
-            ("d2023_07_24", "day 4"),
-            ("d2023_07_25", "day 5"),
-            ("d2023_07_26", "day 6"),
-            ("d2023_07_27", "day 7"),
-            ("d2023_07_28", "day 8"),
+            ("day1", "day 1"),
+            ("day2", "day 2"),
+            ("day3", "day 3"),
+            ("day4", "day 4"),
+            ("day5", "day 5"),
+            ("day6", "day 6"),
+            ("day7", "day 7"),
+            ("day8", "day 8"),
         )
         context["days"] = {
             label: {

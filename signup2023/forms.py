@@ -125,14 +125,14 @@ class DaySignupForm(forms.ModelForm):
         fields = [
             "first_name",
             "last_name",
-            "d2023_07_21",
-            "d2023_07_22",
-            "d2023_07_23",
-            "d2023_07_24",
-            "d2023_07_25",
-            "d2023_07_26",
-            "d2023_07_27",
-            "d2023_07_28",
+            "day1",
+            "day2",
+            "day3",
+            "day4",
+            "day5",
+            "day6",
+            "day7",
+            "day8",
         ]
 
 

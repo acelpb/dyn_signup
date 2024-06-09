@@ -66,14 +66,14 @@ class ParticipantDaysInline(admin.TabularInline):
     model = Participant
     extra = 0
     fields = (
-        "d2023_07_21",
-        "d2023_07_22",
-        "d2023_07_23",
-        "d2023_07_24",
-        "d2023_07_25",
-        "d2023_07_26",
-        "d2023_07_27",
-        "d2023_07_28",
+        "day1",
+        "day2",
+        "day3",
+        "day4",
+        "day5",
+        "day6",
+        "day7",
+        "day8",
     )
 
 
@@ -194,14 +194,14 @@ class SignupDayFilter(SimpleListFilter):
         # This is where you create filter options; we have two:
         return [
             ("pre_departure", "vient la veille"),
-            ("d2023_07_21", "21 Juillet"),
-            ("d2023_07_22", "22 Juillet"),
-            ("d2023_07_23", "23 Juillet"),
-            ("d2023_07_24", "24 Juillet"),
-            ("d2023_07_25", "25 Juillet"),
-            ("d2023_07_26", "26 Juillet"),
-            ("d2023_07_27", "27 Juillet"),
-            ("d2023_07_28", "28 Juillet"),
+            ("day1", "21 Juillet"),
+            ("day2", "22 Juillet"),
+            ("day3", "23 Juillet"),
+            ("day4", "24 Juillet"),
+            ("day5", "25 Juillet"),
+            ("day6", "26 Juillet"),
+            ("day7", "27 Juillet"),
+            ("day8", "28 Juillet"),
         ]
 
     def queryset(self, request, queryset):
@@ -210,17 +210,6 @@ class SignupDayFilter(SimpleListFilter):
 
 
 class ParticipantResource(resources.ModelResource):
-    def get_export_headers(self):
-        headers = []
-        for field in self.get_fields():
-            model_fields = self.Meta.model._meta.get_fields()
-            header = next(
-                (x.verbose_name for x in model_fields if x.name == field.column_name),
-                field.column_name,
-            )
-            headers.append(header)
-        return headers
-
     class Meta:
         model = Participant
 
@@ -251,14 +240,14 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "birthday",
         "age",
         "pre_departure",
-        "d2023_07_21",
-        "d2023_07_22",
-        "d2023_07_23",
-        "d2023_07_24",
-        "d2023_07_25",
-        "d2023_07_26",
-        "d2023_07_27",
-        "d2023_07_28",
+        "day1",
+        "day2",
+        "day3",
+        "day4",
+        "day5",
+        "day6",
+        "day7",
+        "day8",
         "vae",
         "country",
     )
