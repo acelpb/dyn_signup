@@ -297,13 +297,18 @@ class Participant(models.Model):
         """
         active_participants = set(
             cls.objects.filter(
+                signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
                 signup_group__validated_at__isnull=False,
+                signup_group__on_hold=False,
                 signup_group__cancelled_at__isnull=True,
             ).values_list("email", flat=True)
         )
         active_participants |= set(
             Signup.objects.filter(
-                validated_at__isnull=False, cancelled_at__isnull=True
+                year=settings.DYNAMOBILE_LAST_DAY.year,
+                validated_at__isnull=False,
+                on_hold=False,
+                cancelled_at__isnull=True
             ).values_list("owner__email", flat=True)
         )
         active_participants.remove("")
