@@ -23,14 +23,14 @@
                 <td>{{ participant.first_name }} {{ participant.last_name }}</td>
                 <td>{{  participant.get_vae_display }}</td>
                 <td>{{  participant.get_pre_departure_display }}</td>
-                <td>{% if participant.d2023_07_21 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2023_07_22 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2023_07_23 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2023_07_24 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2023_07_25 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2023_07_26 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2023_07_27 %}✅{% else %}❌{% endif %}</td>
-                <td>{% if participant.d2023_07_28 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day1 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day2 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day3 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day4 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day5 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day6 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day7 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day8 %}✅{% else %}❌{% endif %}</td>
             </tr>
         {% endfor %}
     </tbody>
