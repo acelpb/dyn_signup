@@ -11,10 +11,10 @@ Feature: User Login
   TODO: Users who have no signup attached to them and no activity since 30 days will be deleted.
 
   Scenario: A new user
-    Given a new visitor
+    Given a participant
     And arrives on the signup page after starting a signup
     When he submits his email address for a one-shot token
-    Then the visitor should have been added to the databae
+    Then the participant should have been added to the database
     And an email with a valid token should be sent out
 
   Scenario: An admin

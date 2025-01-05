@@ -15,9 +15,26 @@ dependencies = [
     "django-tables2>=2.7.5",
     "gunicorn>=23.0.0",
     "ovh~=1.0.0",
-    "pytest-bdd~=5.0.0",
     "python-decouple>=3.8",
     "tablib~=3.3",
     "whitenoise>=6.8.2",
     "django-phonenumber-field[phonenumbers]~=7.0.2",
 ]
+
+[dependency-groups]
+dev = [
+    "model-bakery>=1.20.0",
+    "pytest-bdd==8.1.0",
+    "pytest-django>=4.9.0",
+    "pytest==8.3.4",
+    "ruff>=0.8.6",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "dynasignup.settings"
+
+[tool.ruff]
+fix = true
+
+[tool.ruff.lint]
+extend-select = ["I", "B", "Q"]
