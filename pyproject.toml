@@ -7,7 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "crispy-bootstrap4>=2024.10",
     "django-bootstrap4>=24.4",
-    "django~=4.0",
+    "django>=5.1",
     "django-crispy-forms>=2.3",
     "django-import-export>=4.3.3",
     "django-magiclink>=1.3.0",
@@ -28,10 +28,14 @@ dev = [
     "pytest-django>=4.9.0",
     "pytest==8.3.4",
     "ruff>=0.8.6",
+    "pytest-selenium>=4.1.0",
+    "webdriver-manager>=4.0.2",
+    "pytest-cov>=6.0.0",
 ]
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "dynasignup.settings"
+addopts = "--reuse-db --driver Chrome"
 
 [tool.ruff]
 fix = true

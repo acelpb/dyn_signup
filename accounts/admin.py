@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper
@@ -115,11 +117,6 @@ class ExpenseReportAdmin(admin.ModelAdmin):
     )
     list_filter = ("submitted_date", "signed", "validated")
     fields = (
-        "title",
-        "beneficiary",
-        "submitted_date",
-        "signed",
-        "validated",
         "comments",
     )
     inlines = [PaymentInline, ExpenseFileInline]
@@ -133,3 +130,20 @@ class ExpenseReportAdmin(admin.ModelAdmin):
         if remaining_to_pay is not None:
             return f"{remaining_to_pay:.2f} €"
         return None
+
+    def save_model(self, request, obj, form, change):
+        if not obj.pk:
+            # Only set added_by during the first save.
+            obj.beneficiary = request.user
+            obj.submitted_date = datetime.now()
+            current_year = datetime.now().year
+            expense_number = ExpenseReport.objects.filter(submitted_date__year=current_year).count() + 1
+            obj.title = f"{current_year}-{expense_number:04}"
+        super().save_model(request, obj, form, change)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if request.user.is_superuser:
+            return qs
+
+        return qs.filter(Q(beneficiary=request.user))

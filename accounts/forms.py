@@ -107,3 +107,9 @@ class VentilationForm(forms.ModelForm):
     class Meta:
         model = OperationValidation
         fields = ("operation", "amount", "validation_type")
+
+
+class CreateVentilationForm(forms.ModelForm):
+    class Meta:
+        model = OperationValidation
+        fields = ("validation_type", "amount")

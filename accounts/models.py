@@ -5,7 +5,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
-from django.utils.datetime_safe import datetime
+from datetime import datetime
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
@@ -140,6 +140,7 @@ class OperationValidation(models.Model):
 
 
 class ExpenseReport(models.Model):
+
     title = models.CharField(max_length=255)
     beneficiary = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=True
@@ -160,12 +161,15 @@ class ExpenseReport(models.Model):
                 user = beneficiary.email
         else:
             user = ""
-        return f"{self.submitted_date.year}-{self.title} {user} {self.total}"
+        return f"{self.title} {user} {self.total}"
 
     @property
     def total(self):
         return sum(self.expenses.values_list("amount", flat=True))
 
+    class Meta:
+        verbose_name = "note de frais"
+        verbose_name_plural = "notes de frais"
 
 class Justification(models.Model):
     title = models.CharField(max_length=255)
@@ -182,6 +186,10 @@ class Bill(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = "facture"
+        verbose_name_plural = "factures"
 
 
 class ExpenseFile(models.Model):

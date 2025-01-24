@@ -147,19 +147,25 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-TIME_ZONE = "Europe/Brussels"
-
 USE_I18N = True
 
-USE_L10N = True
-
 USE_TZ = True
+TIME_ZONE = "Europe/Brussels"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
-
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 STATIC_ROOT = BASE_DIR / "static"
 STATIC_URL = "/static/"
+
+WHITENOISE_AUTOREFRESH=True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -169,18 +175,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CRISPY_TEMPLATE_PACK = "bootstrap4"
 CRISPY_FAIL_SILENTLY = True
 
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_ROOT = BASE_DIR / "uploads"
 MEDIA_URL = "/uploads/"
 
 LOGIN_REDIRECT_URL = reverse_lazy("index")
 
-LANGUAGE_CODE = "fr"  # default language
+LANGUAGE_CODE = "fr-BE"  # default language
 
 LANGUAGES = (
-    ("fr", _("French")),
-    ("nl", _("Dutch")),
+    ("fr-BE", _("French")),
+    ("nl-BE", _("Dutch")),
 )
 
 LOCALE_PATHS = [BASE_DIR / "locale"]
