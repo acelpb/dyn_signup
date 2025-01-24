@@ -92,7 +92,7 @@ class OperationValidation(models.Model):
     operation = models.ForeignKey("Operation", null=True, on_delete=models.CASCADE)
     # If there is a single justification, this will be equal to the operation,
     # but we can imagine that an operation is justified by multiple events.
-    amount = models.DecimalField(max_digits=11, decimal_places=2)
+    amount = models.DecimalField(max_digits=11, decimal_places=2, verbose_name=_("montant"))
     created_on = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=False
@@ -106,6 +106,7 @@ class OperationValidation(models.Model):
             ("Incomes", IncomeChoices.choices),
         ],
         null=True,
+        verbose_name=_("justification")
     )
 
     def justification_link(self):
@@ -117,6 +118,9 @@ class OperationValidation(models.Model):
             change_url = reverse(url_name, args=[event.id])
             return mark_safe('<a href="%s">%s</a>' % (change_url, str(event)))
         return "-"
+
+    def __str__(self):
+        return f"{self.validation_type}-{self.get_validation_type_display()} {self.amount:,.2f}€"
 
 
 #
@@ -197,3 +201,7 @@ class ExpenseFile(models.Model):
         ExpenseReport, on_delete=models.SET_NULL, null=True
     )
     file = models.FileField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "pièce justificative"
+        verbose_name_plural = "pièces justificatives"

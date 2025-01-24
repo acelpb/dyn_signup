@@ -28,8 +28,6 @@ class PaymentInline(GenericStackedInline):
 
 
 class ExpenseFileInline(TabularInline):
-    verbose_name = "pièce lié"
-    verbose_name_plural = "pièces liés"
     model = ExpenseFile
     can_delete = True
     can_edit = True

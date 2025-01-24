@@ -8,7 +8,7 @@ from accounts.models import (
     Bill,
     OperationValidation,
     ExpenseReport,
-    IncomeChoices,
+    IncomeChoices, ExpenditureChoices,
 )
 from signup2023.models import Signup
 
@@ -92,6 +92,7 @@ class LinkToSignupForm(forms.Form):
 
 
 class VentilationForm(forms.ModelForm):
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         instance = kwargs.get("instance")
@@ -110,6 +111,14 @@ class VentilationForm(forms.ModelForm):
 
 
 class CreateVentilationForm(forms.ModelForm):
+    def __init__(self, **kwargs):
+        ## Only keep the validation_type choices for the expense categories
+        super().__init__(**kwargs)
+        self.fields["validation_type"].choices = (
+            (k, f"{k} - {v}") for k, v in ExpenditureChoices.choices
+        )
+
+
     class Meta:
         model = OperationValidation
         fields = ("validation_type", "amount")

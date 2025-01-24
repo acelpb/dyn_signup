@@ -116,7 +116,9 @@ class ExpenseReportAdmin(admin.ModelAdmin):
         "validated",
     )
     list_filter = ("submitted_date", "signed", "validated")
+    readonly_fields = ("total",)
     fields = (
+        "total",
         "comments",
     )
     inlines = [PaymentInline, ExpenseFileInline]
