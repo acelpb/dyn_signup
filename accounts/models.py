@@ -1,13 +1,16 @@
 # Create your models here.
 
+from datetime import datetime
+
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
-from datetime import datetime
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
+from schwifty import IBAN
 
 
 class Account(models.Model):
@@ -92,7 +95,9 @@ class OperationValidation(models.Model):
     operation = models.ForeignKey("Operation", null=True, on_delete=models.CASCADE)
     # If there is a single justification, this will be equal to the operation,
     # but we can imagine that an operation is justified by multiple events.
-    amount = models.DecimalField(max_digits=11, decimal_places=2, verbose_name=_("montant"))
+    amount = models.DecimalField(
+        max_digits=11, decimal_places=2, verbose_name=_("montant")
+    )
     created_on = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=False
@@ -106,7 +111,7 @@ class OperationValidation(models.Model):
             ("Incomes", IncomeChoices.choices),
         ],
         null=True,
-        verbose_name=_("justification")
+        verbose_name=_("justification"),
     )
 
     def justification_link(self):
@@ -143,11 +148,23 @@ class OperationValidation(models.Model):
 #         verbose_name_plural = "paiements inscriptions 2022"
 
 
-class ExpenseReport(models.Model):
+def validate_iban(value):
+    try:
+        IBAN(value)
+    except ValueError as exc:
+        raise ValidationError(
+            _("%(value)s is not a valid IBAN"),
+            params={"value": value},
+        ) from exc
 
+
+class ExpenseReport(models.Model):
     title = models.CharField(max_length=255)
     beneficiary = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=True
+    )
+    iban = models.CharField(
+        verbose_name="IBAN", validators=[validate_iban], max_length=34
     )
     submitted_date = models.DateField(null=True, blank=False)
     signed = models.BooleanField(default=False)
@@ -165,7 +182,7 @@ class ExpenseReport(models.Model):
                 user = beneficiary.email
         else:
             user = ""
-        return f"{self.title} {user} {self.total}"
+        return f"{self.title} - {user}"
 
     @property
     def total(self):
@@ -174,6 +191,10 @@ class ExpenseReport(models.Model):
     class Meta:
         verbose_name = "note de frais"
         verbose_name_plural = "notes de frais"
+        permissions = [
+            ("can_validate", "Can validate expense reports"),
+        ]
+
 
 class Justification(models.Model):
     title = models.CharField(max_length=255)

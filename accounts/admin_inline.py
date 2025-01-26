@@ -1,8 +1,8 @@
 from django.contrib.admin import TabularInline
-from django.contrib.contenttypes.admin import GenericTabularInline, GenericStackedInline
+from django.contrib.contenttypes.admin import GenericStackedInline
 
-from accounts.forms import VentilationForm, CreateVentilationForm
-from accounts.models import OperationValidation, ExpenseFile
+from accounts.forms import CreateVentilationForm
+from accounts.models import ExpenseFile, OperationValidation
 
 
 class PaymentInline(GenericStackedInline):
@@ -15,13 +15,24 @@ class PaymentInline(GenericStackedInline):
     ct_field_name = "content_type"
     id_field_name = "object_id"
     can_delete = True
-    can_edit = True
 
     def has_view_permission(self, request, obj=None):
         return True
 
     def has_add_permission(self, request, obj=None):
-        if obj is None:
+        if obj is None or obj.validated is False:
+            return True
+        else:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is None or obj.validated is False:
+            return True
+        else:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj is None or obj.validated is False:
             return True
         else:
             return False
@@ -35,6 +46,24 @@ class ExpenseFileInline(TabularInline):
 
     def has_view_permission(self, request, obj=None):
         return True
+
+    def has_add_permission(self, request, obj=None):
+        if obj is None or obj.validated is False:
+            return True
+        else:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is None or obj.validated is False:
+            return True
+        else:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj is None or obj.validated is False:
+            return True
+        else:
+            return False
 
 
 class JustificationInline(TabularInline):

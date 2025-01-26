@@ -2,19 +2,19 @@ from datetime import datetime
 
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import F, Sum, Q, BooleanField, ExpressionWrapper
+from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
 
-from .admin_inline import PaymentInline, ExpenseFileInline
-from .models import (
-    OperationValidation,
-    Bill,
-    ExpenseReport,
-    Account,
-    Operation,
-)
+from .admin_inline import ExpenseFileInline, PaymentInline
 
 # Register your models here.
 from .admin_operation import OperationAdmin
+from .models import (
+    Account,
+    Bill,
+    ExpenseReport,
+    Operation,
+    OperationValidation,
+)
 
 admin.site.register(Operation, OperationAdmin)
 
@@ -119,6 +119,7 @@ class ExpenseReportAdmin(admin.ModelAdmin):
     readonly_fields = ("total",)
     fields = (
         "total",
+        "iban",
         "comments",
     )
     inlines = [PaymentInline, ExpenseFileInline]
@@ -133,13 +134,22 @@ class ExpenseReportAdmin(admin.ModelAdmin):
             return f"{remaining_to_pay:.2f} €"
         return None
 
+    def get_fields(self, request, obj=None):
+        if request.user.is_superuser or request.user.has_perm("accounts.can_validate"):
+            return (self.fields[0], "validated", self.fields[1:])
+        else:
+            return self.fields
+
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             # Only set added_by during the first save.
             obj.beneficiary = request.user
             obj.submitted_date = datetime.now()
             current_year = datetime.now().year
-            expense_number = ExpenseReport.objects.filter(submitted_date__year=current_year).count() + 1
+            expense_number = (
+                ExpenseReport.objects.filter(submitted_date__year=current_year).count()
+                + 1
+            )
             obj.title = f"{current_year}-{expense_number:04}"
         super().save_model(request, obj, form, change)
 
@@ -149,3 +159,11 @@ class ExpenseReportAdmin(admin.ModelAdmin):
             return qs
 
         return qs.filter(Q(beneficiary=request.user))
+
+    def has_change_permission(self, request, obj=None):
+        if obj:
+            if obj.validated:
+                return False
+            if obj.beneficiary == request.user or request.user.is_superuser:
+                return True
+        return False
