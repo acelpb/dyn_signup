@@ -110,6 +110,7 @@ class ExpenseReportAdmin(admin.ModelAdmin):
         "title",
         "submitted_date",
         "beneficiary",
+        "iban",
         "total",
         "remaining_to_pay",
         "signed",
@@ -136,7 +137,7 @@ class ExpenseReportAdmin(admin.ModelAdmin):
 
     def get_fields(self, request, obj=None):
         if request.user.is_superuser or request.user.has_perm("accounts.can_validate"):
-            return (self.fields[0], "validated", self.fields[1:])
+            return (self.fields[0], "beneficiary", "validated", self.fields[1:])
         else:
             return self.fields
 
