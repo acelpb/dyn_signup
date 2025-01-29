@@ -2,15 +2,15 @@
 from pprint import pprint
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
-from django.db.models import Sum, F, ExpressionWrapper, BooleanField, Q
+from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
 from django.db.models.functions import Round
 from django.views.generic import TemplateView
 
 from accounts.models import (
-    OperationValidation,
-    Operation,
     ExpenditureChoices,
     IncomeChoices,
+    Operation,
+    OperationValidation,
 )
 
 
@@ -22,7 +22,7 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
         movement_details = {
             validation_type: total
             for validation_type, total in OperationValidation.objects.filter(
-                operation__date__year=2024
+                operation__date__year__gte=2024
             )
             .values("validation_type")
             .annotate(year_sum=Sum("amount"))
@@ -77,7 +77,7 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
                     Q(_justified_amount__exact=0), output_field=BooleanField()
                 ),
             )
-            .filter(date__year=2024, _justified__isnull=True)
+            .filter(date__year__gte=2024, _justified__isnull=True)
         )
         kwargs["positive_pending_transactions"] = pending_operations.filter(
             amount__gt=0
@@ -89,8 +89,13 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
         return kwargs
 
 
-#%%
-toto = {k:v for k, v in Operation.objects.filter(date__year__in=[2024, 2025], account__IBAN="BE96001951747205").values(
-    "operationvalidation__validation_type").annotate(year_sum=Sum(
-    "amount")).values_list(
-    "operationvalidation__validation_type", "year_sum") }
+# %%
+toto = {
+    k: v
+    for k, v in Operation.objects.filter(
+        date__year__in=[2024, 2025], account__IBAN="BE96001951747205"
+    )
+    .values("operationvalidation__validation_type")
+    .annotate(year_sum=Sum("amount"))
+    .values_list("operationvalidation__validation_type", "year_sum")
+}
