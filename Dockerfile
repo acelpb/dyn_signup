@@ -1,6 +1,6 @@
 FROM registry.fedoraproject.org/fedora-minimal:latest
 
-RUN microdnf install -y python3.13 uv df&& microdnf clean all
+RUN microdnf install -y python3.13 uv df && microdnf clean all
 ENV PYTHONUNBUFFERED 1
 
 RUN mkdir /app

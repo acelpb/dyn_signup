@@ -1,17 +1,17 @@
 from django import forms
-from django.db import transaction
-from django.db.models import Sum, F
 from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.db.models import F, Sum
 
 from accounts.models import (
-    Operation,
     Bill,
-    OperationValidation,
+    ExpenditureChoices,
     ExpenseReport,
-    IncomeChoices, ExpenditureChoices,
+    IncomeChoices,
+    Operation,
+    OperationValidation,
 )
 from signup2023.models import Signup
-
 
 # class SignupOperationForm(forms.ModelForm):
 #     operation = forms.ModelChoiceField(
@@ -92,7 +92,6 @@ class LinkToSignupForm(forms.Form):
 
 
 class VentilationForm(forms.ModelForm):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         instance = kwargs.get("instance")
@@ -118,7 +117,6 @@ class CreateVentilationForm(forms.ModelForm):
             (k, f"{k} - {v}") for k, v in ExpenditureChoices.choices
         )
 
-
     class Meta:
         model = OperationValidation
-        fields = ("validation_type", "amount")
+        fields = ("operation", "validation_type", "amount")

@@ -6,7 +6,6 @@ from accounts.models import ExpenseFile, OperationValidation
 
 
 class PaymentInline(GenericStackedInline):
-    hidden_fields = ["content_type", "object_id", "operation"]
     verbose_name = ""
     verbose_name_plural = "ventilation"
     form = CreateVentilationForm
@@ -14,7 +13,13 @@ class PaymentInline(GenericStackedInline):
     extra = 0
     ct_field_name = "content_type"
     id_field_name = "object_id"
-    can_delete = True
+
+    def get_formset(self, request, obj=None, **kwargs):
+        if request.user.is_superuser:
+            self.exclude = ()
+        else:
+            self.exclude = ("content_type", "object_id", "operation")
+        return super().get_formset(request, obj, **kwargs)
 
     def has_view_permission(self, request, obj=None):
         return True
@@ -26,12 +31,16 @@ class PaymentInline(GenericStackedInline):
             return False
 
     def has_delete_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         if obj is None or (hasattr(obj, "validated") and obj.validated is False):
             return True
         else:
             return False
 
     def has_change_permission(self, request, obj=None):
+        if request.user.is_superuser:
+            return True
         if obj is None or (hasattr(obj, "validated") and obj.validated is False):
             return True
         else:
