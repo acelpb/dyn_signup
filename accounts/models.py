@@ -92,7 +92,9 @@ class IncomeChoices(models.IntegerChoices):
 class OperationValidation(models.Model):
     "Each operation should be validated, this is done by validating the operation against another event in the db"
 
-    operation = models.ForeignKey("Operation", null=True, on_delete=models.CASCADE)
+    operation = models.ForeignKey(
+        "Operation", null=True, blank=True, on_delete=models.CASCADE
+    )
     # If there is a single justification, this will be equal to the operation,
     # but we can imagine that an operation is justified by multiple events.
     amount = models.DecimalField(
@@ -111,6 +113,7 @@ class OperationValidation(models.Model):
             ("Incomes", IncomeChoices.choices),
         ],
         null=True,
+        blank=True,
         verbose_name=_("justification"),
     )
 
