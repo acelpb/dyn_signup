@@ -23,8 +23,6 @@
                 <th>Date de naissance</th>
                 <th>Lieu de résidence</th>
                 <th data-toggle="tooltip" title="Vélo à Assistance Electrique">V.A.E.</th>
-                <th>Arrive le 18/07</th>
-                <th>Extra</th>
                 <th>Type</th>
             </tr>
         </thead>
@@ -37,8 +35,6 @@
                     <td>{{ participant.birthday }}</td>
                     <td>{{ participant.city }}, {{ participant.country }}</td>
                     <td> {{ participant.get_vae_display }}</td>
-                    <td> {{ participant.get_pre_departure_display }}</td>
-                    <td> {{ participant.extra_activities }}</td>
                     <td>
                         {% if participant.complete_signup %}Inscription complète
                         {% else %}Inscription partielle
