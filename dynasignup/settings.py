@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
+
 import zoneinfo
 from datetime import timedelta
 from pathlib import Path
@@ -16,7 +17,7 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 from decouple import config
 from django.urls import reverse_lazy
-from django.utils.dateparse import parse_datetime, parse_date
+from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -165,7 +166,7 @@ STORAGES = {
 STATIC_ROOT = BASE_DIR / "static"
 STATIC_URL = "/static/"
 
-WHITENOISE_AUTOREFRESH=True
+WHITENOISE_AUTOREFRESH = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -195,16 +196,16 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 brussels_tz = zoneinfo.ZoneInfo("Europe/Brussels")
 
 DYNAMOBILE_START_SIGNUP = parse_datetime(
-    config("DYNAMOBILE_START_SIGNUP", default="2024-04-22 20:00:00")
+    config("DYNAMOBILE_START_SIGNUP", default="2025-04-22 20:00:00")
 ).replace(tzinfo=brussels_tz)
-DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2024-05-22 17:00:00").replace(
+DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2025-05-22 17:00:00").replace(
     tzinfo=brussels_tz
 )
-DYNAMOBILE_END_SIGNUP = parse_datetime("2024-07-18 18:00:00").replace(
+DYNAMOBILE_END_SIGNUP = parse_datetime("2025-07-18 17:00:00").replace(
     tzinfo=brussels_tz
 )
-DYNAMOBILE_FIRST_DAY = parse_date("2024-07-19")
-DYNAMOBILE_LAST_DAY = parse_date("2024-07-26")
+DYNAMOBILE_FIRST_DAY = parse_date("2025-07-18")
+DYNAMOBILE_LAST_DAY = parse_date("2025-07-26")
 
 DYNAMOBILE_DAYS = [
     (day, day.strftime("%Y-%m-%d"))
@@ -225,10 +226,10 @@ DYNAMOBILE_MAX_VAE_PARTICIPANTS = config(
 
 DYNAMOBILE_PRICES = (
     (0, 2, 0, 0),
-    (2, 6, 80, 10),
-    (6, 12, 160, 30),
-    (12, 18, 240, 40),
-    (18, 999, 340, 50),
+    (2, 6, 100, 10),
+    (6, 12, 190, 30),
+    (12, 18, 305, 40),
+    (18, 999, 400, 50),
 )
 
 
@@ -273,4 +274,4 @@ MEMBERS_OF_SECRETARIAT = {
 PHONENUMBER_DEFAULT_REGION = "BE"
 PHONENUMBER_DEFAULT_FORMAT = "INTERNATIONAL"
 
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
