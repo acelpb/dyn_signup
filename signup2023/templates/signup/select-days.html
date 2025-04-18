@@ -39,14 +39,14 @@
                                 {{ field }}
                             </td>
                         {% else %}
-                            {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
+                            {% include 'bootstrap5/field.html' with tag="td" form_show_labels=False %}
                         {% endif %}
                     {% endfor %}
                 </tr>
 
                 {% for subform in form %}
                     {% if form_show_errors and not subform.is_extra %}
-                        {% include "bootstrap4/errors.html" %}
+                        {% include "bootstrap5/errors.html" %}
                     {% endif %}
                     <tr>
                         {% for field in subform %}
@@ -55,7 +55,7 @@
                                     {{ field }}
                                 </td>
                             {% else %}
-                                {% include 'bootstrap4/field.html' with tag="td" form_show_labels=False %}
+                                {% include 'bootstrap5/field.html' with tag="td" form_show_labels=False %}
                             {% endif %}
                         {% endfor %}
                     </tr>

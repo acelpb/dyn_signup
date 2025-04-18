@@ -5,7 +5,6 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "crispy-bootstrap4>=2024.10",
     "django-bootstrap4>=24.4",
     "django>=5.1",
     "django-crispy-forms>=2.3",
@@ -18,8 +17,9 @@ dependencies = [
     "python-decouple>=3.8",
     "tablib~=3.3",
     "whitenoise>=6.8.2",
-    "django-phonenumber-field[phonenumbers]~=7.0.2",
+    "django-phonenumber-field[phonenumbers]>=8.1.0",
     "schwifty>=2025.1.0",
+    "crispy-bootstrap5>=2025.4",
 ]
 
 [dependency-groups]

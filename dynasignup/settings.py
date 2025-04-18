@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "whitenoise",
     "crispy_forms",
-    "crispy_bootstrap4",
+    "crispy_bootstrap5",
     "magiclink",
     "accounts",
     "import_export",
@@ -173,8 +173,8 @@ WHITENOISE_AUTOREFRESH = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CRISPY_TEMPLATE_PACK = "bootstrap4"
-CRISPY_FAIL_SILENTLY = True
+CRISPY_TEMPLATE_PACK = "bootstrap5"
+CRISPY_FAIL_SILENTLY = not DEBUG
 
 
 MEDIA_ROOT = BASE_DIR / "uploads"

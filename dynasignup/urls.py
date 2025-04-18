@@ -13,11 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import path, include
+from django.urls import include, path
+
 from newsletter.views import SignupToNewsletterView
 
 urlpatterns = [
@@ -45,5 +47,5 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     path("admin/", admin.site.urls),
-    path("newsletter/", SignupToNewsletterView.as_view(), name='newsletter'),
+    path("newsletter/", SignupToNewsletterView.as_view(), name="newsletter"),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

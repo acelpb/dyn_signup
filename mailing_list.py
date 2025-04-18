@@ -1,8 +1,8 @@
 # %%
 import logging
 
-from django.conf import settings
 import ovh
+from django.conf import settings
 
 _logger = logging.getLogger(__name__)
 

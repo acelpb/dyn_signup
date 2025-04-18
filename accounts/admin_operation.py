@@ -1,19 +1,19 @@
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
-from django.db.models import Sum, F, ExpressionWrapper, Q, BooleanField
+from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
 from django.db.models.functions import Round
 from django.http import HttpResponseRedirect
-from django.urls import reverse, path
+from django.urls import path, reverse
 from import_export.admin import ImportMixin
 
 from accounts.admin_custom_views import (
     LinkToBillView,
-    LinkToSignupView,
     LinkToExpenseReportView,
+    LinkToSignupView,
 )
 from accounts.admin_inline import JustificationInline
 from accounts.format import BPostCSV, FortisCSV
-from accounts.models import OperationValidation, ExpenditureChoices, IncomeChoices
+from accounts.models import ExpenditureChoices, IncomeChoices, OperationValidation
 from accounts.resource import OperationResource
 
 

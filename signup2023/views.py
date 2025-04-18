@@ -207,7 +207,7 @@ class ParticipantTable(Table):
             "first_name",
             "vae",
         )
-        template_name = "django_tables2/bootstrap4.html"
+        template_name = "django_tables2/bootstrap5.html"
 
 
 class AttendanceView(SingleTableView):
