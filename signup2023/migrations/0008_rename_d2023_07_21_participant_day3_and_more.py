@@ -4,65 +4,69 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('signup2023', '0007_alter_participant_d2023_07_21_and_more'),
+        ("signup2023", "0007_alter_participant_d2023_07_21_and_more"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='participant',
-            old_name='d2023_07_21',
-            new_name='day1',
+            model_name="participant",
+            old_name="d2023_07_21",
+            new_name="day1",
         ),
         migrations.RenameField(
-            model_name='participant',
-            old_name='d2023_07_22',
-            new_name='day2',
+            model_name="participant",
+            old_name="d2023_07_22",
+            new_name="day2",
         ),
         migrations.RenameField(
-            model_name='participant',
-            old_name='d2023_07_23',
-            new_name='day3',
+            model_name="participant",
+            old_name="d2023_07_23",
+            new_name="day3",
         ),
         migrations.RenameField(
-            model_name='participant',
-            old_name='d2023_07_24',
-            new_name='day4',
+            model_name="participant",
+            old_name="d2023_07_24",
+            new_name="day4",
         ),
         migrations.RenameField(
-            model_name='participant',
-            old_name='d2023_07_25',
-            new_name='day5',
+            model_name="participant",
+            old_name="d2023_07_25",
+            new_name="day5",
         ),
         migrations.RenameField(
-            model_name='participant',
-            old_name='d2023_07_26',
-            new_name='day6',
+            model_name="participant",
+            old_name="d2023_07_26",
+            new_name="day6",
         ),
         migrations.RenameField(
-            model_name='participant',
-            old_name='d2023_07_27',
-            new_name='day7',
+            model_name="participant",
+            old_name="d2023_07_27",
+            new_name="day7",
         ),
         migrations.RenameField(
-            model_name='participant',
-            old_name='d2023_07_28',
-            new_name='day8',
+            model_name="participant",
+            old_name="d2023_07_28",
+            new_name="day8",
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='pre_departure',
-            field=models.BooleanField(choices=[(False, 'Non'), (True, 'Oui')], default=False, help_text='Je souhaite venir la veille du départ (petit-déjeuner et pique-nique seront prévus pour vous le jour du départ)', verbose_name='veille'),
+            model_name="participant",
+            name="pre_departure",
+            field=models.BooleanField(
+                choices=[(False, "Non"), (True, "Oui")],
+                default=False,
+                help_text="Je souhaite venir la veille du départ (petit-déjeuner et pique-nique seront prévus pour vous le jour du départ)",
+                verbose_name="veille",
+            ),
         ),
         migrations.AlterField(
-            model_name='signup',
-            name='validated_at',
+            model_name="signup",
+            name="validated_at",
             field=models.DateTimeField(blank=True, default=None, null=True),
         ),
         migrations.AlterField(
-            model_name='signup',
-            name='year',
+            model_name="signup",
+            name="year",
             field=models.IntegerField(default=2024),
         ),
     ]

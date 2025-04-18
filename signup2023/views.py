@@ -1,24 +1,26 @@
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import Case, When, Value, Count, IntegerField, F, Q
-from django.db.models.functions import ExtractDay, ExtractYear, ExtractMonth, Cast
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
+from django.db.models.functions import Cast, ExtractDay, ExtractMonth, ExtractYear
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import TemplateView, UpdateView, FormView, DetailView
+from django.views.generic import DetailView, FormView, TemplateView, UpdateView
 from django_tables2 import SingleTableView, Table
 
 from .forms import (
-    ParticipantFormSet,
+    DaySignupFormset,
+    ParticipantExtraForm,
     ParticipantExtraFormSet,
     ParticipantForm,
-    DaySignupFormset,
+    ParticipantFormSet,
     ParticipantListReviewForm,
-    ParticipantExtraForm,
 )
 from .mixins import SignupStartedMixin
-from .models import Signup, Participant
+from .models import Participant, Signup
+
+
 class HomePage(TemplateView):
     template_name = "signup/index.html"
 
@@ -110,7 +112,9 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
     context_object_name = "signup"
 
     def get_object(self, queryset=None):
-        return Signup.objects.filter(owner=self.request.user, year=settings.DYNAMOBILE_LAST_DAY.year).first()
+        return Signup.objects.filter(
+            owner=self.request.user, year=settings.DYNAMOBILE_LAST_DAY.year
+        ).first()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -132,6 +136,7 @@ class KitchenView(TemplateView):
             ("day6", "day 6"),
             ("day7", "day 7"),
             ("day8", "day 8"),
+            ("day9", "day 9"),
         )
         context["days"] = {
             label: {

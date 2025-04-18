@@ -68,8 +68,6 @@ class ParticipantExtraForm(forms.ModelForm):
             "first_name",
             "last_name",
             "vae",
-            "pre_departure",
-            "extra_activities",
         )
 
 
@@ -133,6 +131,7 @@ class DaySignupForm(forms.ModelForm):
             "day6",
             "day7",
             "day8",
+            "day9",
         ]
 
 

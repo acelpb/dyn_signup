@@ -3,10 +3,10 @@
         <tr>
             <th scope="col" rowspan="2" colspan="1">Participant</th>
             <th scope="col" rowspan="2" colspan="1">VAE</th>
-            <th scope="col" rowspan="2" colspan="1">loge la veille du départ</th>
             <th scope="col" rowspan="1" colspan="8">Jours de participation</th>
         </tr>
         <tr>
+            <th>18</th>
             <th>19</th>
             <th>20</th>
             <th>21</th>
@@ -22,7 +22,6 @@
             <tr>
                 <td>{{ participant.first_name }} {{ participant.last_name }}</td>
                 <td>{{  participant.get_vae_display }}</td>
-                <td>{{  participant.get_pre_departure_display }}</td>
                 <td>{% if participant.day1 %}✅{% else %}❌{% endif %}</td>
                 <td>{% if participant.day2 %}✅{% else %}❌{% endif %}</td>
                 <td>{% if participant.day3 %}✅{% else %}❌{% endif %}</td>
@@ -31,30 +30,34 @@
                 <td>{% if participant.day6 %}✅{% else %}❌{% endif %}</td>
                 <td>{% if participant.day7 %}✅{% else %}❌{% endif %}</td>
                 <td>{% if participant.day8 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day9 %}✅{% else %}❌{% endif %}</td>
             </tr>
         {% endfor %}
     </tbody>
 </table>
 {% if signup.on_hold %}
-{#    {% if signup.on_hold_vae %}#}
-{#        <p>#}
-{#            Nous avons atteint le maximum de participants souhaitants venir en VAE (Vélo avec assistance électrique).#}
-{#            Si vous voulez modifier votre participation pour une participation en vélo à assistance musculaire (pas#}
-{#            électrique),#}
-{#            vous pouvez nous contacter en suivant le lien ci-dessous. <br>#}
-{#            <a href="mailto:inscriptions@dynamobile.net?subject=VAE n°{{ signup.id }}">inscriptions@dynamobile.net</a>.#}
-{#        </p>#}
-{#    {% elif signup.on_hold_partial %}#}
-{#        <p>#}
-{#            Les inscriptions partielles ouvre à partir du {{ partial_open|date }}.#}
-{#            À cette date, et en fonction de la place disponible, nous vous recontacterons.#}
-{#        </p>#}
-{#    {% else %}#}
-    <p>
-        La limite maximale de participants semble être atteinte. Vous occupez actuellement la place
-        numéro: {{ signup.waiting_number }} dans la liste d'attente.
-        Si des désistements permettent de libérer des places, nous vous contacterons.
-    </p>
+    {% if signup.on_hold_vae %}
+        <p>
+            Nous avons atteint le maximum de participants souhaitants venir en VAE (Vélo avec assistance électrique).
+            Si vous voulez modifier votre participation pour une participation en vélo à assistance musculaire (pas
+            électrique),
+            vous pouvez nous contacter en suivant le lien ci-dessous. <br>
+            <a href="mailto:inscriptions@dynamobile.net?subject=VAE n°{{ signup.id }}">inscriptions@dynamobile.net</a>.
+        </p>
+    {% elif signup.on_hold_partial %}
+        <p>
+            Les inscriptions partielles ouvre à partir du {{ partial_open|date }}.
+            À cette date, et en fonction de la place disponible, nous vous recontacterons.
+            Vous occupez actuellement la place
+            numéro: {{ signup.waiting_number }} dans la liste d'attente.
+        </p>
+    {% else %}
+        <p>
+            La limite maximale de participants semble être atteinte. Vous occupez actuellement la place
+            numéro: {{ signup.waiting_number }} dans la liste d'attente.
+            Si des désistements permettent de libérer des places, nous vous contacterons.
+        </p>
+    {% endif %}
 {% elif signup.payed %}
     <p>
         Votre inscription est validée (nous avons bien reçu votre paiement).

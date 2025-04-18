@@ -53,9 +53,11 @@ class Migration(migrations.Migration):
             name="extra_activities",
             field=models.CharField(
                 blank=True,
-                help_text=("Nous cherchons des signaleurs, des capitaines de route. Si vous avez des talents de "
-                           "mécanicien, de secouriste, ou si vous vous proposez pour animer une activité en soirée, "
-                           "merci de nous le faire savoir."),
+                help_text=(
+                    "Nous cherchons des signaleurs, des capitaines de route. Si vous avez des talents de "
+                    "mécanicien, de secouriste, ou si vous vous proposez pour animer une activité en soirée, "
+                    "merci de nous le faire savoir."
+                ),
                 max_length=300,
                 verbose_name="proposition d'aide",
             ),
@@ -66,9 +68,11 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 choices=[(False, "Non"), (True, "Oui")],
                 default=False,
-                help_text=("Je souhaite arriver/loger la veille du départ "
-                           "(petit-déjeuner et pique-nique pour le 19 Juillet "
-                           "seront prévus pour les personnes inscrites pour la nuit du 18 juillet)."),
+                help_text=(
+                    "Je souhaite arriver/loger la veille du départ "
+                    "(petit-déjeuner et pique-nique pour le 19 Juillet "
+                    "seront prévus pour les personnes inscrites pour la nuit du 18 juillet)."
+                ),
                 verbose_name="veille",
             ),
         ),

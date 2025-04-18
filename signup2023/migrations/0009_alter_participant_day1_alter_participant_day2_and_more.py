@@ -4,50 +4,49 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('signup2023', '0008_rename_d2023_07_21_participant_day3_and_more'),
+        ("signup2023", "0008_rename_d2023_07_21_participant_day3_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='participant',
-            name='day1',
-            field=models.BooleanField(default=True, verbose_name='19-07'),
+            model_name="participant",
+            name="day1",
+            field=models.BooleanField(default=True, verbose_name="19-07"),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='day2',
-            field=models.BooleanField(default=True, verbose_name='20-07'),
+            model_name="participant",
+            name="day2",
+            field=models.BooleanField(default=True, verbose_name="20-07"),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='day3',
-            field=models.BooleanField(default=True, verbose_name='21-07'),
+            model_name="participant",
+            name="day3",
+            field=models.BooleanField(default=True, verbose_name="21-07"),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='day4',
-            field=models.BooleanField(default=True, verbose_name='22-07'),
+            model_name="participant",
+            name="day4",
+            field=models.BooleanField(default=True, verbose_name="22-07"),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='day5',
-            field=models.BooleanField(default=True, verbose_name='23-07'),
+            model_name="participant",
+            name="day5",
+            field=models.BooleanField(default=True, verbose_name="23-07"),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='day6',
-            field=models.BooleanField(default=True, verbose_name='24-07'),
+            model_name="participant",
+            name="day6",
+            field=models.BooleanField(default=True, verbose_name="24-07"),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='day7',
-            field=models.BooleanField(default=True, verbose_name='25-07'),
+            model_name="participant",
+            name="day7",
+            field=models.BooleanField(default=True, verbose_name="25-07"),
         ),
         migrations.AlterField(
-            model_name='participant',
-            name='day8',
-            field=models.BooleanField(default=True, verbose_name='26-07'),
+            model_name="participant",
+            name="day8",
+            field=models.BooleanField(default=True, verbose_name="26-07"),
         ),
     ]

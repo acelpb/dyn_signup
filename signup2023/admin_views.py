@@ -5,8 +5,8 @@ from django.contrib.auth.mixins import AccessMixin
 from django.urls import reverse_lazy
 from django.utils.functional import cached_property
 
-from signup2023.models import Participant
 from connectors.ovh import MailingList
+from signup2023.models import Participant
 
 
 class AdminRequiredMixin(AccessMixin):

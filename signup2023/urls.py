@@ -1,7 +1,6 @@
 from django.urls import path, register_converter
 
-from . import converters
-from . import views
+from . import converters, views
 
 register_converter(converters.DateConverter, "yyyy-mm-dd")
 

@@ -2,9 +2,9 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.core.mail import send_mail
-from django.db.models import Sum, F, Q
+from django.db.models import F, Q, Sum
 from django.template.loader import get_template
-from django.urls import reverse, path
+from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django_object_actions import DjangoObjectActions
@@ -12,20 +12,22 @@ from import_export import resources
 from import_export.admin import ExportMixin
 
 from accounts.admin_inline import PaymentInline
+
 from .admin_views import SyncMailingListFormView
-from .models import Participant, Signup, Bill
+from .models import Bill, Participant, Signup
 
 
 # Register your models here.
 @admin.action(description="Send payment confirmation")
 def confirmation(modeladmin, request, queryset):
     for signup in queryset:
-        if (signup.validated_at is not None and
-                signup.bill.payed_at is None and
-                signup.cancelled_at is None and
-                signup.on_hold is False):
+        if (
+            signup.validated_at is not None
+            and signup.bill.payed_at is None
+            and signup.cancelled_at is None
+            and signup.on_hold is False
+        ):
             signup.bill.send_payment_confirmation_mail()
-
 
 
 @admin.action(description="Send place on waiting list")
@@ -41,7 +43,6 @@ def waiting_list(modeladmin, request, queryset):
                     {"signup": el.signup}
                 ),
             )
-
 
 
 class ParticipantInfoInline(admin.StackedInline):
@@ -104,7 +105,7 @@ class SignupAdmin(admin.ModelAdmin):
         "amount",
         "still_to_be_payed",
     )
-    list_filter = ("on_hold",)
+    list_filter = ("on_hold", "year")
     inlines = [ParticipantInfoInline, ParticipantDaysInline]
 
     def get_queryset(self, request):
@@ -156,15 +157,21 @@ class SignupStatusFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         filters = {
-            "on_hold": {"signup_group__on_hold": True,
-                        "signup_group__validated_at__isnull": False,
-                        "signup_group__cancelled_at__isnull": True},
-            "on_hold_vae": {"signup_group__on_hold_vae": True,
-                        "signup_group__validated_at__isnull": False,
-                        "signup_group__cancelled_at__isnull": True},
-            "partial": {"signup_group__on_hold_partial": True,
-                        "signup_group__validated_at__isnull": False,
-                        "signup_group__cancelled_at__isnull": True},
+            "on_hold": {
+                "signup_group__on_hold": True,
+                "signup_group__validated_at__isnull": False,
+                "signup_group__cancelled_at__isnull": True,
+            },
+            "on_hold_vae": {
+                "signup_group__on_hold_vae": True,
+                "signup_group__validated_at__isnull": False,
+                "signup_group__cancelled_at__isnull": True,
+            },
+            "partial": {
+                "signup_group__on_hold_partial": True,
+                "signup_group__validated_at__isnull": False,
+                "signup_group__cancelled_at__isnull": True,
+            },
             "validated": {
                 "signup_group__validated_at__isnull": False,
                 "signup_group__on_hold": False,
@@ -176,10 +183,11 @@ class SignupStatusFilter(SimpleListFilter):
                 "signup_group__cancelled_at__isnull": True,
                 "signup_group__bill__payed_at__isnull": True,
             },
-            "payed": {"signup_group__bill__payed_at__isnull": False,
-                      "signup_group__validated_at__isnull": False,
-                      "signup_group__cancelled_at__isnull": True
-                      },
+            "payed": {
+                "signup_group__bill__payed_at__isnull": False,
+                "signup_group__validated_at__isnull": False,
+                "signup_group__cancelled_at__isnull": True,
+            },
             "cancelled": {"signup_group__cancelled_at__isnull": False},
             None: {},
         }
@@ -193,15 +201,15 @@ class SignupDayFilter(SimpleListFilter):
     def lookups(self, request, model_admin):
         # This is where you create filter options; we have two:
         return [
-            ("pre_departure", "vient la veille"),
-            ("day1", "21 Juillet"),
-            ("day2", "22 Juillet"),
-            ("day3", "23 Juillet"),
-            ("day4", "24 Juillet"),
-            ("day5", "25 Juillet"),
-            ("day6", "26 Juillet"),
-            ("day7", "27 Juillet"),
-            ("day8", "28 Juillet"),
+            ("day1", "18 Juillet"),
+            ("day2", "19 Juillet"),
+            ("day3", "20 Juillet"),
+            ("day4", "21 Juillet"),
+            ("day5", "22 Juillet"),
+            ("day6", "23 Juillet"),
+            ("day7", "24 Juillet"),
+            ("day8", "25 Juillet"),
+            ("day9", "26 Juillet"),
         ]
 
     def queryset(self, request, queryset):
@@ -239,7 +247,6 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "last_name",
         "birthday",
         "age",
-        "pre_departure",
         "day1",
         "day2",
         "day3",
@@ -248,6 +255,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "day6",
         "day7",
         "day8",
+        "day9",
         "vae",
         "country",
     )
@@ -279,9 +287,11 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         return mark_safe(link)
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(signup_group__year=settings.DYNAMOBILE_LAST_DAY.year)
-
-
+        return (
+            super()
+            .get_queryset(request)
+            .filter(signup_group__year=settings.DYNAMOBILE_LAST_DAY.year)
+        )
 
 
 class PriceIsOddFilter(SimpleListFilter):
@@ -344,7 +354,11 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     def send_reminder(modeladmin, request, queryset):
         for bill in queryset:
             signup = bill.signup
-            if signup.cancelled_at is not None or signup.validated_at is None or signup.on_hold:
+            if (
+                signup.cancelled_at is not None
+                or signup.validated_at is None
+                or signup.on_hold
+            ):
                 continue
             if bill.payed_at is not None or bill.calculated_amount == 0:
                 continue
@@ -420,4 +434,8 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     ballance.admin_order_field = "ballance"
 
     def get_queryset(self, request):
-        return super().get_queryset(request).filter(signup__year=settings.DYNAMOBILE_LAST_DAY.year)
+        return (
+            super()
+            .get_queryset(request)
+            .filter(signup__year=settings.DYNAMOBILE_LAST_DAY.year)
+        )

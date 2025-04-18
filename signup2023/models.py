@@ -86,16 +86,19 @@ class Signup(models.Model):
         return True
 
     def waiting_number(self):
-        waiting_participants = Participant.objects.filter(signup_group__on_hold=True)
+        waiting_participants = Participant.objects.filter(
+            signup_group__on_hold=True,
+            signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
+        )
         ordered_participants = waiting_participants.annotate(
             ranking=models.Case(
                 models.When(
-                    signup_group__validated_at__lt="2023-05-24",
+                    signup_group__validated_at__lt=settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
                     signup_group__on_hold_partial=False,
                     then=models.Value(1),
                 ),
                 models.When(
-                    signup_group__validated_at__lt="2023-05-24",
+                    signup_group__validated_at__lt=settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
                     signup_group__on_hold_partial=True,
                     then=models.Value(2),
                 ),
@@ -117,8 +120,8 @@ class Signup(models.Model):
 
     def check_on_hold_partial(self):
         if (
-                not self.complete_signup()
-                and settings.DYNAMOBILE_START_PARTIAL_SIGNUP > timezone.now()
+            not self.complete_signup()
+            and settings.DYNAMOBILE_START_PARTIAL_SIGNUP > timezone.now()
         ):
             self.on_hold_partial = True
             self.on_hold = True
@@ -134,8 +137,8 @@ class Signup(models.Model):
                 signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
             ).count()
             if (
-                    registered_vae_bikes + additional_vae
-                    > settings.DYNAMOBILE_MAX_VAE_PARTICIPANTS
+                registered_vae_bikes + additional_vae
+                > settings.DYNAMOBILE_MAX_VAE_PARTICIPANTS
             ):
                 self.on_hold_vae = True
                 self.on_hold = True
@@ -145,13 +148,13 @@ class Signup(models.Model):
 
     def check_max_participants(self):
         nb_of_participants = (
-                Participant.objects.filter(
-                    signup_group__validated_at__isnull=False,
-                    signup_group__on_hold=False,
-                    signup_group__cancelled_at__isnull=True,
-                    signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
-                )
-                | self.participant_set.all()
+            Participant.objects.filter(
+                signup_group__validated_at__isnull=False,
+                signup_group__on_hold=False,
+                signup_group__cancelled_at__isnull=True,
+                signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
+            )
+            | self.participant_set.all()
         ).count()
         if nb_of_participants > settings.DYNAMOBILE_MAX_PARTICIPANTS:
             self.on_hold = True
@@ -159,9 +162,9 @@ class Signup(models.Model):
 
     def check_if_on_hold(self):
         return (
-                self.check_on_hold_partial()
-                or self.check_max_vae()
-                or self.check_max_participants()
+            self.check_on_hold_partial()
+            or self.check_max_vae()
+            or self.check_max_participants()
         )
 
     def payed(self):
@@ -187,16 +190,16 @@ class ParticipantManager(models.Manager):
             .get_queryset()
             .annotate(
                 age=(
-                        last_day.year
-                        - F("birthday__year")
-                        - models.ExpressionWrapper(
-                    Q(birthday__month__gt=last_day.month)
-                    | (
+                    last_day.year
+                    - F("birthday__year")
+                    - models.ExpressionWrapper(
+                        Q(birthday__month__gt=last_day.month)
+                        | (
                             Q(birthday__month=last_day.month)
                             & Q(birthday__day__gt=last_day.day)
-                    ),
-                    output_field=models.IntegerField(),
-                )
+                        ),
+                        output_field=models.IntegerField(),
+                    )
                 )
             )
         )
@@ -236,16 +239,18 @@ class Participant(models.Model):
         default=False,
         help_text=(
             "Je souhaite venir la veille du départ (petit-déjeuner et "
-            "pique-nique seront prévus pour vous le jour du départ)"),
+            "pique-nique seront prévus pour vous le jour du départ)"
+        ),
     )
-    day1 = models.BooleanField(_("19-07"), default=True)
-    day2 = models.BooleanField(_("20-07"), default=True)
-    day3 = models.BooleanField(_("21-07"), default=True)
-    day4 = models.BooleanField(_("22-07"), default=True)
-    day5 = models.BooleanField(_("23-07"), default=True)
-    day6 = models.BooleanField(_("24-07"), default=True)
-    day7 = models.BooleanField(_("25-07"), default=True)
-    day8 = models.BooleanField(_("26-07"), default=True)
+    day1 = models.BooleanField(_("18-07"), default=True)
+    day2 = models.BooleanField(_("19-07"), default=True)
+    day3 = models.BooleanField(_("20-07"), default=True)
+    day4 = models.BooleanField(_("21-07"), default=True)
+    day5 = models.BooleanField(_("22-07"), default=True)
+    day6 = models.BooleanField(_("23-07"), default=True)
+    day7 = models.BooleanField(_("24-07"), default=True)
+    day8 = models.BooleanField(_("25-07"), default=True)
+    day9 = models.BooleanField(_("26-07"), default=True)
 
     objects = ParticipantManager()
 
@@ -255,26 +260,28 @@ class Participant(models.Model):
 
     def complete_signup(self):
         return (
-                self.day1
-                and self.day2
-                and self.day3
-                and self.day4
-                and self.day5
-                and self.day6
-                and self.day7
-                and self.day8
+            self.day1
+            and self.day2
+            and self.day3
+            and self.day4
+            and self.day5
+            and self.day6
+            and self.day7
+            and self.day8
+            and self.day9
         )
 
     def nb_of_days(self):
         return (
-                self.day1
-                + self.day2
-                + self.day3
-                + self.day4
-                + self.day5
-                + self.day6
-                + self.day7
-                + self.day8
+            self.day1
+            + self.day2
+            + self.day3
+            + self.day4
+            + self.day5
+            + self.day6
+            + self.day7
+            + self.day8
+            + self.day9
         )
 
     def __str__(self):
@@ -284,9 +291,9 @@ class Participant(models.Model):
         last_day = settings.DYNAMOBILE_LAST_DAY
         birthday = self.birthday
         return (
-                last_day.year
-                - birthday.year
-                - ((last_day.month, last_day.day) < (birthday.month, birthday.day))
+            last_day.year
+            - birthday.year
+            - ((last_day.month, last_day.day) < (birthday.month, birthday.day))
         )
 
     @classmethod
@@ -308,7 +315,7 @@ class Participant(models.Model):
                 year=settings.DYNAMOBILE_LAST_DAY.year,
                 validated_at__isnull=False,
                 on_hold=False,
-                cancelled_at__isnull=True
+                cancelled_at__isnull=True,
             ).values_list("owner__email", flat=True)
         )
         active_participants.remove("")
@@ -388,12 +395,12 @@ class Bill(models.Model):
                 f"prix pour {participant.first_name} {participant.last_name}: "
             )
             for (
-                    min_age,
-                    max_age,
-                    all_days_price,
-                    upfront_price,
+                min_age,
+                max_age,
+                all_days_price,
+                upfront_price,
             ) in settings.DYNAMOBILE_PRICES:
-                if age < max_age:
+                if min_age <= age < max_age:
                     if participant.complete_signup():
                         price = upfront_price + all_days_price
                         description += f"(totalité) {upfront_price} + {all_days_price} "
