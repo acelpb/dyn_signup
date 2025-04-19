@@ -68,6 +68,7 @@ class ParticipantExtraForm(forms.ModelForm):
             "first_name",
             "last_name",
             "vae",
+            "extra_activities",
         )
 
 
