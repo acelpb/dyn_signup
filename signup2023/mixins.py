@@ -17,11 +17,14 @@ class SignupStartedMixin(AccessMixin):
         return signup
 
     def dispatch(self, request, *args, **kwargs):
-        if timezone.now() < settings.DYNAMOBILE_START_SIGNUP:
-            return HttpResponseRedirect("")
         user = request.user
         if not user.is_authenticated:
             return self.handle_no_permission()
+        signup_not_started = timezone.now() < settings.DYNAMOBILE_START_SIGNUP
+        user_can_pre_signup = user.groups.filter(name="préinscriptions").exists()
+        if signup_not_started and not user_can_pre_signup:
+            return HttpResponseRedirect("")
+
         signup = self.get_object()
         if signup.validated_at is not None:
             return HttpResponseRedirect("/review/")
