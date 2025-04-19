@@ -406,8 +406,8 @@ class Bill(models.Model):
                         description += f"(totalité) {upfront_price} + {all_days_price} "
                     else:
                         nb_days = participant.nb_of_days()
-                        price = upfront_price + (all_days_price / 7 * nb_days)
-                        description += f"(partiel) {upfront_price} + {all_days_price} / 7 * {nb_days} "
+                        price = upfront_price + (all_days_price / 8 * nb_days)
+                        description += f"(partiel) {upfront_price} + {all_days_price} / 8 * {nb_days} "
 
                     if age < 18:
                         child_reduction = min(0.5, 0.25 * child_nb)
