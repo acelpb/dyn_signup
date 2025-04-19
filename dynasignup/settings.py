@@ -217,7 +217,7 @@ DYNAMOBILE_DAYS = [
 
 # We reserve the right to accept up to 150 people on a case by case basis
 DYNAMOBILE_MAX_PARTICIPANTS = config(
-    "DYNAMOBILE_MAX_PARTICIPANTS", default=120, cast=int
+    "DYNAMOBILE_MAX_PARTICIPANTS", default=110, cast=int
 )
 # We reserve the right to accept up to 25 people on a case by case basis
 DYNAMOBILE_MAX_VAE_PARTICIPANTS = config(
