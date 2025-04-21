@@ -127,7 +127,6 @@ class KitchenView(TemplateView):
 
     def get_context_data(self, **context):
         days = (
-            ("pre_departure", "Veille"),
             ("day1", "day 1"),
             ("day2", "day 2"),
             ("day3", "day 3"),
@@ -165,7 +164,9 @@ class KitchenView(TemplateView):
         for _, label in days:
             total = sum(context["days"][label].values())
             context["days"][label]["total"] = total
-            context["days"][label]["eaters"] = total - context["days"][label]["a0_6"]
+            context["days"][label]["eaters"] = total - context["days"][label].get(
+                "a0_6", 0
+            )
 
         return super().get_context_data(**context)
 
