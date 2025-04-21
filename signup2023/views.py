@@ -126,6 +126,12 @@ class KitchenView(TemplateView):
     template_name = "signup/kitchen.html"
 
     def get_context_data(self, **context):
+        active = Participant.objects.filter(
+            signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
+            signup_group__validated_at__isnull=False,
+            signup_group__on_hold=False,
+            signup_group__cancelled_at__isnull=True,
+        )
         days = (
             ("day1", "day 1"),
             ("day2", "day 2"),
@@ -140,11 +146,7 @@ class KitchenView(TemplateView):
         context["days"] = {
             label: {
                 k: v
-                for k, v in Participant.objects.filter(
-                    signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
-                    signup_group__validated_at__isnull=False,
-                    signup_group__on_hold=False,
-                    signup_group__cancelled_at__isnull=True,
+                for k, v in active.filter(
                     **{field: True},
                 )
                 .values(
@@ -167,6 +169,27 @@ class KitchenView(TemplateView):
             context["days"][label]["eaters"] = total - context["days"][label].get(
                 "a0_6", 0
             )
+
+        context["total_signups"] = active.count()
+        context["total_vae"] = active.filter(vae=True).count()
+        context["total_partials"] = active.filter(
+            Q(day1=False)
+            | Q(day2=False)
+            | Q(day3=False)
+            | Q(day4=False)
+            | Q(day5=False)
+            | Q(day6=False)
+            | Q(day7=False)
+            | Q(day8=False)
+            | Q(day9=False)
+        ).count()
+        context["total_on_hold"] = active.filter(signup_group__on_hold=True).count()
+        context["total_on_hold_vae"] = active.filter(
+            signup_group__on_hold_vae=True
+        ).count()
+        context["total_on_hold_partial"] = active.filter(
+            signup_group__on_hold_partial=True
+        ).count()
 
         return super().get_context_data(**context)
 

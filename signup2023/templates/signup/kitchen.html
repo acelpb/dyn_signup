@@ -5,6 +5,20 @@
 
 
 {% block content %}
+    <div class="row">
+        <ul class="col-md-6 px-5">
+            <li>Total participants : {{ total_signups }}</li>
+            <li>Total VAE : {{ total_vae }}</li>
+            <li>Total partials : {{ total_partials }}</li>
+        </ul>
+        <ul class="col-md-6 px-5">
+            <li>Total on hold : {{ total_on_hold }}</li>
+            <li>Total on hold vae : {{ total_on_hold_vae }}</li>
+            <li>Total on hold partials : {{ total_on_hold_partial }}</li>
+        </ul>
+    </div>
+
+
     <table class="table">
         <thead>
             <tr>
