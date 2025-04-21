@@ -64,7 +64,7 @@
     </p>
 {% elif signup.bill.calculated_amount  %}
     <p>
-        Le solde de votre inscription est de {{ signup.bill.calculated_amount|floatformat:2 }}€ <br />
+        Le solde de votre inscription est de {{ signup.bill.amount|floatformat:2 }}€ <br />
         {{ signup.bill.calculation|linebreaks }}
     </p>
     <p>

@@ -36,16 +36,13 @@ class Signup(models.Model):
     def __str__(self):
         return f"{self.id} - {self.owner.username}"
 
-    def calculate_amount(self):
-        return self.bill.amount or 0
-
     def create_bill(self):
         bill = Bill(
             signup=self,
             created_at=timezone.now(),
         )
         bill.calculate_amount_and_explain()
-        bill.ballance = bill.amount
+        bill.amount = bill.calculated_amount
         bill.save()
         send_mail(
             subject="Votre inscription à dynamobile",
@@ -341,9 +338,6 @@ class Bill(models.Model):
     amount_payed_at = models.DecimalField(decimal_places=2, default=0, max_digits=10)
     calculation = models.TextField(blank=True, default="")
     calculated_amount = models.DecimalField(
-        decimal_places=2, default=0, max_digits=10, null=True
-    )
-    corrected_amount = models.DecimalField(
         decimal_places=2, default=0, max_digits=10, null=True
     )
 
