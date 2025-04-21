@@ -59,8 +59,8 @@
           <a href="{{ password_reset_url }}">{% translate 'Forgotten your password or username?' %}</a>
         </div><br /></div>
         <div class="password-reset-link">
-          <a href="{% url "magiclink:login" %}">{% translate 'Log in with a single use token' %}"</a>
-        </div>>
+          <a href="{% url "magiclink:login" %}">{% translate 'Log in with a single use token' %}</a>
+        </div>
       {% endif %}
       <div class="submit-row">
         <input type="submit" value="{% translate 'Log in' %}">
