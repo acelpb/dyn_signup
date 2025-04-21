@@ -11,6 +11,7 @@
                 {% with date=start_signup.date time=start_signup.time %}
                     <p>Les inscriptions débuteront le {{ start_signup|date:"l d E" }} à
                         {{ start_signup.time|time:"H:i" }}.</p>
+                    <p>Encore {{ hours_remaining }}h {{ minutes_remaining }} minutes</p>
                     <p>
                         {% blocktrans %}
                             <a href="https://www.dynamobile.net/">Cliquez ici</a> pour retourner sur la page d'accueil
