@@ -57,7 +57,6 @@ class ParticipantInfoInline(admin.StackedInline):
         "city",
         "country",
         "vae",
-        "pre_departure",
         "extra_activities",
     )
 
@@ -80,7 +79,7 @@ class ParticipantDaysInline(admin.TabularInline):
 
 
 @admin.register(Signup)
-class SignupAdmin(admin.ModelAdmin):
+class SignupAdmin(DjangoObjectActions, admin.ModelAdmin):
     list_display = (
         "id",
         "owner",
@@ -108,6 +107,12 @@ class SignupAdmin(admin.ModelAdmin):
     )
     list_filter = ("on_hold", "year")
     inlines = [ParticipantInfoInline, ParticipantDaysInline]
+
+    change_actions = ("validate",)
+
+    def validate(self, request, obj):
+        obj.create_bill()
+        self.message_user(request, "Bill created and confirmation sent.")
 
     def get_queryset(self, request):
         return (
@@ -351,6 +356,12 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
 
     actions = ["send_reminder"]
 
+    change_actions = (
+        "recalculate",
+        "send_payment_confirmation",
+        "unblock_waiting_list",
+    )
+
     @admin.action(description="Send payment reminder")
     def send_reminder(modeladmin, request, queryset):
         for bill in queryset:
@@ -405,12 +416,6 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
         obj.save()
         self.message_user(request, "ok")
         pass
-
-    change_actions = (
-        "recalculate",
-        "send_payment_confirmation",
-        "unblock_waiting_list",
-    )
 
     def signup_link(self, obj: Bill):
         signup: Signup = obj.signup
