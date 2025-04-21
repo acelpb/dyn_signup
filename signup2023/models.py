@@ -288,7 +288,7 @@ class Participant(models.Model):
         return f"{self.first_name} {self.last_name}"
 
     def age_at_dynamobile_end(self):
-        last_day = settings.DYNAMOBILE_LAST_DAY
+        last_day = settings.DYNAMOBILE_FIRST_DAY
         birthday = self.birthday
         return (
             last_day.year

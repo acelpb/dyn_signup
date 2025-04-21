@@ -1,6 +1,7 @@
 from datetime import date
 
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory
 from django.template.defaultfilters import title
@@ -105,7 +106,11 @@ class ParticipantListReviewForm(forms.ModelForm):
 
     def clean(self):
         if not self.instance.participant_set.filter(
-            birthday__lte=date(2004, 7, 18)
+            birthday__lte=date(
+                settings.DYNAMOBILE_FIRST_DAY.year - 18,
+                settings.DYNAMOBILE_FIRST_DAY.month,
+                settings.DYNAMOBILE_FIRST_DAY.day,
+            )
         ).count():
             self.add_error(
                 None,
