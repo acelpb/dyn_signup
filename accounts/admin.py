@@ -113,7 +113,6 @@ class ExpenseReportAdmin(admin.ModelAdmin):
         "iban",
         "total",
         "remaining_to_pay",
-        "signed",
         "validated",
     )
     list_filter = ("submitted_date", "signed", "validated")
