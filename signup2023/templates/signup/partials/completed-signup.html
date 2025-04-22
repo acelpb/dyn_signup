@@ -46,18 +46,23 @@
         </p>
     {% elif signup.on_hold_partial %}
         <p>
-            Les inscriptions partielles ouvre à partir du {{ partial_open|date }}.
-            À cette date, et en fonction de la place disponible, nous vous recontacterons.
+            Les inscriptions partielles ouvre à partir du {{ partial_open|date }} en fonction des places disponibles.
             Vous occupez actuellement la place
             numéro: {{ signup.waiting_number }} dans la liste d'attente.
+            Si des désistements permettent de libérer des places, nous prendrons contact avec vous.
         </p>
     {% else %}
         <p>
-            La limite maximale de participants semble être atteinte. Vous occupez actuellement la place
+            La limite maximale de participants semble être atteinte.
+            Vous occupez actuellement la place
             numéro: {{ signup.waiting_number }} dans la liste d'attente.
-            Si des désistements permettent de libérer des places, nous vous contacterons.
+            Si des désistements permettent de libérer des places, nous prendrons contact avec vous.
         </p>
     {% endif %}
+    <p>
+        Vous pouvez visualiser les détails de votre inscription et suivre l’évolution de votre place
+        dans la liste d’attente en cliquant <a href="{% url "completed_signup" %}">ici</a>.
+    </p>
 {% elif signup.payed %}
     <p>
         Votre inscription est validée (nous avons bien reçu votre paiement).

@@ -50,7 +50,10 @@ class Signup(models.Model):
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=[self.owner.email, settings.EMAIL_HOST_USER],
             html_message=get_template("signup/email/email.html").render(
-                {"signup": self}
+                {
+                    "signup": self,
+                    "partial_open": settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
+                }
             ),
         )
         return bill
