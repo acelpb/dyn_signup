@@ -62,6 +62,7 @@ class ParticipantForm(forms.ModelForm):
 class ParticipantExtraForm(forms.ModelForm):
     first_name = forms.CharField(label="Prénom", disabled=True)
     last_name = forms.CharField(label="Nom", disabled=True)
+    vae = forms.BooleanField(label="Vélo à assistance électrique")
 
     class Meta:
         model = Participant
