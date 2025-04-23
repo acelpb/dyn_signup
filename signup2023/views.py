@@ -186,11 +186,16 @@ class KitchenView(TemplateView):
             | Q(day8=False)
             | Q(day9=False)
         ).count()
-        context["total_on_hold"] = active.filter(signup_group__on_hold=True).count()
-        context["total_on_hold_vae"] = active.filter(
+        participants_this_year = Participant.objects.filter(
+            signup_group__year=settings.DYNAMOBILE_LAST_DAY.year
+        )
+        context["total_on_hold"] = participants_this_year.filter(
+            signup_group__on_hold=True
+        ).count()
+        context["total_on_hold_vae"] = participants_this_year.filter(
             signup_group__on_hold_vae=True
         ).count()
-        context["total_on_hold_partial"] = active.filter(
+        context["total_on_hold_partial"] = participants_this_year.filter(
             signup_group__on_hold_partial=True
         ).count()
 
