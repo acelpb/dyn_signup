@@ -11,10 +11,12 @@ from django_tables2 import SingleTableView, Table
 
 from .forms import (
     DaySignupFormset,
-    ParticipantExtraForm,
+    DaySignupFormsetHelper,
     ParticipantExtraFormSet,
+    ParticipantExtraFormSetHelper,
     ParticipantForm,
     ParticipantFormSet,
+    ParticipantFormSetHelper,
     ParticipantListReviewForm,
 )
 from .mixins import SignupStartedMixin
@@ -53,18 +55,20 @@ class CreateGroupView(SignupStartedMixin, FormView):
             instance=self.get_object(),
         )
 
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs, helper=ParticipantFormSetHelper)
+
+    def form_invalid(self, form):
+        return super().form_invalid(form)
+
     def form_valid(self, form):
         form.save()
         return super().form_valid(form)
 
 
 class GroupExtraEditView(SignupStartedMixin, FormView):
-    template_name = "signup/particpant.html"
+    template_name = "signup/formset.html"
     success_url = reverse_lazy("validate")
-
-    form_class = inlineformset_factory(
-        Signup, Participant, form=ParticipantExtraForm, extra=0, can_delete=False
-    )
 
     def get_form(self, form_class=None):
         return ParticipantExtraFormSet(
@@ -72,13 +76,16 @@ class GroupExtraEditView(SignupStartedMixin, FormView):
             instance=self.get_object(),
         )
 
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs, helper=ParticipantExtraFormSetHelper)
+
     def form_valid(self, form):
         form.save()
         return super().form_valid(form)
 
 
 class SelectDayView(SignupStartedMixin, FormView):
-    template_name = "signup/select-days.html"
+    template_name = "signup/formset.html"
     success_url = reverse_lazy("group_extra_info")
 
     def get_form(self, form_class=None):
@@ -86,6 +93,9 @@ class SelectDayView(SignupStartedMixin, FormView):
             **self.get_form_kwargs(),
             instance=self.get_object(),
         )
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs, helper=DaySignupFormsetHelper)
 
     def form_valid(self, form):
         form.save()

@@ -1,10 +1,14 @@
 from datetime import date
 
+from crispy_bootstrap5.bootstrap5 import FloatingField
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import HTML, Button, Column, Field, Layout, Row, Submit
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory
 from django.template.defaultfilters import title
+from django.urls import reverse
 
 from .models import Participant, Signup
 
@@ -59,10 +63,80 @@ class ParticipantForm(forms.ModelForm):
         return ensure_mixed_case(value)
 
 
+ParticipantFormSet = inlineformset_factory(
+    Signup, Participant, form=ParticipantForm, min_num=1, extra=0, can_delete=True
+)
+
+
+class ParticipantFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = Layout(
+            HTML("{% if forloop.first %}{%else%}<hr>{% endif %}"),
+            Row(
+                Column(
+                    FloatingField(
+                        "first_name",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "last_name",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "email",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "phone",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "birthday",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "city",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "country",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    Field(
+                        "DELETE",
+                    ),
+                    css_class="col-auto",
+                ),
+            ),
+        )
+        self.add_input(
+            Button(
+                "add_user",
+                "Ajouter un participant",
+                css_class="btn-secondary",
+            )
+        )
+        self.add_input(Submit("submit", "Page Suivante"))
+
+
 class ParticipantExtraForm(forms.ModelForm):
     first_name = forms.CharField(label="Prénom", disabled=True)
     last_name = forms.CharField(label="Nom", disabled=True)
-    vae = forms.BooleanField(label="Vélo à assistance électrique")
 
     class Meta:
         model = Participant
@@ -74,13 +148,53 @@ class ParticipantExtraForm(forms.ModelForm):
         )
 
 
-ParticipantFormSet = inlineformset_factory(
-    Signup, Participant, form=ParticipantForm, min_num=1, extra=0, can_delete=True
-)
-
 ParticipantExtraFormSet = inlineformset_factory(
     Signup, Participant, form=ParticipantExtraForm, min_num=1, extra=0, can_delete=False
 )
+
+
+class ParticipantExtraFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = Layout(
+            HTML("{% if forloop.first %}{%else%}<hr>{% endif %}"),
+            Row(
+                Column(
+                    FloatingField(
+                        "first_name",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "last_name",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "vae",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "extra_activities",
+                    ),
+                    css_class="col-md",
+                ),
+                css_class="g-2",
+            ),
+        )
+        self.add_input(
+            Button(
+                "cancel",
+                "Page précédente",
+                css_class="btn-secondary",
+                onclick="window.location.href = '{}';".format(reverse("day_edit")),
+            )
+        )
+        self.add_input(Submit("submit", "Page Suivante"))
 
 
 class ParticipantListReviewForm(forms.ModelForm):
@@ -145,3 +259,48 @@ class DaySignupForm(forms.ModelForm):
 DaySignupFormset = inlineformset_factory(
     Signup, Participant, form=DaySignupForm, min_num=1, extra=0, can_delete=False
 )
+
+
+class DaySignupFormsetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = Layout(
+            HTML("{% if forloop.first %}{%else%}<hr>{% endif %}"),
+            Row(
+                Column(
+                    FloatingField(
+                        "first_name",
+                    ),
+                    css_class="col-auto",
+                ),
+                Column(
+                    FloatingField(
+                        "last_name",
+                    ),
+                    css_class="col-auto",
+                ),
+                *(
+                    Column(Field(day))
+                    for day in [
+                        "day1",
+                        "day2",
+                        "day3",
+                        "day4",
+                        "day5",
+                        "day6",
+                        "day7",
+                        "day8",
+                        "day9",
+                    ]
+                ),
+            ),
+        )
+        self.add_input(
+            Button(
+                "cancel",
+                "Page précédente",
+                css_class="btn-secondary",
+                onclick="window.location.href = '{}';".format(reverse("group_edit")),
+            )
+        )
+        self.add_input(Submit("submit", "Page Suivante"))

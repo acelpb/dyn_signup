@@ -1,148 +1,133 @@
 {% extends "base.html" %}
-{% load crispy_forms_filters %}
 {% load crispy_forms_tags %}
-{% load crispy_forms_utils %}
-{% load crispy_forms_field %}
-{% load i18n %}
 
-
-{% block smallcontent %}
-    {% if form.forms %}
-        <form method="post">
-            {% for error in form.non_form_errors %}
-                <div class="alert alert-danger" role="alert">{{ error }}</div>
-            {% endfor %}
-            {% csrf_token %}
-            <div>
-                {{ form.management_form|crispy }}
-            </div>
-
-            <table class="table table-striped table-sm">
-                <thead>
-                    <tr>
-                        {% for field in form.forms.0 %}
-                            {% if field.label and not field.is_hidden %}
-                                <th for="{{ field.auto_id }}"
-                                    class="col-form-label {% if field.field.required %}requiredField{% endif %}">
-                                    {{ field.label|safe }}{% if field.field.required and not field|is_checkbox %}
-                                        <span class="asteriskField">*</span>{% endif %}
-                                </th>
-                            {% endif %}
-                        {% endfor %}
-                    </tr>
-
-                </thead>
-
-                <tbody>
-                    <tr class="d-none empty-form">
-                        {% for field in form.empty_form %}
-                            {% if field|is_checkbox %}
-                                <td id="div_{{ field.auto_id }}" class="form-group">
-                                    {{ field }}
-                                </td>
-                            {% else %}
-                                {% include 'bootstrap5/field.html' with tag="td" form_show_labels=False %}
-                            {% endif %}
-                        {% endfor %}
-                    </tr>
-
-                    {% for subform in form %}
-                        {% if form_show_errors and not subform.is_extra %}
-                            {% include "bootstrap5/errors.html" %}
-                        {% endif %}
-                        <tr>
-                            {% for field in subform %}
-                                {% if field|is_checkbox %}
-                                    <td id="div_{{ field.auto_id }}" class="form-group">
-                                        {{ field }}
-                                    </td>
-                                {% else %}
-                                    {% include 'bootstrap5/field.html' with tag="td" form_show_labels=False %}
-                                {% endif %}
-                            {% endfor %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {% if reviewing_form %}
-                <a class="btn btn-primary disabled" disabled>Edit</a>
-            {% else %}
-                <button class="btn btn-secondary add-form-row">{% trans "Ajouter un participant" %}</button>
-                <button type="submit" class="btn btn-primary">{% trans "Page Suivante" %}</button>
-            {% endif %}
-        </form>
-    {% else %}
-        {% blocktrans %}
-            You do not seem to have signed up for any ballad yet.
-        {% endblocktrans %}
-    {% endif %}
+{% block content %}
+    {% crispy form helper %}
 {% endblock %}
 
 {% block extra_scripts %}
     {{ form.media }}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
 
-        function updateElementIndex(el, prefix, ndx) {
-            var id_regex = new RegExp('(' + prefix + '-\\d+)');
-            var replacement = prefix + '-' + ndx;
-            if ($(el).attr("for")) $(el).attr("for", $(el).attr("for").replace(id_regex, replacement));
-            if (el.id) el.id = el.id.replace(id_regex, replacement);
-            if (el.name) el.name = el.name.replace(id_regex, replacement);
-        }
+        // Sélection du bouton ajouter
+            const addButton = document.getElementById('button-id-add_user');
+            const totalFormsInput = document.getElementById('id_participant_set-TOTAL_FORMS'); // Le champ caché indiquant le total des formulaires
 
-        function cloneMore(selector, prefix) {
-            const emptyForm = $(selector);
-            const newElement = emptyForm.clone(true).removeClass('d-none empty-form');
-            const totalForms = $('#id_' + prefix + '-TOTAL_FORMS');
-            let total = totalForms.val();
-            newElement.find(':input:not([type=button]):not([type=submit]):not([type=reset])').each(function () {
-                var name = $(this).attr('name').replace('__prefix__', total);
-                var id = 'id_' + name;
-                $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
+            addButton.addEventListener('click', function () {
+            // Récupérer le nombre actuel de formulaires
+                const totalForms = parseInt(totalFormsInput.value, 10);
+
+            // Trouver toutes les rangées du formulaire
+                const formRows = document.querySelectorAll('form .row'); // Sélectionne toutes les rangées ayant la classe "row g-2"
+                const lastFormRow = formRows[formRows.length - 1]; // Prend la dernière rangée
+
+            // Cloner la dernière rangée
+                const newFormRow = lastFormRow.cloneNode(true); // Cloner la dernière rangée
+
+            // Mise à jour des indices et suppression des valeurs des champs
+                newFormRow.querySelectorAll('input').forEach(function (input) {
+                    const name = input.name;
+                    const id = input.id;
+
+                // Incrémenter l'index dans les noms et IDs (ex. de participant_set-1- à participant_set-2-)
+                    const newName = name.replace(`participant_set-${totalForms - 1}-`, `participant_set-${totalForms}-`);
+                    const newId = id.replace(`participant_set-${totalForms - 1}-`, `participant_set-${totalForms}-`);
+
+                    input.name = newName;
+                    input.id = newId;
+
+                // Supprimer la valeur du champ (sauf pour les champs cachés)
+                    if (name !== 'hidden' || name.contains('id')){
+                        input.value = '';
+                    }
+
+                    if (name.includes('-DELETE')) {
+
+                    // Créer un bouton de suppression
+                        const deleteButton = document.createElement('button');
+                        deleteButton.type = 'button';
+                        deleteButton.textContent = 'Supprimer';
+                        deleteButton.classList.add('btn', 'btn-danger');
+                        deleteButton.setAttribute('onclick', `deleteForm('participant_set', this)`);
+
+                    // Remplacer le champ input par le bouton
+                        input.parentNode.replaceWith(deleteButton);
+                    }
+                });
+
+            // Mettre à jour les labels pour correspondre aux nouveaux IDs
+                newFormRow.querySelectorAll('label').forEach(function (label) {
+                    const oldFor = label.getAttribute('for');
+                    if (oldFor) {
+                        const newFor = oldFor.replace(`participant_set-${totalForms - 1}-`, `participant_set-${totalForms}-`);
+                        label.setAttribute('for', newFor);
+                    }
+                });
+
+                const hrElement = document.createElement('hr'); //
+
+            // Ajouter <hr> après la dernière rangée existante
+                lastFormRow.parentNode.insertBefore(hrElement, lastFormRow.nextSibling);
+            // Ajouter la nouvelle rangée au formulaire
+                lastFormRow.parentNode.insertBefore(newFormRow, hrElement.nextSibling); // Ajouter la nouvelle rangée juste après le <hr>
+
+            // Incrémenter le TOTAL_FORMS
+                totalFormsInput.value = totalForms + 1;
             });
-            newElement.find('label').each(function () {
-                var forValue = $(this).attr('for');
-                if (forValue) {
-                    forValue = forValue.replace('-' + (total - 1) + '-', '-' + total + '-');
-                    $(this).attr({'for': forValue});
-                }
-            });
-            total++;
-            totalForms.val(total);
-            emptyForm.siblings(":last").after(newElement);
-            var conditionRow = $('.form-row:not(:last)');
-            conditionRow.find('.btn.add-form-row')
-                .removeClass('btn-success').addClass('btn-danger')
-                .removeClass('add-form-row').addClass('remove-form-row')
-                .html('<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>');
-            return false;
-        }
-
+        });
         function deleteForm(prefix, btn) {
-            var total = parseInt($('#id_' + prefix + '-TOTAL_FORMS').val());
-            if (total > 1) {
-                btn.closest('.form-row').remove();
-                var forms = $('.form-row');
-                $('#id_' + prefix + '-TOTAL_FORMS').val(forms.length);
-                for (var i = 0, formCount = forms.length; i < formCount; i++) {
-                    $(forms.get(i)).find(':input').each(function () {
-                        updateElementIndex(this, prefix, i);
-                    });
+    // Récupérer le champ TOTAL_FORMS
+            const totalFormsInput = document.getElementById('id_' + prefix + '-TOTAL_FORMS');
+            let totalForms = parseInt(totalFormsInput.value);
+
+            if (totalForms > 1) {
+        // Trouver la rangée contenant le bouton
+                const formRow = btn.closest('.row');
+
+        // Supprimer l'élément <hr> associé (l'élément précédent la rangée)
+                const previousElement = formRow.previousElementSibling;
+                if (previousElement && previousElement.tagName === 'HR') {
+                    previousElement.remove();
                 }
+
+        // Supprimer la rangée
+                formRow.remove();
+
+        // Récupérer toutes les rangées restantes
+                const formRows = document.querySelectorAll('form .row');
+
+        // Mettre à jour le champ TOTAL_FORMS
+                totalFormsInput.value = formRows.length;
+
+        // Renumérotation des indices pour les champs existants
+                formRows.forEach((row, index) => {
+                    row.querySelectorAll('input, label').forEach((element) => {
+                        if (element.tagName === 'INPUT') {
+                    // Mettre à jour le nom et l'id des champs
+                            const oldName = element.name;
+                            const oldId = element.id;
+                            if (oldName) {
+                                element.name = oldName.replace(/participant_set-\d+-/, `participant_set-${index}-`);
+                            }
+                            if (oldId) {
+                                element.id = oldId.replace(/participant_set-\d+-/, `participant_set-${index}-`);
+                            }
+                        } else if (element.tagName === 'LABEL') {
+                    // Mettre à jour l'attribut "for" des labels
+                            const oldFor = element.getAttribute('for');
+                            if (oldFor) {
+                                element.setAttribute('for', oldFor.replace(/participant_set-\d+-/, `participant_set-${index}-`));
+                            }
+                        }
+                    });
+                });
+            } else {
+                alert("Vous ne pouvez pas supprimer toutes les rangées !");
             }
+
             return false;
         }
 
-        $(document).on('click', '.add-form-row', function (e) {
-            e.preventDefault();
-            cloneMore('.empty-form', 'participant_set');
-            return false;
-        });
-        $(document).on('click', '.remove-form-row', function (e) {
-            e.preventDefault();
-            deleteForm('form', $(this));
-            return false;
-        });
     </script>
 {% endblock extra_scripts %}
