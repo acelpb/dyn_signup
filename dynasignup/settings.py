@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "whitenoise",
     "crispy_forms",
     "crispy_bootstrap5",
+    "django_bootstrap5",
     "magiclink",
     "accounts",
     "import_export",
@@ -173,6 +174,7 @@ WHITENOISE_AUTOREFRESH = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 CRISPY_FAIL_SILENTLY = not DEBUG
 
