@@ -7,6 +7,7 @@ from django.template.loader import get_template
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.utils.timezone import localdate
 from django_object_actions import DjangoObjectActions
 from import_export import resources
 from import_export.admin import ExportMixin
@@ -111,6 +112,7 @@ class SignupAdmin(DjangoObjectActions, admin.ModelAdmin):
     change_actions = ("validate",)
 
     def validate(self, request, obj):
+        obj.validated_at = localdate()
         obj.create_bill()
         self.message_user(request, "Bill created and confirmation sent.")
 
