@@ -55,7 +55,6 @@ INSTALLED_APPS = [
     "whitenoise",
     "crispy_forms",
     "crispy_bootstrap5",
-    "django_bootstrap5",
     "magiclink",
     "accounts",
     "import_export",
