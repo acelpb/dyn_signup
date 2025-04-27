@@ -131,26 +131,6 @@ class OperationValidation(models.Model):
         return f"{self.validation_type}-{self.get_validation_type_display()} {self.amount:,.2f}€"
 
 
-#
-# class SignupOperationManager(models.Manager):
-#
-#     @cached_property
-#     def content_type(self):
-#         return ContentType.objects.get_by_natural_key("signup2022", "bill")
-#
-#     def get_queryset(self):
-#         return super().get_queryset().filter(content_type=self.content_type)
-#
-#
-# class SignupOperation(OperationValidation):
-#     objects = SignupOperationManager()
-#
-#     class Meta:
-#         proxy = True
-#         verbose_name = "paiement inscriptions 2022"
-#         verbose_name_plural = "paiements inscriptions 2022"
-
-
 def validate_iban(value):
     try:
         IBAN(value)

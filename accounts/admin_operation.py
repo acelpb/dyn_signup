@@ -1,9 +1,14 @@
+import re
+
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
+from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
 from django.db.models.functions import Round
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import path, reverse
+from django.utils.html import format_html
 from import_export.admin import ImportMixin
 
 from accounts.admin_custom_views import (
@@ -13,7 +18,14 @@ from accounts.admin_custom_views import (
 )
 from accounts.admin_inline import JustificationInline
 from accounts.format import BPostCSV, FortisCSV
-from accounts.models import ExpenditureChoices, IncomeChoices, OperationValidation
+from accounts.models import (
+    Bill,
+    ExpenditureChoices,
+    ExpenseReport,
+    IncomeChoices,
+    Operation,
+    OperationValidation,
+)
 from accounts.resource import OperationResource
 
 
@@ -49,7 +61,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
         "amount",
         "counterparty_IBAN",
         "counterparty_name",
-        "communication",
+        "communication_",
         "reference",
         "justified",
         "justified_amount",
@@ -191,5 +203,120 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 self.admin_site.admin_view(LinkToExpenseReportView.as_view()),
                 name="%s_%s_link_to_expense" % self.get_model_info(),
             ),
+            path(
+                "<int:operation_id>/link-to-signup/<int:signup_id>/",
+                self.admin_site.admin_view(self.link_to_signup_view),
+                name="accounts_operation_link_to_signup",
+            ),
+            path(
+                "<int:operation_id>/link-to-expensereport/<int:expense_report_id>/",
+                self.admin_site.admin_view(self.link_to_expensereport_view),
+                name="accounts_operation_link_to_expense_report",
+            ),
         ]
         return my_urls + urls
+
+    def communication_(self, obj):
+        if obj.operationvalidation_set.exists():
+            return obj.communication
+
+        match = re.search(r"(\d\d\d\d-\d\d\d\d)", obj.communication, re.IGNORECASE)
+        if match:
+            expense_report_title = match.group(0)
+            try:
+                expense_report_id = ExpenseReport.objects.get(
+                    title=expense_report_title
+                ).id
+                url = reverse(
+                    "admin:accounts_operation_link_to_expense_report",
+                    args=[obj.id, expense_report_id],
+                )
+                return format_html(
+                    '<p>{}</p><a class="button" href="{}">Link to NF {}</a>',
+                    obj.communication,
+                    url,
+                    expense_report_title,
+                )
+            except Bill.DoesNotExist:
+                print("erreur")
+                pass
+
+        # Vérifier si la communication contient le motif "inscription +(\d+-"
+        match = re.search(r"(inscription +)?(\d+)", obj.communication, re.IGNORECASE)
+        if match:
+            # Extraire l'ID depuis le motif
+            signup_id = match.group(2)
+            # Créer un lien ou bouton HTML pour l'action
+            url = reverse(
+                "admin:accounts_operation_link_to_signup", args=[obj.id, signup_id]
+            )
+            return format_html(
+                '<p>{}</p><a class="button" href="{}">Link to #{}</a>',
+                obj.communication,
+                url,
+                signup_id,
+            )
+
+        return obj.communication
+
+    communication_.name = "communication"
+    communication_.short_description = "communication"
+
+    def link_to_signup_view(self, request, operation_id, signup_id):
+        from signup2023.models import Signup
+
+        # Récupérer l'opération
+        operation = get_object_or_404(Operation, id=operation_id)
+        # Récupérer l'entité Signup
+        signup = get_object_or_404(Signup, id=signup_id)
+        if signup.validated_at is None:
+            messages.error(request, f"Signup {signup_id} is not validated")
+            raise Http404("Signup is not validated")
+        if signup.on_hold:
+            messages.error(request, f"Signup {signup_id} is on hold.")
+            raise Http404("Signup is on hold.")
+        # Ajouter la logique pour lier les deux entités (exemple)
+        OperationValidation.objects.create(
+            operation=operation,
+            amount=operation.amount,
+            event=signup.bill,
+            validation_type=IncomeChoices.SIGNUP,
+        )
+        # Ajout d'un message de succès
+        messages.success(
+            request,
+            f"L’opération {operation_id} a été liée à l’inscription {signup_id}.",
+        )
+        return redirect("admin:accounts_operation_changelist")
+
+    def link_to_expensereport_view(self, request, operation_id, expense_report_id):
+        # Récupérer l'opération
+        operation = get_object_or_404(Operation, id=operation_id)
+        # Récupérer l'entité Signup
+        expense_report = get_object_or_404(ExpenseReport, id=expense_report_id)
+
+        if expense_report.validated is False:
+            messages.error(
+                request, f"ExpenseReport {expense_report.title} is not validated"
+            )
+            raise Http404("ExpenseReport is not validated")
+
+        expenses = expense_report.expenses.filter(operation_id=None)
+        total = round(sum(ex.amount for ex in expenses), 2)
+        if total != operation.amount:
+            messages.error(
+                request, f"ExpenseReport {expense_report.title} total does not match"
+            )
+            raise Http404("ExpenseReport total does not match.")
+
+        with transaction.atomic():
+            for operation_validation in expenses:
+                operation_validation.operation = operation
+                operation_validation.save()
+
+        # Ajout d'un message de succès
+        messages.success(
+            request,
+            f"L’opération {operation_id} a été liée à la note de frais {expense_report.title}.",
+        )
+        return redirect("admin:accounts_operation_changelist")

@@ -162,7 +162,7 @@ class ExpenseReportAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         if obj:
-            if obj.validated:
+            if obj.validated and not request.user.is_superuser:
                 return False
             if obj.beneficiary == request.user or request.user.is_superuser:
                 return True
