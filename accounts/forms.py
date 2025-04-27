@@ -1,4 +1,5 @@
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Sum
@@ -77,7 +78,14 @@ class LinkToExpenseReportForm(forms.Form):
 
 class LinkToSignupForm(forms.Form):
     operations = forms.ModelMultipleChoiceField(queryset=Operation.objects.all())
-    signup = forms.ModelChoiceField(queryset=Signup.objects.all())
+    signup = forms.ModelChoiceField(
+        queryset=Signup.objects.filter(
+            year=settings.DYNAMOBILE_LAST_DAY.year,
+            validated_at__isnull=False,
+            on_hold=False,
+            bill__payed_at=None,
+        ).order_by("-id")
+    )
 
     def save(self):
         signup = self.cleaned_data["signup"]
