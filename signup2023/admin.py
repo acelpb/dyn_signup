@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
+from django.contrib.contenttypes.admin import GenericStackedInline
 from django.core.mail import send_mail
 from django.db.models import F, Q, Sum
 from django.template.loader import get_template
@@ -12,7 +13,7 @@ from django_object_actions import DjangoObjectActions
 from import_export import resources
 from import_export.admin import ExportMixin
 
-from accounts.admin_inline import PaymentInline
+from accounts.models import OperationValidation
 
 from .admin_views import SyncMailingListFormView
 from .models import Bill, Participant, Signup
@@ -317,6 +318,26 @@ class PriceIsOddFilter(SimpleListFilter):
             return queryset.annotate(diff=F("amount") - F("calculated_amount")).filter(
                 ~Q(diff=0)
             )
+
+
+class PaymentInline(GenericStackedInline):
+    model = OperationValidation
+    extra = 0
+    ct_field_name = "content_type"
+    id_field_name = "object_id"
+
+    def get_formset(self, request, obj=None, **kwargs):
+        self.fields = ("operation", "amount")
+        return super().get_formset(request, obj, **kwargs)
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Bill)
