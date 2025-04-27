@@ -5,7 +5,8 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models import F, Q, Window
-from django.db.models.functions import RowNumber
+from django.db.models.fields import DecimalField
+from django.db.models.functions import Coalesce, RowNumber
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.timezone import now
@@ -328,7 +329,10 @@ class BillManager(models.Manager):
             super()
             .get_queryset()
             .annotate(payed=models.Sum("payments__amount"))
-            .annotate(ballance=F("amount") - F("payed"))
+            .annotate(
+                ballance=F("amount")
+                - Coalesce(F("payed"), 0, output_field=DecimalField())
+            )
         )
 
 
