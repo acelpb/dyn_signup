@@ -124,6 +124,26 @@ class ExpenseReportAdmin(admin.ModelAdmin):
     )
     inlines = [PaymentInline, ExpenseFileInline]
 
+    actions = ["merge"]
+
+    @admin.action(description="Merge expense reports")
+    def merge(self, request, queryset):
+        if queryset.count() < 2:
+            self.message_user(request, "Please select at least two expense reports.")
+            return
+
+        else:
+            expense_reports = queryset.order_by("submitted_date", "id")
+            first_expense_report = expense_reports[0]
+            for expense_report in expense_reports[1:]:
+                expense_report.expenses.update(object_id=first_expense_report.id)
+                expense_report.expensefile_set.all().update(
+                    expense_report_id=first_expense_report.id
+                )
+                first_expense_report.comments += f"\n{expense_report.comments}"
+                expense_report.delete()
+            first_expense_report.save()
+
     def remaining_to_pay(self, obj):
         remaining_to_pay = OperationValidation.objects.filter(
             operation__isnull=True,
