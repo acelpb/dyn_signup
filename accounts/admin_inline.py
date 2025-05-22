@@ -24,6 +24,24 @@ class PaymentInline(GenericStackedInline):
     def has_view_permission(self, request, obj=None):
         return True
 
+    def has_add_permission(self, request, obj=None):
+        if obj is None or (hasattr(obj, "validated") and obj.validated is False):
+            return True
+        else:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is None or (hasattr(obj, "validated") and obj.validated is False):
+            return True
+        else:
+            return False
+
+    def has_change_permission(self, request, obj=None):
+        if obj is None or (hasattr(obj, "validated") and obj.validated is False):
+            return True
+        else:
+            return False
+
 
 class ExpenseFileInline(TabularInline):
     model = ExpenseFile
