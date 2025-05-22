@@ -20,4 +20,5 @@ urlpatterns = [
     path(
         "presences/<yyyy-mm-dd:date>", views.AttendanceView.as_view(), name="attendance"
     ),
+    path("waiting-list/", views.WaitingListView.as_view(), name="waiting_list"),
 ]

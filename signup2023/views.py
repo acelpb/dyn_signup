@@ -1,7 +1,14 @@
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import Case, Count, F, IntegerField, Q, Value, When
-from django.db.models.functions import Cast, ExtractDay, ExtractMonth, ExtractYear
+from django.db import models
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When, Window
+from django.db.models.functions import (
+    Cast,
+    ExtractDay,
+    ExtractMonth,
+    ExtractYear,
+    RowNumber,
+)
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
@@ -245,8 +252,19 @@ class ParticipantTable(Table):
     class Meta:
         model = Participant
         fields = (
+            "rank",
+            "signup_group_id",
             "last_name",
             "first_name",
+            "day1",
+            "day2",
+            "day3",
+            "day4",
+            "day5",
+            "day6",
+            "day7",
+            "day8",
+            "day9",
             "vae",
         )
         template_name = "django_tables2/bootstrap5.html"
@@ -266,4 +284,36 @@ class AttendanceView(SingleTableView):
                 "last_name",
                 "first_name",
             )
+        )
+
+
+class WaitingListView(PermissionRequiredMixin, SingleTableView):
+    model = Participant
+    template_name = "signup/participant_table.html"
+    table_class = ParticipantTable
+
+    def has_permission(self):
+        return self.request.user.groups.filter(name="membres ca").exists()
+
+    def get_queryset(self):
+        waiting_participants = Participant.objects.filter(
+            signup_group__on_hold=True,
+            signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
+        )
+        return waiting_participants.annotate(
+            ranking=models.Case(
+                models.When(
+                    signup_group__validated_at__lt=settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
+                    signup_group__on_hold_partial=False,
+                    then=models.Value(1),
+                ),
+                models.When(
+                    signup_group__validated_at__lt=settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
+                    signup_group__on_hold_partial=True,
+                    then=models.Value(2),
+                ),
+                default=models.Value(3),
+            )
+        ).annotate(
+            rank=Window(RowNumber(), order_by=["ranking", "signup_group__validated_at"])
         )
