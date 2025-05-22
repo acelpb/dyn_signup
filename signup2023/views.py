@@ -298,6 +298,7 @@ class WaitingListView(PermissionRequiredMixin, SingleTableView):
     def get_queryset(self):
         waiting_participants = Participant.objects.filter(
             signup_group__on_hold=True,
+            signup_group__cancelled_at=None,
             signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
         )
         return waiting_participants.annotate(
