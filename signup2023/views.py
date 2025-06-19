@@ -1,5 +1,10 @@
 from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib import messages
+from django.contrib.auth.mixins import (
+    AccessMixin,
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+)
 from django.db import models
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When, Window
 from django.db.models.functions import (
@@ -19,6 +24,8 @@ from django_tables2 import SingleTableView, Table
 from .forms import (
     DaySignupFormset,
     DaySignupFormsetHelper,
+    ExtraParticipantInfoFormSet,
+    ExtraParticipantInfoFormSetHelper,
     ParticipantExtraFormSet,
     ParticipantExtraFormSetHelper,
     ParticipantForm,
@@ -27,7 +34,7 @@ from .forms import (
     ParticipantListReviewForm,
 )
 from .mixins import SignupStartedMixin
-from .models import Participant, Signup
+from .models import ExtraParticipantInfo, Participant, Signup
 
 
 class HomePage(TemplateView):
@@ -133,7 +140,8 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
 
     def get_object(self, queryset=None):
         return Signup.objects.filter(
-            owner=self.request.user, year=settings.DYNAMOBILE_LAST_DAY.year
+            owner=self.request.user,
+            year=settings.DYNAMOBILE_LAST_DAY.year,
         ).first()
 
     def get_context_data(self, **kwargs):
@@ -318,3 +326,72 @@ class WaitingListView(PermissionRequiredMixin, SingleTableView):
         ).annotate(
             rank=Window(RowNumber(), order_by=["ranking", "signup_group__validated_at"])
         )
+
+
+class ExtraInfoView(AccessMixin, UpdateView):
+    fields = "__all__"
+
+    def get_success_url(self):
+        return reverse_lazy("completed_signup")
+
+    def dispatch(self, request, *args, **kwargs):
+        user = self.request.user
+        if not user.is_authenticated:
+            return self.handle_no_permission()
+        try:
+            self.signup = Signup.objects.get(
+                owner=user,
+                year=settings.DYNAMOBILE_LAST_DAY.year,
+                validated_at__isnull=False,
+                cancelled_at__isnull=True,
+                on_hold=False,
+            )
+        except Signup.DoesNotExist:
+            messages.error(
+                request,
+                "Vous ne semblez pas inscrit, avez vous utiliseé la même adresse e-mail que lors de votre inscrition?",
+            )
+            return HttpResponseRedirect("")
+        return super().dispatch(request, *args, **kwargs)
+
+    template_name = "signup/extra-info.html"
+
+    def get(self, request, *args, **kwargs):
+        """Handle GET requests: instantiate a blank version of the form."""
+        self.object = None
+        return self.render_to_response(self.get_context_data())
+
+    def post(self, request, *args, **kwargs):
+        """Handle GET requests: instantiate a blank version of the form."""
+        self.object = None
+        form = self.get_form()
+        if form.is_valid():
+            return self.form_valid(form)
+        else:
+            return self.form_invalid(form)
+
+    def get_form(self):
+        kwargs = self.get_form_kwargs()
+        kwargs.pop("instance")
+        return ExtraParticipantInfoFormSet(**kwargs, queryset=self.get_queryset())
+
+    def get_queryset(self):
+        signup = Signup.objects.get(
+            owner=self.request.user, year=settings.DYNAMOBILE_LAST_DAY.year
+        )
+        for participant in signup.participant_set.all():
+            ExtraParticipantInfo.objects.get_or_create(participant=participant)
+
+        return ExtraParticipantInfo.objects.filter(
+            participant__signup_group_id=signup.id
+        )
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(
+            **kwargs, helper=ExtraParticipantInfoFormSetHelper()
+        )
+
+    def form_valid(self, form):
+        form.save()
+        messages.info(self.request, "Merci d'avoir rempli le formulaire.")
+        return super().form_valid(form)

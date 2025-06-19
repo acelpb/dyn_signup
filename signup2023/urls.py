@@ -12,6 +12,7 @@ urlpatterns = [
     path("validate/", views.GroupReviewView.as_view(), name="validate"),
     path("review/", views.CompletedSignupView.as_view(), name="completed_signup"),
     path("kitchen/", views.KitchenView.as_view(), name="kitchen"),
+    path("extra-info/", views.ExtraInfoView.as_view(), name="extra_info"),
     path(
         "_secret_participants/",
         views.PhilippesParticipantListView.as_view(),

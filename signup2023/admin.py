@@ -16,7 +16,7 @@ from import_export.admin import ExportMixin
 from accounts.models import OperationValidation
 
 from .admin_views import SyncMailingListFormView
-from .models import Bill, Participant, Signup
+from .models import Bill, ExtraParticipantInfo, Participant, Signup
 
 
 # Register your models here.
@@ -468,3 +468,8 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
             .get_queryset(request)
             .filter(signup__year=settings.DYNAMOBILE_LAST_DAY.year)
         )
+
+
+@admin.register(ExtraParticipantInfo)
+class ExtraParticipantInfoAdmin(admin.ModelAdmin):
+    pass

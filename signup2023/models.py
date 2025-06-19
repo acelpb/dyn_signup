@@ -427,3 +427,71 @@ class Bill(models.Model):
         self.calculation = description
         self.calculated_amount = total_price
         return (total_price, description)
+
+
+class ExtraParticipantInfo(models.Model):
+    participant = models.OneToOneField(Participant, on_delete=models.CASCADE)
+    full_address = models.CharField(
+        "Addresse complète",
+        default="",
+        help_text="Nécessaire en cas d'urgence médicale",
+    )
+    emergency_contact = models.CharField("contact d'urgence", default="")
+    share_contact_info_participants = models.BooleanField(
+        "partage_info",
+        default=False,
+        help_text="Acceptez-vous que nous partagions vos coordonées avec les autres participants?",
+    )
+
+    image_rights = models.BooleanField(
+        "droit à l'image",
+        default=False,
+        help_text="Acceptez-vous que des photos ou vidéos vous représentant soient diffusées sur les canaux de communication de Dynamobile ?",
+    )
+
+    comments = models.TextField(
+        "commentaires", default="", blank=True, help_text="ommentaires éventuels"
+    )
+
+    road_captain = models.BooleanField(
+        "captain de route",
+        default=False,
+        help_text="Je propose mon aide comme capitaine de route (Age minimum 21 ans).",
+    )
+    mechanicien = models.BooleanField(
+        "méchano",
+        default=False,
+        help_text="Je propose mon aide pour réparer les vélos.",
+    )
+    healthpro = models.BooleanField(
+        "infirmièr.e",
+        default=False,
+        help_text="Je propose mon aide comme secouriste / infirmièr.e / médecin.",
+    )
+    animator = models.BooleanField(
+        "animateur", default=False, help_text="Je propose une animation"
+    )
+
+    activite_21 = models.TextField(
+        "Activité choisie le 21/07",
+        choices=(
+            ("-", "pas d'activité"),
+            ("Wégimont", "Domaine provincial de Wégimont, avec piscine"),
+            ("Boucle cycliste", "Boucle cycliste plus sportive et militante"),
+        ),
+        default="-",
+        null=False,
+        blank=False,
+    )
+
+    activite_25 = models.TextField(
+        "Activité choisie le 25/07",
+        choices=(
+            ("-", "pas d'activité"),
+            ("cidrerie", "visite guidée cidrerie 6,5€ p.p."),
+            ("automates", "Musée des automates"),
+        ),
+        default="-",
+        null=False,
+        blank=False,
+    )

@@ -2,15 +2,24 @@ from datetime import date
 
 from crispy_bootstrap5.bootstrap5 import FloatingField
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Button, Column, Field, Layout, Row, Submit
+from crispy_forms.layout import (
+    HTML,
+    Button,
+    Column,
+    Field,
+    Fieldset,
+    Layout,
+    Row,
+    Submit,
+)
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.forms.models import inlineformset_factory
+from django.forms.models import inlineformset_factory, modelformset_factory
 from django.template.defaultfilters import title
 from django.urls import reverse
 
-from .models import Participant, Signup
+from .models import ExtraParticipantInfo, Participant, Signup
 
 
 class DatePickerInput(forms.DateInput):
@@ -304,3 +313,57 @@ class DaySignupFormsetHelper(FormHelper):
             )
         )
         self.add_input(Submit("submit", "Page Suivante"))
+
+
+class ExtraParticipantInfoForm(forms.ModelForm):
+    participant_name = forms.CharField(label="Nom du participant", disabled=True)
+    participant = forms.CharField(
+        label="Participant", widget=forms.HiddenInput(), disabled=True
+    )
+
+    class Meta:
+        model = ExtraParticipantInfo
+        fields = "__all__"
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get("instance")
+        super().__init__(*args, **kwargs)
+        if instance:
+            self.fields["participant_name"].initial = (
+                instance.participant.first_name + " " + instance.participant.last_name
+            )
+
+
+ExtraParticipantInfoFormSet = modelformset_factory(
+    ExtraParticipantInfo,
+    form=ExtraParticipantInfoForm,
+    min_num=1,
+    extra=0,
+    can_delete=False,
+)
+
+
+class ExtraParticipantInfoFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = Layout(
+            FloatingField(
+                "participant_name",
+            ),
+            Fieldset(
+                "{{ participant_name }}",
+                "participant",
+                "activite_21",
+                "activite_25",
+                "full_address",
+                "emergency_contact",
+                "share_contact_info_participants",
+                "image_rights",
+                "road_captain",
+                "mechanicien",
+                "healthpro",
+                "animator",
+                "comments",
+            ),
+        )
+        self.add_input(Submit("submit", "Soumettre les informations"))

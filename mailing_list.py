@@ -30,7 +30,7 @@ def remove_participants(mailing_list, to_remove):
     _logger.debug("Removing the following participants %s", to_remove)
     for participant in to_remove:
         _client.delete(
-            f"/email/domain/dynamobile.net/mailingList/participants2022/subscriber/{participant}"
+            f"/email/domain/dynamobile.net/mailingList/{mailing_list}/subscriber/{participant}"
         )
         logging.debug("Particpant %s removed", participant)
 
@@ -40,6 +40,6 @@ def add_participants(mailing_list, new_participants):
     for participant in new_participants:
         if participant:
             _client.post(
-                f"/email/domain/dynamobile.net/mailingList/participants2022/subscriber/{participant}"
+                f"/email/domain/dynamobile.net/mailingList/{mailing_list}/subscriber/{participant}"
             )
             logging.debug("Particpant %s added", participant)
