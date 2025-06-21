@@ -436,25 +436,29 @@ class ExtraParticipantInfo(models.Model):
         default="",
         help_text="Nécessaire en cas d'urgence médicale",
     )
-    emergency_contact = models.CharField("contact d'urgence", default="")
+    emergency_contact = models.CharField(
+        "Contact en cas d'urgence",
+        default="",
+        help_text="Personne à contacter en cas d'urgence (Nom + lien de parenté éventuel + téléphone)",
+    )
     share_contact_info_participants = models.BooleanField(
-        "partage_info",
+        "partage de données",
         default=False,
-        help_text="Acceptez-vous que nous partagions vos coordonées avec les autres participants?",
+        help_text="Acceptez-vous que nous partagions vos coordonnées avec les autres participant·es?",
     )
 
     image_rights = models.BooleanField(
         "droit à l'image",
         default=False,
-        help_text="Acceptez-vous que des photos ou vidéos vous représentant soient diffusées sur les canaux de communication de Dynamobile ?",
+        help_text="Acceptez-vous que des photos ou vidéos vous représentant soient diffusées sur les canaux de communication de Dynamobile (site, page Facebook privée)?",
     )
 
     comments = models.TextField(
-        "commentaires", default="", blank=True, help_text="ommentaires éventuels"
+        "commentaires", default="", blank=True, help_text="commentaires éventuels"
     )
 
     road_captain = models.BooleanField(
-        "captain de route",
+        "capitaine de route",
         default=False,
         help_text="Je propose mon aide comme capitaine de route (Age minimum 21 ans).",
     )
@@ -464,20 +468,22 @@ class ExtraParticipantInfo(models.Model):
         help_text="Je propose mon aide pour réparer les vélos.",
     )
     healthpro = models.BooleanField(
-        "infirmièr.e",
+        "premiers soins",
         default=False,
-        help_text="Je propose mon aide comme secouriste / infirmièr.e / médecin.",
+        help_text="Je propose mon aide comme secouriste / infirmièr·e / médecin.",
     )
     animator = models.BooleanField(
-        "animateur", default=False, help_text="Je propose une animation"
+        "Animations en fin de journée",
+        default=False,
+        help_text="Je propose une animation, précisez ci-dessous.",
     )
 
     activite_21 = models.TextField(
         "Activité choisie le 21/07",
         choices=(
-            ("-", "pas d'activité"),
+            ("absent", "Je suis inscrit.e en partiel. Je ne suis pas là ce jour-là."),
             ("Wégimont", "Domaine provincial de Wégimont, avec piscine"),
-            ("Boucle cycliste", "Boucle cycliste plus sportive et militante"),
+            ("Boucle cycliste", "Boucle cycliste militante (65km)"),
         ),
         default="-",
         null=False,
@@ -487,11 +493,18 @@ class ExtraParticipantInfo(models.Model):
     activite_25 = models.TextField(
         "Activité choisie le 25/07",
         choices=(
-            ("-", "pas d'activité"),
-            ("cidrerie", "visite guidée cidrerie 6,5€ p.p."),
-            ("automates", "Musée des automates"),
+            ("absent", "Je suis inscrit.e en partiel. Je ne suis pas là ce jour-là."),
+            ("-", "Pause de midi libre au grand air"),
+            ("cidrerie", "Visite cidrerie (6,5 eur p/p)"),
+            ("automates", "Visite musée des automates (5 eur p/p)"),
         ),
         default="-",
         null=False,
         blank=False,
+    )
+
+    roadbook = models.BooleanField(
+        "carnet de route",
+        default=False,
+        help_text="Je souhaite recevoir le carnet de route en version pdf interactive.",
     )

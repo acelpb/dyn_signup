@@ -316,7 +316,9 @@ class DaySignupFormsetHelper(FormHelper):
 
 
 class ExtraParticipantInfoForm(forms.ModelForm):
-    participant_name = forms.CharField(label="Nom du participant", disabled=True)
+    participant_name = forms.CharField(
+        label="Nom du/de la participant·e", disabled=True
+    )
     participant = forms.CharField(
         label="Participant", widget=forms.HiddenInput(), disabled=True
     )
@@ -352,6 +354,7 @@ class ExtraParticipantInfoFormSetHelper(FormHelper):
             ),
             Fieldset(
                 "{{ participant_name }}",
+                "roadbook",
                 "participant",
                 "activite_21",
                 "activite_25",
