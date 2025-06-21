@@ -463,7 +463,7 @@ class ExtraParticipantInfo(models.Model):
         help_text="Je propose mon aide comme capitaine de route (Age minimum 21 ans).",
     )
     mechanicien = models.BooleanField(
-        "méchano",
+        "mécano",
         default=False,
         help_text="Je propose mon aide pour réparer les vélos.",
     )
