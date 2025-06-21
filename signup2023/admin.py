@@ -501,11 +501,22 @@ class ExtraParticipantInfoAdmin(ExportMixin, admin.ModelAdmin):
 
     list_display = (
         "id",
+        "participant__signup_group",
         "participant__last_name",
         "participant__first_name",
         "roadbook",
+        "participant",
         "activite_21",
         "activite_25",
+        "full_address",
+        "emergency_contact",
+        "share_contact_info_participants",
+        "image_rights",
+        "road_captain",
+        "mechanicien",
+        "healthpro",
+        "animator",
+        "comments",
     )
 
     list_filter = (
