@@ -12,6 +12,7 @@ from django.utils.timezone import localdate
 from django_object_actions import DjangoObjectActions
 from import_export import resources
 from import_export.admin import ExportMixin
+from import_export.resources import ModelResource
 
 from accounts.models import OperationValidation
 
@@ -470,6 +471,45 @@ class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
         )
 
 
+class ExtraInfoRessource(ModelResource):
+    class Meta:
+        model = ExtraParticipantInfo
+        fields = (
+            "id",
+            "participant__signup_group_id",
+            "participant__last_name",
+            "participant__first_name",
+            "roadbook",
+            "participant",
+            "activite_21",
+            "activite_25",
+            "full_address",
+            "emergency_contact",
+            "share_contact_info_participants",
+            "image_rights",
+            "road_captain",
+            "mechanicien",
+            "healthpro",
+            "animator",
+            "comments",
+        )
+
+
 @admin.register(ExtraParticipantInfo)
-class ExtraParticipantInfoAdmin(admin.ModelAdmin):
-    pass
+class ExtraParticipantInfoAdmin(ExportMixin, admin.ModelAdmin):
+    resource_classes = [ExtraInfoRessource]
+
+    list_display = (
+        "id",
+        "participant__last_name",
+        "participant__first_name",
+        "roadbook",
+        "activite_21",
+        "activite_25",
+    )
+
+    list_filter = (
+        ("roadbook", admin.BooleanFieldListFilter),
+        ("activite_21", admin.ChoicesFieldListFilter),
+        ("activite_25", admin.ChoicesFieldListFilter),
+    )
