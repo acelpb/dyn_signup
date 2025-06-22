@@ -347,11 +347,22 @@ class ExtraInfoView(AccessMixin, UpdateView):
                 on_hold=False,
             )
         except Signup.DoesNotExist:
-            messages.error(
-                request,
-                "Vous ne semblez pas inscrit, avez vous utiliseé la même adresse e-mail que lors de votre inscrition?",
+            self.signup = None
+            participants = Participant.objects.filter(
+                email=user.email,
+                signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
+                signup_group__validated_at__isnull=False,
+                signup_group__cancelled_at__isnull=True,
+                signup_group__on_hold=False,
             )
-            return HttpResponseRedirect("")
+            if not participants.exists():
+                messages.error(
+                    request,
+                    "Vous ne semblez pas inscrit, avez vous utiliseé la même adresse e-mail que lors de votre inscrition?",
+                )
+                return HttpResponseRedirect(reverse_lazy("index"))
+            else:
+                self.participants = participants
         return super().dispatch(request, *args, **kwargs)
 
     template_name = "signup/extra-info.html"
@@ -376,15 +387,19 @@ class ExtraInfoView(AccessMixin, UpdateView):
         return ExtraParticipantInfoFormSet(**kwargs, queryset=self.get_queryset())
 
     def get_queryset(self):
-        signup = Signup.objects.get(
-            owner=self.request.user, year=settings.DYNAMOBILE_LAST_DAY.year
-        )
-        for participant in signup.participant_set.all():
-            ExtraParticipantInfo.objects.get_or_create(participant=participant)
+        if self.signup is not None:
+            for participant in self.signup.participant_set.all():
+                ExtraParticipantInfo.objects.get_or_create(participant=participant)
 
-        return ExtraParticipantInfo.objects.filter(
-            participant__signup_group_id=signup.id
-        )
+            return ExtraParticipantInfo.objects.filter(
+                participant__signup_group_id=self.signup.id
+            )
+        else:
+            for participant in self.participants:
+                ExtraParticipantInfo.objects.get_or_create(participant=participant)
+            return ExtraParticipantInfo.objects.filter(
+                participant__email=self.request.user.email
+            )
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(
