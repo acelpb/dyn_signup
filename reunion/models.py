@@ -8,6 +8,7 @@ from django.db.models import (
     Case,
     DecimalField,
     F,
+    Q,
     Sum,
     Value,
     When,
@@ -353,3 +354,79 @@ def participant_saved(sender, instance: Participant, **kwargs):
 @receiver(post_delete, sender=Participant)
 def participant_deleted(sender, instance: Participant, **kwargs):
     _update_signup_payment_state(instance.signup_id)
+
+
+# Reusable queryset for participant subsets
+class ParticipantQuerySet(models.QuerySet):
+    def validated(self):
+        return self.filter(
+            cancelled_at__isnull=True,
+            signup__cancelled_at__isnull=True,
+            signup__validated_at__isnull=False,
+        )
+
+    def unconfirmed(self):
+        return self.filter(
+            cancelled_at__isnull=True,
+            signup__cancelled_at__isnull=True,
+            signup__validated_at__isnull=True,
+        )
+
+    def cancelled(self):
+        return self.filter(
+            Q(cancelled_at__isnull=False) | Q(signup__cancelled_at__isnull=False)
+        )
+
+
+# Base manager to get the ParticipantQuerySet everywhere it's needed
+class ParticipantManager(models.Manager.from_queryset(ParticipantQuerySet)):
+    pass
+
+
+# If you want the base Participant to also expose .validated(), .unconfirmed(), .cancelled()
+# you can attach the queryset as its default manager (uncomment the next line if desired):
+# Participant.add_to_class("objects", ParticipantManager())
+
+
+# Managers for proxy models that auto-apply the intended filter
+class ValidatedParticipantManager(ParticipantManager):
+    def get_queryset(self):
+        return super().get_queryset().validated()
+
+
+class UnconfirmedParticipantManager(ParticipantManager):
+    def get_queryset(self):
+        return super().get_queryset().unconfirmed()
+
+
+class CancelledParticipantManager(ParticipantManager):
+    def get_queryset(self):
+        return super().get_queryset().cancelled()
+
+
+# Proxy models to provide dedicated admin entries and reusable filtered model classes
+class ValidatedParticipant(Participant):
+    objects = ValidatedParticipantManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Validated participant"
+        verbose_name_plural = "Validated participants"
+
+
+class UnconfirmedParticipant(Participant):
+    objects = UnconfirmedParticipantManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Unconfirmed participant"
+        verbose_name_plural = "Unconfirmed participants"
+
+
+class CancelledParticipant(Participant):
+    objects = CancelledParticipantManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Cancelled participant"
+        verbose_name_plural = "Cancelled participants"
