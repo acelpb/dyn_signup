@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load crispy_forms_filters %}
+{% load crispy_forms_tags %}
+{% load crispy_forms_utils %}
+{% load crispy_forms_field %}
+{% load i18n %}
+
+{% block smallcontent %}
+    PROUT
+    {{ object }}
+    prout
+    <p>
+        Voici les participants renseignés pour votre groupe.<br/>
+        Veuillez relire attentivement afin de vérifier que les informations introduites sont complètes.<br/>
+        Une fois l'inscription confirmée, vous ne pourrez plus la modifier vous-même.
+        Si les informations sont correctes, confirmez votre inscription en cliquant sur le bouton "confirmer
+        l'inscription" ci-dessous.
+    </p>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Prénom</th>
+                <th>Nom de Famille</th>
+                <th>Adresse e-mail</th>
+                <th>Date de naissance</th>
+                <th>Lieu de résidence</th>
+                <th>Aide le vendredi</th>
+                <th>Aide le samedi matin</th>
+                <th>Aide le samedi soir</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for participant in object.participants_set.all %}
+                <tr>
+                    <td>{{ participant.first_name }}</td>
+                    <td>{{ participant.last_name }}</td>
+                    <td>{{ participant.email }}</td>
+                    <td>{{ participant.birthday }}</td>
+                    <td>{{ participant.city }}, {{ participant.country }}</td>
+                    <td>{%  if participant.is_helping_friday %}✅{% endif %}</td>
+                    <td>{%  if participant.is_helping_saturday_morning %}✅{% endif %}</td>
+                    <td>{%  if participant.is_helping_saturday_evening %}✅{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <form method="post">
+        {% csrf_token %}
+        {% if signup.has_vae %}
+            {{ form|crispy }}
+        {% else %}
+            {{ form|as_crispy_errors }}
+        {% endif %}
+        <a href="{% url "group_extra_info" %}" class="btn btn-danger">{% trans "Page précédente" %}</a>
+        <button type="submit" class="btn btn-primary">{% trans "Confirmer l'inscription" %}</button>
+    </form>
+
+{% endblock %}

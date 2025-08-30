@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+{% load l10n %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col"></div>
+        <div class="col-sm-12 col-md-10 col-lg-8 ">
+            <h2>Retrouvailes spéciales 30 ans</h2>
+            <h3>Bruxelles</h3>
+            <b>PAF:</b>
+            <ul>
+                <li><strong>Adulte</strong>: 25 euros</li>
+                <li><strong>Enfant de moins de 18 ans</strong>: 15 euros </li>
+                <li><strong>Enfant de moins de 12 ans</strong>: 10 euros</li>
+                <li><strong>Enfant de moins de 6 ans</strong>: gratuit</li>
+            </ul>
+        </p>
+        <p class="pt-3">
+            <a href="{% url "group_edit" %}" class="btn btn-primary">Commencez l'inscription</a>
+        </p>
+    </div>
+    <div class="col"></div>
+    </div>
+
+{% endblock %}

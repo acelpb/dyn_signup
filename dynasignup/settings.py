@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django_object_actions",
     "signup2023.apps.Signup2023Config",
     "newsletter.apps.NewsletterConfig",
+    "reunion.apps.ReunionConfig",
 ]
 
 MIDDLEWARE = [

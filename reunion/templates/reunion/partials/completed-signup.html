@@ -1,0 +1,44 @@
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Participant</th>
+            <th>Aide le vendredi</th>
+            <th>Aide le samedi matin</th>
+            <th>Aide le samedi soir</th>
+            <th>PAF</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for participant in signup.participants_set.all %}
+            <tr>
+                <td>{{ participant.first_name }} {{ participant.last_name }}</td>
+                <td>{%  if participant.is_helping_friday %}✅{% endif %}</td>
+                <td>{%  if participant.is_helping_saturday_morning %}✅{% endif %}</td>
+                <td>{%  if participant.is_helping_saturday_evening %}✅{% endif %}</td>
+                <td>{{ participant.amount_due }} €</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<p>
+    Le solde de votre inscription est de {{ signup.amount_due |floatformat:2 }}€ <br />
+    {{ signup.bill.calculation|linebreaks }}
+</p>
+<p>
+    Merci d'effectuer un paiement sur le compte de dynamobile:
+    <span class="font-weight-bold">Attention nouveau compte: </span>
+    <strong>BE96 0019 5174 7205</strong>
+</p>
+<p>
+    Comme communication, merci de mentionner <span class="font-weight-bold">reunion {{ signup.id }}</span>
+</p>
+
+<p>
+    Si vous voulez nous soutenir et permettre ainsi aux participants qui ont moins de moyens
+    de faire la randonnée, vous pourrez choisir de payer un prix solidaire majoré de 10 euros
+    ou faire un don sur le compte de Dynamobile.
+    <i>
+        (NB : notre asbl ne dispose pas des autorisations pour une déduction fiscale des dons).
+    </i>
+    Le PAF ne doit pas vous empêcher de nous rejoindre.
+</p>

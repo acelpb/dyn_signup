@@ -24,7 +24,7 @@ from newsletter.views import SignupToNewsletterView
 
 urlpatterns = [
     path("", include("accounts.urls")),
-    path("", include("signup2023.urls")),
+    path("", include("reunion.urls")),
     path("auth/", include("magiclink.urls", namespace="magiclink")),
     path(
         "admin/password_reset/",
