@@ -9,8 +9,8 @@
     {% if signup  and signup.validated_at %}
         <h1>Votre inscription est bien enregistrée.</h1>
         <p>
-            Les informations reprises sur cette page vous ont été envoyées à l'adresse
-            email {{ signup.owner.email }}.<br>
+            <span class="fw-bold">ATTENTION</span> : ces informations ne sont <span class="fw-bold">pas</span> envoyées par e-mail.
+            Conservez l'URL dans vos favoris pour y avoir accès.
             Si vous constatez une erreur ou si vous souhaitez modifier votre inscription,
             merci de nous contacter à <a
                 href="mailto:inscriptions@dynamobile.net?subject=Question à propos de l'inscription n°{{ signup.id }}">inscriptions@dynamobile.net</a>.

@@ -1,13 +1,13 @@
 # Create your views here.
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.mixins import (
     LoginRequiredMixin,
 )
 from django.forms import inlineformset_factory
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
-from django.utils import timezone
-from django.views.generic import DetailView, FormView, TemplateView, UpdateView
+from django.views.generic import DetailView, FormView, UpdateView
 
 from .forms import (
     ParticipantExtraFormSet,
@@ -19,22 +19,6 @@ from .forms import (
 )
 from .mixins import SignupStartedMixin
 from .models import Participant, Signup
-
-
-class HomePage(TemplateView):
-    template_name = "reunion/index.html"
-
-    def get_context_data(self, **kwargs):
-        kwargs = super().get_context_data(**kwargs)
-        kwargs["registration_open"] = timezone.now() >= settings.DYNAMOBILE_START_SIGNUP
-        time_remaining = settings.DYNAMOBILE_START_SIGNUP - timezone.now()
-        kwargs["hours_remaining"] = int(time_remaining.total_seconds() // 3600)
-        kwargs["minutes_remaining"] = int(time_remaining.total_seconds() // 60 % 60)
-        kwargs["start_signup"] = settings.DYNAMOBILE_START_SIGNUP
-        kwargs["partial_open"] = settings.DYNAMOBILE_START_PARTIAL_SIGNUP
-        kwargs["start"] = settings.DYNAMOBILE_FIRST_DAY
-        kwargs["end"] = settings.DYNAMOBILE_LAST_DAY
-        return kwargs
 
 
 class CreateGroupView(SignupStartedMixin, FormView):
@@ -54,6 +38,10 @@ class CreateGroupView(SignupStartedMixin, FormView):
         )
 
     def get_context_data(self, **kwargs):
+        messages.info(
+            self.request,
+            "Formulaire d'inscription pour les retrouvailles 30 ans le 4 octobre 2025.",
+        )
         return super().get_context_data(**kwargs, helper=ParticipantFormSetHelper)
 
     def form_invalid(self, form):

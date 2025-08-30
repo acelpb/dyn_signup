@@ -21,24 +21,25 @@
     </tbody>
 </table>
 <p>
-    Le solde de votre inscription est de {{ signup.amount_due |floatformat:2 }}€ <br />
+    Le solde de votre inscription est de {{ signup.amount_due |floatformat:2 }} € <br />
     {{ signup.bill.calculation|linebreaks }}
 </p>
 <p>
-    Merci d'effectuer un paiement sur le compte de dynamobile:
-    <span class="font-weight-bold">Attention nouveau compte: </span>
+    Merci d’effectuer un paiement sur le compte de dynamobile:
+    <span class="fw-bold">Attention, nouveau compte: </span>
     <strong>BE96 0019 5174 7205</strong>
 </p>
 <p>
-    Comme communication, merci de mentionner <span class="font-weight-bold">reunion {{ signup.id }}</span>
+    En communication, merci d’utiliser : <span class="fw-bold">reunion {{ signup.id }}</span>
 </p>
 
 <p>
     Si vous voulez nous soutenir et permettre ainsi aux participants qui ont moins de moyens
     de faire la randonnée, vous pourrez choisir de payer un prix solidaire majoré de 10 euros
     ou faire un don sur le compte de Dynamobile.
-    <i>
-        (NB : notre asbl ne dispose pas des autorisations pour une déduction fiscale des dons).
-    </i>
-    Le PAF ne doit pas être un motif d'exclusion, merci de nous contacter si nécessaire.
+</p>
+<p class="fst-italic">
+    (NB : notre ASBL ne dispose pas des autorisations pour une déduction fiscale des dons).
+</p>
+Le PAF ne doit pas être un motif d’exclusion. Merci de nous contacter si nécessaire.
 </p>
