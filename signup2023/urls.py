@@ -4,6 +4,7 @@ from . import converters, views
 
 register_converter(converters.DateConverter, "yyyy-mm-dd")
 
+app_name = "signup2023"
 urlpatterns = [
     path("", views.HomePage.as_view(), name="index"),
     path("participants/", views.CreateGroupView.as_view(), name="group_edit"),

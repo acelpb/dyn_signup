@@ -388,7 +388,7 @@ class ExtraInfoView(AccessMixin, UpdateView):
 
     def get_queryset(self):
         if self.signup is not None:
-            for participant in self.signup.participant_set.all():
+            for participant in self.signup.participants_set.all():
                 ExtraParticipantInfo.objects.get_or_create(participant=participant)
 
             return ExtraParticipantInfo.objects.filter(

@@ -229,7 +229,7 @@ class ParticipantListReviewForm(forms.ModelForm):
         return vae_ok
 
     def clean(self):
-        if not self.instance.participant_set.filter(
+        if not self.instance.participants_set.filter(
             birthday__lte=date(
                 settings.DYNAMOBILE_FIRST_DAY.year - 18,
                 settings.DYNAMOBILE_FIRST_DAY.month,
@@ -309,7 +309,9 @@ class DaySignupFormsetHelper(FormHelper):
                 "cancel",
                 "Page précédente",
                 css_class="btn-secondary",
-                onclick="window.location.href = '{}';".format(reverse("group_edit")),
+                onclick="window.location.href = '{}';".format(
+                    reverse("signup2023:group_edit")
+                ),
             )
         )
         self.add_input(Submit("submit", "Page Suivante"))

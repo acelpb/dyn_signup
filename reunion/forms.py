@@ -206,7 +206,9 @@ class ParticipantExtraFormSetHelper(FormHelper):
                 "cancel",
                 "Page précédente",
                 css_class="btn-secondary",
-                onclick="window.location.href = '{}';".format(reverse("group_edit")),
+                onclick="window.location.href = '{}';".format(
+                    reverse("reunion:group_edit")
+                ),
             )
         )
         self.add_input(Submit("submit", "Page Suivante"))

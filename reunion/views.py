@@ -41,7 +41,7 @@ class CreateGroupView(SignupStartedMixin, FormView):
     """Define the list of participants for a group."""
 
     template_name = "signup/create_group.html"
-    success_url = reverse_lazy("group_extra_info")
+    success_url = reverse_lazy("reunion:group_extra_info")
 
     form_class = inlineformset_factory(
         Signup, Participant, form=ParticipantForm, extra=0, can_delete=False
@@ -66,7 +66,7 @@ class CreateGroupView(SignupStartedMixin, FormView):
 
 class GroupExtraEditView(SignupStartedMixin, FormView):
     template_name = "signup/formset.html"
-    success_url = reverse_lazy("validate")
+    success_url = reverse_lazy("reunion:validate")
 
     def get_form(self, form_class=None):
         return ParticipantExtraFormSet(
@@ -84,7 +84,7 @@ class GroupExtraEditView(SignupStartedMixin, FormView):
 
 class GroupReviewView(SignupStartedMixin, UpdateView):
     template_name = "reunion/review-participants.html"
-    success_url = reverse_lazy("completed_signup")
+    success_url = reverse_lazy("reunion:completed_signup")
 
     form_class = ParticipantListReviewForm
 

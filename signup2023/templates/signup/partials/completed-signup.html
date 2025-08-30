@@ -18,7 +18,7 @@
         </tr>
     </thead>
     <tbody>
-        {% for participant in signup.participant_set.all %}
+        {% for participant in signup.participants_set.all %}
             <tr>
                 <td>{{ participant.first_name }} {{ participant.last_name }}</td>
                 <td>{{  participant.get_vae_display }}</td>

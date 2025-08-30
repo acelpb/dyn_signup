@@ -131,7 +131,7 @@ class SignupAdmin(DjangoObjectActions, admin.ModelAdmin):
             return obj.bill.amount
 
     def participants(self, obj: Signup):
-        return obj.participant_set.count()
+        return obj.participants_set.count()
 
     def still_to_be_payed(self, obj: Signup):
         if obj.bill:

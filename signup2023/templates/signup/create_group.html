@@ -12,7 +12,7 @@
 
         // Sélection du bouton ajouter
             const addButton = document.getElementById('button-id-add_user');
-            const totalFormsInput = document.getElementById('id_participant_set-TOTAL_FORMS'); // Le champ caché indiquant le total des formulaires
+            const totalFormsInput = document.getElementById('id_participants_set-TOTAL_FORMS'); // Le champ caché indiquant le total des formulaires
 
             addButton.addEventListener('click', function () {
             // Récupérer le nombre actuel de formulaires
@@ -30,9 +30,9 @@
                     const name = input.name;
                     const id = input.id;
 
-                // Incrémenter l'index dans les noms et IDs (ex. de participant_set-1- à participant_set-2-)
-                    const newName = name.replace(`participant_set-${totalForms - 1}-`, `participant_set-${totalForms}-`);
-                    const newId = id.replace(`participant_set-${totalForms - 1}-`, `participant_set-${totalForms}-`);
+                // Incrémenter l'index dans les noms et IDs (ex. de participants_set-1- à participants_set-2-)
+                    const newName = name.replace(`participants_set-${totalForms - 1}-`, `participants_set-${totalForms}-`);
+                    const newId = id.replace(`participants_set-${totalForms - 1}-`, `participants_set-${totalForms}-`);
 
                     input.name = newName;
                     input.id = newId;
@@ -49,7 +49,7 @@
                         deleteButton.type = 'button';
                         deleteButton.textContent = 'Supprimer';
                         deleteButton.classList.add('btn', 'btn-danger');
-                        deleteButton.setAttribute('onclick', `deleteForm('participant_set', this)`);
+                        deleteButton.setAttribute('onclick', `deleteForm('participants_set', this)`);
 
                     // Remplacer le champ input par le bouton
                         input.parentNode.replaceWith(deleteButton);
@@ -60,7 +60,7 @@
                 newFormRow.querySelectorAll('label').forEach(function (label) {
                     const oldFor = label.getAttribute('for');
                     if (oldFor) {
-                        const newFor = oldFor.replace(`participant_set-${totalForms - 1}-`, `participant_set-${totalForms}-`);
+                        const newFor = oldFor.replace(`participants_set-${totalForms - 1}-`, `participants_set-${totalForms}-`);
                         label.setAttribute('for', newFor);
                     }
                 });
@@ -108,16 +108,16 @@
                             const oldName = element.name;
                             const oldId = element.id;
                             if (oldName) {
-                                element.name = oldName.replace(/participant_set-\d+-/, `participant_set-${index}-`);
+                                element.name = oldName.replace(/participants_set-\d+-/, `participants_set-${index}-`);
                             }
                             if (oldId) {
-                                element.id = oldId.replace(/participant_set-\d+-/, `participant_set-${index}-`);
+                                element.id = oldId.replace(/participants_set-\d+-/, `participants_set-${index}-`);
                             }
                         } else if (element.tagName === 'LABEL') {
                     // Mettre à jour l'attribut "for" des labels
                             const oldFor = element.getAttribute('for');
                             if (oldFor) {
-                                element.setAttribute('for', oldFor.replace(/participant_set-\d+-/, `participant_set-${index}-`));
+                                element.setAttribute('for', oldFor.replace(/participants_set-\d+-/, `participants_set-${index}-`));
                             }
                         }
                     });

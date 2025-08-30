@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.mixins import AccessMixin
 from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils import timezone
 
 from .models import Signup
@@ -26,6 +27,6 @@ class SignupStartedMixin(AccessMixin):
 
         signup = self.get_object()
         if signup.validated_at is not None:
-            return HttpResponseRedirect("/review/")
+            return HttpResponseRedirect(reverse("reunion:completed_signup"))
 
         return super().dispatch(request, *args, **kwargs)

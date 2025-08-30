@@ -27,7 +27,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for participant in object.participant_set.all %}
+            {% for participant in object.participants_set.all %}
                 <tr>
                     <td>{{ participant.first_name }}</td>
                     <td>{{ participant.last_name }}</td>

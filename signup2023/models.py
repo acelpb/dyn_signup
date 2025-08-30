@@ -78,10 +78,10 @@ class Signup(models.Model):
             )
 
     def has_vae(self):
-        return self.participant_set.filter(vae=True).count()
+        return self.participants_set.filter(vae=True).count()
 
     def complete_signup(self):
-        for participant in self.participant_set.all():
+        for participant in self.participants_set.all():
             if not participant.complete_signup():
                 return False
         return True
@@ -155,7 +155,7 @@ class Signup(models.Model):
                 signup_group__cancelled_at__isnull=True,
                 signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
             )
-            | self.participant_set.all()
+            | self.participants_set.all()
         ).count()
         if nb_of_participants > settings.DYNAMOBILE_MAX_PARTICIPANTS:
             self.on_hold = True
@@ -390,7 +390,7 @@ class Bill(models.Model):
         description = ""
         child_nb = 0
         total_price = 0
-        for participant in self.signup.participant_set.all().order_by("birthday"):
+        for participant in self.signup.participants_set.all().order_by("birthday"):
             age = participant.age_at_dynamobile_end()
             description += (
                 f"prix pour {participant.first_name} {participant.last_name}: "

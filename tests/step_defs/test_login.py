@@ -16,7 +16,7 @@ def test_admin_has_choice(transactional_db):
 
 @given("arrives on the signup page after starting a signup", target_fixture="response")
 def get_login_page(client):
-    return client.get(reverse("group_edit"), follow=True)
+    return client.get(reverse("signup2023:group_edit"), follow=True)
 
 
 @when("he submits his email address for a one-shot token")
