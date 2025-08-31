@@ -9,11 +9,11 @@
     {% if signup  and signup.validated_at %}
         <h1>Votre inscription est bien enregistrée.</h1>
         <p>
-            <span class="fw-bold">ATTENTION</span> : ces informations ne sont <span class="fw-bold">pas</span> envoyées par e-mail.
-            Conservez l'URL dans vos favoris pour y avoir accès.
+            <span class="fw-bold">ATTENTION</span> : ces informations ne sont <span class="fw-bold">PAS</span> envoyées par e-mail.
+            Notez bien ces informations où ajouter cette page internet à vos favoris pour y avoir accès.
             Si vous constatez une erreur ou si vous souhaitez modifier votre inscription,
             merci de nous contacter à <a
-                href="mailto:inscriptions@dynamobile.net?subject=Question à propos de l'inscription n°{{ signup.id }}">inscriptions@dynamobile.net</a>.
+                href="mailto:inscriptions@dynamobile.net?subject=Question à propos de l'inscription reunion retriuvailles n°{{ signup.id }}">inscriptions@dynamobile.net</a>.
         </p>
         {% include "reunion/partials/completed-signup.html" %}
 

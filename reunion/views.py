@@ -63,6 +63,7 @@ class GroupExtraEditView(SignupStartedMixin, FormView):
         )
 
     def get_context_data(self, **kwargs):
+        messages.info(self.request, "Proposition d'aide.")
         return super().get_context_data(**kwargs, helper=ParticipantExtraFormSetHelper)
 
     def form_valid(self, form):

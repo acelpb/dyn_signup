@@ -192,7 +192,7 @@ class Participant(models.Model):
 
     # Extra Form
     is_helping_friday = models.BooleanField(
-        _("Aide pour le vendredi"),
+        _("Aide pour le vendredi après-midi"),
         default=False,
         help_text="vendredi 3 octobre après-midi (installation matériel, déchargement courses, etc.)",
     )
@@ -206,6 +206,7 @@ class Participant(models.Model):
         default=False,
         help_text="samedi 4 octobre en fin de journée (rangement)",
     )
+    comments = models.TextField(_("Commentaires"), blank=True)
 
     ## Internal fields used for calculating stuff
     amount_due_modified = models.DecimalField(

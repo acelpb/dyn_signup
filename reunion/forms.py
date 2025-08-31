@@ -154,6 +154,7 @@ class ParticipantExtraForm(forms.ModelForm):
             "is_helping_friday",
             "is_helping_saturday_morning",
             "is_helping_saturday_evening",
+            "comments",
         )
 
 
@@ -180,6 +181,8 @@ class ParticipantExtraFormSetHelper(FormHelper):
                     ),
                     css_class="col-auto",
                 ),
+            ),
+            Row(
                 Column(
                     Switch(
                         "is_helping_friday",
@@ -199,6 +202,14 @@ class ParticipantExtraFormSetHelper(FormHelper):
                     css_class="col-auto",
                 ),
                 css_class="g-2",
+            ),
+            Row(
+                Column(
+                    FloatingField(
+                        "comments",
+                    ),
+                    css_class="col-auto",
+                ),
             ),
         )
         self.add_input(
