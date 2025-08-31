@@ -86,7 +86,7 @@ AUTHENTICATION_BACKENDS = [
 
 # Set Djangos login URL to the magiclink login page
 LOGIN_URL = "magiclink:login"
-LOGOUT_REDIRECT_URL = "index"
+LOGOUT_REDIRECT_URL = "/"
 
 # Optional:
 # If this setting is set to False a user account will be created the first
