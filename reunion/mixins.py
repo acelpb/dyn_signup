@@ -1,8 +1,6 @@
-from django.conf import settings
 from django.contrib.auth.mixins import AccessMixin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils import timezone
 
 from .models import Signup
 
@@ -20,10 +18,6 @@ class SignupStartedMixin(AccessMixin):
         user = request.user
         if not user.is_authenticated:
             return self.handle_no_permission()
-        signup_not_started = timezone.now() < settings.DYNAMOBILE_START_SIGNUP
-        user_can_pre_signup = user.groups.filter(name="préinscriptions").exists()
-        if signup_not_started and not user_can_pre_signup:
-            return HttpResponseRedirect("")
 
         signup = self.get_object()
         if signup.validated_at is not None:
