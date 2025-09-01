@@ -207,7 +207,9 @@ class ParticipantManager(models.Manager):
 
 
 class Participant(models.Model):
-    signup_group = models.ForeignKey(Signup, on_delete=models.CASCADE)
+    signup_group = models.ForeignKey(
+        Signup, on_delete=models.CASCADE, related_name="participants_set"
+    )
     first_name = models.CharField("Prénom", max_length=150, blank=False)
     last_name = models.CharField("Nom", max_length=150, blank=False)
     email = models.EmailField(_("e-mail"), blank=True)

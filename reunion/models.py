@@ -173,6 +173,20 @@ class Signup(models.Model):
         """
         return (self.amount_due or Decimal("0.00")) - self.amount_payed
 
+    def check_max_participants(self):
+        nb_of_participants = (
+            Participant.objects.filter(
+                signup_group__validated_at__isnull=False,
+                signup_group__on_hold=False,
+                signup_group__cancelled_at__isnull=True,
+                signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
+            )
+            | self.participants_set.all()
+        ).count()
+        if nb_of_participants > 200:
+            self.on_hold = "TOO_MANY_PARTICIPANTS"
+        return False
+
 
 class Participant(models.Model):
     signup = models.ForeignKey(
