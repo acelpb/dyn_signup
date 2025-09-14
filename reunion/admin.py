@@ -1,8 +1,11 @@
 # Python
 from django.contrib import admin
+from django.contrib.contenttypes.admin import GenericStackedInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportMixin
+
+from accounts.models import OperationValidation
 
 from .models import (
     CancelledParticipant,
@@ -11,6 +14,26 @@ from .models import (
     UnconfirmedParticipant,
     ValidatedParticipant,
 )
+
+
+class PaymentInline(GenericStackedInline):
+    model = OperationValidation
+    extra = 0
+    ct_field_name = "content_type"
+    id_field_name = "object_id"
+
+    def get_formset(self, request, obj=None, **kwargs):
+        self.fields = ("operation", "amount")
+        return super().get_formset(request, obj, **kwargs)
+
+    def has_view_permission(self, request, obj=None):
+        return True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Signup)
@@ -44,6 +67,7 @@ class ValidatedParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "is_helping_saturday_evening",
         "is_payed",
     )
+    inlines = [PaymentInline]
 
     def signup_link(self, obj):
         signup: Signup = obj.signup
