@@ -3,6 +3,8 @@ from datetime import datetime
 from django.contrib import admin
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .admin_inline import ExpenseFileInline, PaymentInline
 
@@ -31,16 +33,28 @@ class OperationValidationAdmin(admin.ModelAdmin):
         "operation",
         "amount",
         "validation_type",
-        "content_type",
+        "event_link",
     )
 
     list_filter = (("operation", admin.EmptyFieldListFilter), "validation_type")
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ["operation", "amount", "event"]
+            return ["operation", "amount", "event_link"]
         else:
             return super().get_readonly_fields(request, obj)
+
+    def event_link(self, obj):
+        event = getattr(obj, "event", None)
+        if not event:
+            return "-"
+        url = reverse(
+            f"admin:{event._meta.app_label}_{event._meta.model_name}_change",
+            args=[event.pk],
+        )
+        return format_html('<a href="{}">{}</a>', url, str(event))
+
+    event_link.short_description = "Payment purpose"
 
 
 # @admin.register(SignupOperation)
