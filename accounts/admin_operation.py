@@ -209,6 +209,11 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 name="accounts_operation_link_to_signup",
             ),
             path(
+                "<int:operation_id>/link-to-reunion/<int:reunion_id>/",
+                self.admin_site.admin_view(self.link_to_reunion_view),
+                name="accounts_operation_link_to_reunion",
+            ),
+            path(
                 "<int:operation_id>/link-to-expensereport/<int:expense_report_id>/",
                 self.admin_site.admin_view(self.link_to_expensereport_view),
                 name="accounts_operation_link_to_expense_report",
@@ -219,6 +224,22 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
     def communication_(self, obj):
         if obj.operationvalidation_set.exists():
             return obj.communication
+
+        print("UCU", obj.communication)
+        if match := re.search(r"reunion[-_ ](\d+)", obj.communication, re.IGNORECASE):
+            print(match)
+            from reunion.models import Signup as ReunionSignup
+
+            reunion_id = ReunionSignup.objects.get(id=match.group(1)).id
+            url = reverse(
+                "admin:accounts_operation_link_to_reunion", args=[obj.id, reunion_id]
+            )
+            return format_html(
+                '<p>{}</p><a class="button" href="{}">Link to reunion #{}</a>',
+                obj.communication,
+                url,
+                reunion_id,
+            )
 
         match = re.search(r"(\d\d\d\d-\d\d\d\d)", obj.communication, re.IGNORECASE)
         if match:
@@ -287,6 +308,62 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
             request,
             f"L’opération {operation_id} a été liée à l’inscription {signup_id}.",
         )
+        return redirect("admin:accounts_operation_changelist")
+
+    def link_to_reunion_view(self, request, operation_id, reunion_id):
+        from reunion.models import Signup as ReunionSignup
+
+        # Récupérer l'opération
+        operation = get_object_or_404(Operation, id=operation_id)
+        # Récupérer l'entité Signup
+        reunion_signup = get_object_or_404(ReunionSignup, id=reunion_id)
+        if reunion_signup.validated_at is None:
+            messages.error(request, f"Reunion signup {reunion_id} is not validated")
+            raise Http404("Signup is not validated")
+        if reunion_signup.on_hold:
+            messages.error(request, f"Reunion signup {reunion_id} is on hold.")
+            raise Http404("Signup is on hold.")
+
+        amount = operation.amount
+
+        for participant in reunion_signup.participants_set.all():
+            if participant.amount_due <= amount:
+                OperationValidation.objects.create(
+                    operation=operation,
+                    amount=participant.amount_due,
+                    event=participant,
+                    validation_type=IncomeChoices.SIGNUP,
+                )
+                participant.is_payed = True
+                participant.amount_payed = participant.amount_due
+                amount -= participant.amount_due
+                participant.save()
+            else:
+                OperationValidation.objects.create(
+                    operation=operation,
+                    amount=amount,
+                    event=participant,
+                    validation_type=IncomeChoices.SIGNUP,
+                )
+                participant.amount_payed = amount
+                amount = 0
+                messages.error(
+                    request,
+                    f"Signup to reunion {reunion_id} not entirely payed!.",
+                )
+                break
+
+        #
+        # for reunion_signup
+        # # Ajouter la logique pour lier les deux entités (exemple)
+        # OperationValidation.objects.create(
+        #     operation=operation,
+        #     amount=operation.amount,
+        #     event=signup.bill,
+        #     validation_type=IncomeChoices.SIGNUP,
+        # )
+        # # Ajout d'un message de succès
+        #
         return redirect("admin:accounts_operation_changelist")
 
     def link_to_expensereport_view(self, request, operation_id, expense_report_id):

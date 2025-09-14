@@ -22,7 +22,7 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
         movement_details = {
             validation_type: total
             for validation_type, total in OperationValidation.objects.filter(
-                operation__date__year__gte=2024
+                operation__date__gte="2025-02-01",
             )
             .values("validation_type")
             .annotate(year_sum=Sum("amount"))
