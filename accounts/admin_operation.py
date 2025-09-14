@@ -226,7 +226,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
             return obj.communication
 
         print("UCU", obj.communication)
-        if match := re.search(r"reunion[-_ ](\d+)", obj.communication, re.IGNORECASE):
+        if match := re.search(r"reunion[-_ ]*(\d+)", obj.communication, re.IGNORECASE):
             print(match)
             from reunion.models import Signup as ReunionSignup
 
@@ -353,17 +353,10 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 )
                 break
 
-        #
-        # for reunion_signup
-        # # Ajouter la logique pour lier les deux entités (exemple)
-        # OperationValidation.objects.create(
-        #     operation=operation,
-        #     amount=operation.amount,
-        #     event=signup.bill,
-        #     validation_type=IncomeChoices.SIGNUP,
-        # )
-        # # Ajout d'un message de succès
-        #
+        messages.success(
+            request,
+            f"Signup to reunion {reunion_id} correctly linked to operation {operation_id}.",
+        )
         return redirect("admin:accounts_operation_changelist")
 
     def link_to_expensereport_view(self, request, operation_id, expense_report_id):
