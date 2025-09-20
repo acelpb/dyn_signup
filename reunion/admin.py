@@ -36,9 +36,21 @@ class PaymentInline(GenericStackedInline):
         return False
 
 
+class ParticipantInline(admin.TabularInline):
+    model = Participant
+    fk_name = "signup"
+    extra = 0
+    can_delete = True
+    show_change_link = True
+    fields = ("first_name", "last_name", "email")
+    readonly_fields = fields
+
+
 @admin.register(Signup)
 class SignupAmin(admin.ModelAdmin):
-    pass
+    inlines = [ParticipantInline]
+    autocomplete_fields = ["owner"]
+    list_display = ("id", "owner", "status")
 
 
 @admin.register(Participant)

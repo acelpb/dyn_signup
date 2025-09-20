@@ -63,23 +63,6 @@ class SignupManager(models.Manager.from_queryset(SignupQuerySet)):
 
 
 class Signup(models.Model):
-    class Status(models.TextChoices):
-        CREATED = "created", "Created"
-        VALIDATED_BY_PARTICIPANT = (
-            "validated_by_participant",
-            "Validated by participant",
-        )
-        CONFIRMED_BY_ORGANISER = (
-            "confirmed_by_organiser",
-            "Confirmed by organiser",
-        )
-        PAYED = "payed", "Payed"
-        CANCELLED = "cancelled", "Cancelled"
-        CANCELLED_WITH_PENALTY = (
-            "cancelled_with_penalty",
-            "Cancelled with penalty",
-        )
-
     # Custom manager with annotations
     objects = SignupManager()
 
@@ -90,18 +73,18 @@ class Signup(models.Model):
         related_name="signups",
     )
 
-    # Workflow status
-    status = models.CharField(
-        max_length=32,
-        choices=Status.choices,
-        default=Status.CREATED,
-    )
-
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
+    last_updated_at = models.DateTimeField(auto_now=True)
     validated_at = models.DateTimeField(null=True, blank=True)
-    payed_at = models.DateTimeField(null=True, blank=True)
+    payment_confirmation_sent_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
+    cancelled_reason = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Reason for cancelling the signup.",
+    )
 
     # On-hold: store a reason or be empty
     on_hold = models.CharField(
@@ -109,6 +92,22 @@ class Signup(models.Model):
         null=True,
         blank=True,
         help_text="Reason for putting the signup on hold.",
+    )
+
+    status = models.GeneratedField(
+        expression=Case(
+            When(Q(cancelled_at__isnull=False), then=Value("cancelled")),
+            When(Q(on_hold__isnull=False) & ~Q(on_hold=""), then=Value("on_hold")),
+            When(Q(validated_at__isnull=True), then=Value("pending")),
+            When(
+                Q(payment_confirmation_sent_at__isnull=True),
+                then=Value("payment_pending"),
+            ),
+            default=Value("validated"),
+        ),
+        output_field=models.CharField(max_length=32),
+        db_persist=False,
+        help_text="Status of the signup",
     )
 
     def __str__(self) -> str:
@@ -238,7 +237,7 @@ class Participant(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self) -> str:
-        return f"Participant #{self.pk} - signup {self.signup_id}"
+        return f"{self.first_name} {self.last_name}- signup {self.signup_id}"
 
     def refresh_payment_state(self, save: bool = True) -> None:
         """
