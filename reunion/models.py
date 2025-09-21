@@ -146,7 +146,7 @@ class ParticipantQuerySet(models.QuerySet):
                     When(cancelled=True, then=Value("cancelled")),
                     When(signup__validated_at__isnull=True, then=Value("pending")),
                     When(signup__on_hold_at__isnull=False, then=Value("on hold")),
-                    When(amount_due__lte=Value(0), then=Value("payed")),
+                    When(amount_due_remaining__lte=Value(0), then=Value("payed")),
                     default=Value("waiting payment"),
                 ),
                 is_payed=Case(
