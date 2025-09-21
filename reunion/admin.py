@@ -7,7 +7,9 @@ from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from django_object_actions import DjangoObjectActions, action
+from import_export import resources
 from import_export.admin import ExportMixin
+from import_export.fields import Field
 
 from accounts.models import OperationValidation
 
@@ -214,6 +216,27 @@ class StatusFilter(SimpleListFilter):
         return queryset.distinct().filter(**filters[self.value()])
 
 
+class ParticipantResource(resources.ModelResource):
+    age = Field(attribute="age", column_name="age")
+
+    class Meta:
+        model = Participant
+        fields = (
+            "id",
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
+            "age",
+            "city",
+            "country",
+            "is_helping_friday",
+            "is_helping_saturday_morning",
+            "is_helping_saturday_evening",
+            "comments",
+        )
+
+
 @admin.register(Participant)
 class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
     list_display = (
@@ -241,6 +264,7 @@ class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
                     "signup",
                     "first_name",
                     "last_name",
+                    "amount_due",
                     "is_payed",
                     "email",
                     "phone",
@@ -255,6 +279,8 @@ class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
             },
         ),
     )
+
+    resource_classes = [ParticipantResource]
 
     def signup_link(self, obj):
         signup: Signup = obj.signup

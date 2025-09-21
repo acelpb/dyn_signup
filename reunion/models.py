@@ -133,6 +133,15 @@ class ParticipantQuerySet(models.QuerySet):
                 amount_due_remaining=F("amount_due") - F("amount_payed"),
             )
             .annotate(
+                age=(
+                    Value(2025)
+                    - F("birthday__year")
+                    - models.ExpressionWrapper(
+                        Q(birthday__month__gt=10)
+                        | (Q(birthday__month=10) & Q(birthday__day__gt=4)),
+                        output_field=models.IntegerField(),
+                    )
+                ),
                 status=Case(
                     When(cancelled=True, then=Value("cancelled")),
                     When(signup__validated_at__isnull=True, then=Value("pending")),
