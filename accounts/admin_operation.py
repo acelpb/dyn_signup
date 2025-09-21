@@ -52,6 +52,7 @@ class JustifiedFilter(SimpleListFilter):
 
 
 class OperationAdmin(ImportMixin, admin.ModelAdmin):
+    inlines = [JustificationInline]
     resource_class = OperationResource
 
     list_display = (
@@ -68,10 +69,35 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
     )
     ordering = ("-year", "-number")
     search_fields = ["counterparty_IBAN", "counterparty_name", "communication"]
+    fields = (
+        "amount",
+        "currency",
+        "justified",
+        "account",
+        "date",
+        "description",
+        "effective_date",
+        "counterparty_IBAN",
+        "counterparty_name",
+        "communication_",
+        "reference",
+    )
+    readonly_fields = (
+        "account",
+        "date",
+        "description",
+        "amount",
+        "currency",
+        "effective_date",
+        "counterparty_IBAN",
+        "counterparty_name",
+        "communication_",
+        "reference",
+        "justified",
+    )
+
     date_hierarchy = "date"
     list_filter = ("year", "account__name", JustifiedFilter)
-
-    inlines = [JustificationInline]
 
     actions = [
         "link_selected_operations_to_bill",
@@ -176,12 +202,6 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
     justified.boolean = True
     justified.admin_order_field = "_justified"
 
-    def has_change_permission(self, request, obj=None, **kwargs):
-        if obj is None:
-            return super().has_change_permission(request, **kwargs)
-        else:
-            return False
-
     def get_import_formats(self):
         return [BPostCSV, FortisCSV]
 
@@ -224,8 +244,6 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
     def communication_(self, obj):
         if obj.operationvalidation_set.exists():
             return obj.communication
-
-        print("UCU", obj.communication)
         if match := re.search(r"reunion[-_ ]*(\d+)", obj.communication, re.IGNORECASE):
             print(match)
             from reunion.models import Signup as ReunionSignup

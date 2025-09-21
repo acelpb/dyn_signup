@@ -75,25 +75,17 @@ class JustificationInline(TabularInline):
     verbose_name = "Justificatif lié"
     verbose_name_plural = "Justificatifs liés"
     model = OperationValidation
-    extra = 1
+    extra = 0
     fields = (
         "justification_link",
+        "content_type",
+        "object_id",
         "amount",
         "validation_type",
     )
-    readonly_fields = (
-        "justification_link",
-        "amount",
-        "validation_type",
-    )
+    readonly_fields = ("justification_link",)
     can_delete = False
-    can_edit = False
+    can_add = True
 
     def has_view_permission(self, request, obj=None):
         return True
-
-    def has_add_permission(self, request, obj=None):
-        if obj is None:
-            return True
-        else:
-            return False
