@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import (
     BooleanField,
@@ -14,41 +15,38 @@ from django.db.models import (
     When,
 )
 from django.db.models.functions import Coalesce
-from django.db.models.signals import post_delete, post_save, pre_save
-from django.dispatch import receiver
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+
+from accounts.models import OperationValidation
 
 
 class SignupQuerySet(models.QuerySet):
     def with_amounts(self):
         return (
             self.annotate(
-                # Sums from related participants
-                amount_due_modified_agg=Sum("participants_set__amount_due_modified"),
-                amount_due_calculated_agg=Coalesce(
-                    Sum("participants_set__amount_due_calculated"),
-                    Value(0),
-                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                amount_due=Sum(
+                    Coalesce(
+                        "participants_set__amount_due_modified",
+                        "participants_set__amount_due_calculated",
+                    ),
                 ),
-                amount_payed_agg=Coalesce(
-                    Sum("participants_set__amount_payed"),
-                    Value(0),
-                    output_field=DecimalField(max_digits=10, decimal_places=2),
-                ),
+                amount_payed=Sum("participants_set__payments__amount"),
             )
             .annotate(
                 # Coalesce of modified vs calculated amount due
-                amount_due_agg=Coalesce(
-                    F("amount_due_modified_agg"),
-                    F("amount_due_calculated_agg"),
-                ),
+                amount_due=F("amount_due") - F("amount_payed"),
             )
             .annotate(
-                ballance_agg=F("amount_due_agg") - F("amount_payed_agg"),
-                is_payed_agg=Case(
-                    When(amount_payed_agg__gte=F("amount_due_agg"), then=Value(True)),
+                status=Case(
+                    When(cancelled_at__isnull=False, then=Value("cancelled")),
+                    When(validated_at__isnull=True, then=Value("pending")),
+                    When(on_hold__isnull=False, then=Value("on hold")),
+                    When(amount_due__lte=Value(0), then=Value("payed")),
+                    default=Value("waiting payment"),
+                ),
+                is_payed=Case(
+                    When(amount_due__lte=Value(0), then=Value(True)),
                     default=Value(False),
                     output_field=BooleanField(),
                 ),
@@ -94,83 +92,8 @@ class Signup(models.Model):
         help_text="Reason for putting the signup on hold.",
     )
 
-    status = models.GeneratedField(
-        expression=Case(
-            When(Q(cancelled_at__isnull=False), then=Value("cancelled")),
-            When(Q(on_hold__isnull=False) & ~Q(on_hold=""), then=Value("on_hold")),
-            When(Q(validated_at__isnull=True), then=Value("pending")),
-            When(
-                Q(payment_confirmation_sent_at__isnull=True),
-                then=Value("payment_pending"),
-            ),
-            default=Value("validated"),
-        ),
-        output_field=models.CharField(max_length=32),
-        db_persist=False,
-        help_text="Status of the signup",
-    )
-
     def __str__(self) -> str:
         return f"Signup #{self.pk} - {self.owner}"
-
-    # ---- Aggregated (inherited) fields from participants ----
-
-    @property
-    def amount_due_modified(self) -> Decimal | None:
-        """
-        Sum of participants.amount_due_modified.
-        Returns None if no participant has a modified amount set.
-        """
-        qs = self.participants_set.filter(amount_due_modified__isnull=False)
-        if not qs.exists():
-            return None
-        return qs.aggregate(total=Sum("amount_due_modified"))["total"]
-
-    @property
-    def amount_due_calculated(self) -> Decimal:
-        """
-        Sum of participants.amount_due_calculated (treat missing as 0).
-        """
-        total = self.participants_set.aggregate(total=Sum("amount_due_calculated"))[
-            "total"
-        ]
-        return total or Decimal("0.00")
-
-    @property
-    def amount_payed(self) -> Decimal:
-        """
-        Sum of participants.amount_payed (treat missing as 0).
-        """
-        total = self.participants_set.aggregate(total=Sum("amount_payed"))["total"]
-        return total or Decimal("0.00")
-
-    @property
-    def is_payed(self) -> bool:
-        """
-        True when the total amount paid covers the amount due.
-        """
-        return self.amount_payed >= (self.amount_due or Decimal("0.00"))
-
-    # ---- Calculated fields ----
-
-    @property
-    def amount_due(self) -> Decimal:
-        """
-        Coalesce: use sum of modified amounts when at least one is provided,
-        otherwise use the calculated sum.
-        """
-        return (
-            self.amount_due_modified
-            if self.amount_due_modified is not None
-            else self.amount_due_calculated
-        )
-
-    @property
-    def ballance(self) -> Decimal:
-        """
-        amount_due - amount_payed
-        """
-        return (self.amount_due or Decimal("0.00")) - self.amount_payed
 
     def check_max_participants(self):
         nb_of_participants = (
@@ -231,10 +154,19 @@ class Participant(models.Model):
     amount_payed = models.DecimalField(
         max_digits=10, decimal_places=2, default=Decimal("0.00")
     )
+
+    amount_due_remaining = models.GeneratedField(
+        expression=Coalesce(F("amount_due_modified"), F("amount_due_calculated"))
+        - F("amount_payed"),
+        output_field=DecimalField(max_digits=10, decimal_places=2),
+        db_persist=False,
+    )
     is_payed = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
+
+    payments = GenericRelation(OperationValidation)
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}- signup {self.signup_id}"
@@ -279,95 +211,6 @@ class Participant(models.Model):
             if self.amount_due_modified is not None
             else self.amount_due_calculated
         )
-
-
-# ---- Automatic timestamp updates for Signup status changes ----
-
-
-@receiver(pre_save, sender=Signup)
-def set_signup_status_timestamps(sender, instance: Signup, **kwargs):
-    """
-    Set validated_at, payed_at, cancelled_at when status changes into those states.
-    Timestamps are only set once (not cleared automatically).
-    """
-    old_status = None
-    if instance.pk:
-        try:
-            old_status = sender._base_manager.only("status").get(pk=instance.pk).status
-        except sender.DoesNotExist:
-            old_status = None
-
-    new_status = instance.status
-
-    if old_status != new_status:
-        if (
-            new_status == Signup.Status.VALIDATED_BY_PARTICIPANT
-            and not instance.validated_at
-        ):
-            instance.validated_at = timezone.now()
-
-        if new_status == Signup.Status.PAYED and not instance.payed_at:
-            instance.payed_at = timezone.now()
-
-        if (
-            new_status
-            in (
-                Signup.Status.CANCELLED,
-                Signup.Status.CANCELLED_WITH_PENALTY,
-            )
-            and not instance.cancelled_at
-        ):
-            instance.cancelled_at = timezone.now()
-
-
-def _update_signup_payment_state(signup_id: int) -> None:
-    """
-    Recalculate payment state for a signup after participant changes.
-    If fully paid, mark the signup as PAYED (and set payed_at if needed).
-    Does not downgrade status automatically.
-    """
-    try:
-        s: Signup = Signup._base_manager.get(pk=signup_id)
-    except Signup.DoesNotExist:
-        return
-
-    totals = s.participants_set.aggregate(
-        modified_sum=Sum("amount_due_modified"),
-        calculated_sum=Coalesce(
-            Sum("amount_due_calculated"),
-            Value(0),
-            output_field=DecimalField(max_digits=10, decimal_places=2),
-        ),
-        payed_sum=Coalesce(
-            Sum("amount_payed"),
-            Value(0),
-            output_field=DecimalField(max_digits=10, decimal_places=2),
-        ),
-    )
-
-    amount_due = (
-        totals["modified_sum"]
-        if totals["modified_sum"] is not None
-        else totals["calculated_sum"]
-    ) or Decimal("0.00")
-
-    fully_payed = totals["payed_sum"] >= amount_due
-
-    if fully_payed and s.status != Signup.Status.PAYED:
-        s.status = Signup.Status.PAYED
-        if not s.payed_at:
-            s.payed_at = timezone.now()
-        s.save(update_fields=["status", "payed_at"])
-
-
-@receiver(post_save, sender=Participant)
-def participant_saved(sender, instance: Participant, **kwargs):
-    _update_signup_payment_state(instance.signup_id)
-
-
-@receiver(post_delete, sender=Participant)
-def participant_deleted(sender, instance: Participant, **kwargs):
-    _update_signup_payment_state(instance.signup_id)
 
 
 # Reusable queryset for participant subsets

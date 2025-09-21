@@ -1,6 +1,6 @@
 # Python
 from django.contrib import admin
-from django.contrib.contenttypes.admin import GenericStackedInline
+from django.contrib.contenttypes.admin import GenericTabularInline
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportMixin
@@ -16,7 +16,7 @@ from .models import (
 )
 
 
-class PaymentInline(GenericStackedInline):
+class PaymentInline(GenericTabularInline):
     model = OperationValidation
     extra = 0
     ct_field_name = "content_type"
@@ -42,20 +42,64 @@ class ParticipantInline(admin.TabularInline):
     extra = 0
     can_delete = True
     show_change_link = True
-    fields = ("first_name", "last_name", "email")
-    readonly_fields = fields
+    fields = ("first_name", "last_name", "amount_due_remaining", "is_payed")
+    readonly_fields = ("amount_due", "amount_due_remaining")
 
 
 @admin.register(Signup)
 class SignupAmin(admin.ModelAdmin):
     inlines = [ParticipantInline]
+    search_fields = ("owner__first_name", "owner__last_name", "owner__email")
     autocomplete_fields = ["owner"]
-    list_display = ("id", "owner", "status")
+    list_display = ("id", "owner", "status", "is_payed", "amount_due")
+
+    def status(self, obj: Signup):
+        return obj.status
+
+    status.admin_order_field = "status"
+    status.short_description = "Status"
+
+    def is_payed(self, obj: Signup):
+        return obj.is_payed
+
+    is_payed.admin_order_field = "is_payed"
+    is_payed.boolean = True
+    is_payed.short_description = "Payed"
+
+    def amount_due(self, obj: Signup):
+        return obj.amount_due
+
+    amount_due.admin_order_field = "amount_due"
+    amount_due.short_description = "amount due remaining"
 
 
 @admin.register(Participant)
 class ParticipantAmin(admin.ModelAdmin):
-    pass
+    inlines = [PaymentInline]
+    autocomplete_fields = ["signup"]
+    readonly_fields = ("amount_due_calculated",)
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "signup",
+                    "first_name",
+                    "last_name",
+                    "is_payed",
+                    "email",
+                    "phone",
+                    "birthday",
+                    "city",
+                    "country",
+                    "is_helping_friday",
+                    "is_helping_saturday_morning",
+                    "is_helping_saturday_evening",
+                    "comments",
+                )
+            },
+        ),
+    )
 
 
 # Admin classes that now rely on the proxy models' default managers
