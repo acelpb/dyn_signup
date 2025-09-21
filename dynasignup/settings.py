@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     "django_tables2",
     "phonenumber_field",
     "django_object_actions",
+    "debug_toolbar",
     "signup2023.apps.Signup2023Config",
     "newsletter.apps.NewsletterConfig",
     "reunion.apps.ReunionConfig",
@@ -74,6 +75,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "dynasignup.urls"
@@ -276,3 +278,8 @@ PHONENUMBER_DEFAULT_REGION = "BE"
 PHONENUMBER_DEFAULT_FORMAT = "INTERNATIONAL"
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# Needed for Djagno debug toolbar
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
