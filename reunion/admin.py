@@ -1,8 +1,10 @@
-# Python
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.contenttypes.admin import GenericTabularInline
+from django.shortcuts import redirect
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django_object_actions import DjangoObjectActions, action
 from import_export.admin import ExportMixin
 
 from accounts.models import OperationValidation
@@ -42,16 +44,94 @@ class ParticipantInline(admin.TabularInline):
     extra = 0
     can_delete = True
     show_change_link = True
-    fields = ("first_name", "last_name", "amount_due_remaining", "is_payed")
+    fields = ("first_name", "last_name", "birthday", "amount_due_remaining", "is_payed")
     readonly_fields = ("amount_due", "amount_due_remaining")
 
 
 @admin.register(Signup)
-class SignupAmin(admin.ModelAdmin):
+class SignupAmin(DjangoObjectActions, admin.ModelAdmin):
     inlines = [ParticipantInline]
     search_fields = ("owner__first_name", "owner__last_name", "owner__email")
     autocomplete_fields = ["owner"]
     list_display = ("id", "owner", "status", "is_payed", "amount_due")
+    fields = (
+        "owner",
+        "status",
+        "amount_due",
+        "validated_at",
+        "on_hold_at",
+        "cancelled_at",
+        "comments",
+    )
+    readonly_fields = (
+        "status",
+        "amount_due",
+        "validated_at",
+        "cancelled_at",
+        "on_hold_at",
+    )
+
+    change_actions = (
+        "recalculate_amounts",
+        "validate_signup",
+        "cancel_signup",
+        "put_on_hold_signup",
+    )
+
+    def get_change_actions(self, request, object_id, form_url):
+        if object_id is not None:
+            signup = Signup.objects.get(pk=object_id)
+            if signup.status == "waiting payment" or signup.status == "payed":
+                return [
+                    "cancel_signup",
+                    "put_on_hold_signup",
+                    "recalculate_amounts",
+                ]
+            elif signup.status == "on hold":
+                return [
+                    "validate_signup",
+                    "cancel_signup",
+                ]
+            else:
+                return [
+                    "validate_signup",
+                ]
+
+    @action(description="Recalculate amounts")
+    def recalculate_amounts(self, request, signup):
+        signup.calculate_amounts()
+        messages.success(request, "Amounts have been recalculated.")
+        return redirect("admin:reunion_signup_change", signup.id)
+
+    @action(description="validate")
+    def validate_signup(self, request, signup):
+        if signup.validated_at:
+            messages.warning(request, "This signup was already validated.")
+        signup.validated_at = timezone.now()
+        signup.calculate_amounts()
+        signup.on_hold_at = None  # Remove on-hold status
+        signup.cancelled_at = None  # Remove cancelled status
+        signup.cancelled_reason = None
+        signup.comments += f"Signup validated by {request.user.username}.\n\n"
+        signup.save()
+        return redirect("admin:reunion_signup_change", signup.id)
+
+    @action(description="cancel signup")
+    def cancel_signup(self, request, signup):
+        signup.cancelled_at = timezone.now()
+        signup.comments += f"Signup cancelled by {request.user.username}."
+        signup.save()
+        messages.success(request, f"Signup #{signup.id} has been cancelled.\n\n")
+        return redirect("admin:reunion_signup_changelist")
+
+    @action(description="Put signup on hold")
+    def put_on_hold_signup(self, request, signup):
+        signup.on_hold_at = timezone.now()
+        signup.cancelled_at = None  # Remove cancelled status
+        signup.comments += f"Signup put on hold by {request.user.username}.\n\n"
+        signup.save()
+        messages.success(request, f"Signup #{signup.id} has been put on hold.")
+        return redirect("admin:reunion_signup_change", signup.id)
 
     def status(self, obj: Signup):
         return obj.status

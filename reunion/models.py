@@ -41,7 +41,7 @@ class SignupQuerySet(models.QuerySet):
                 status=Case(
                     When(cancelled_at__isnull=False, then=Value("cancelled")),
                     When(validated_at__isnull=True, then=Value("pending")),
-                    When(on_hold__isnull=False, then=Value("on hold")),
+                    When(on_hold_at__isnull=False, then=Value("on hold")),
                     When(amount_due__lte=Value(0), then=Value("payed")),
                     default=Value("waiting payment"),
                 ),
@@ -76,21 +76,9 @@ class Signup(models.Model):
     last_updated_at = models.DateTimeField(auto_now=True)
     validated_at = models.DateTimeField(null=True, blank=True)
     payment_confirmation_sent_at = models.DateTimeField(null=True, blank=True)
+    on_hold_at = models.DateTimeField(null=True, blank=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
-    cancelled_reason = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text="Reason for cancelling the signup.",
-    )
-
-    # On-hold: store a reason or be empty
-    on_hold = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text="Reason for putting the signup on hold.",
-    )
+    comments = models.TextField(_("Commentaires"), blank=True)
 
     def __str__(self) -> str:
         return f"Signup #{self.pk} - {self.owner}"
@@ -108,6 +96,20 @@ class Signup(models.Model):
         if nb_of_participants > 200:
             self.on_hold = "TOO_MANY_PARTICIPANTS"
         return False
+
+    def calculate_amounts(self):
+        for participant in self.participants_set.all().order_by("birthday"):
+            age = participant.age_at_reunion()
+            if age >= 18:
+                participant.amount_due_calculated = 25
+            elif age >= 12:
+                participant.amount_due_calculated = 15
+            elif age >= 6:
+                participant.amount_due_calculated = 10
+            else:
+                participant.amount_due_calculated = 0
+            participant.save()
+        return
 
 
 class Participant(models.Model):
@@ -170,26 +172,6 @@ class Participant(models.Model):
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}- signup {self.signup_id}"
-
-    def refresh_payment_state(self, save: bool = True) -> None:
-        """
-        Recompute is_payed based on amounts.
-        """
-        due = (
-            self.amount_due_modified
-            if self.amount_due_modified is not None
-            else (self.amount_due_calculated or Decimal("0.00"))
-        )
-        self.is_payed = (self.amount_payed or Decimal("0.00")) >= (
-            due or Decimal("0.00")
-        )
-        if save:
-            self.save(update_fields=["is_payed"])
-
-    def save(self, *args, **kwargs):
-        # Keep is_payed in sync automatically
-        self.refresh_payment_state(save=False)
-        super().save(*args, **kwargs)
 
     def age_at_reunion(self):
         last_day = date(2025, 10, 3)
