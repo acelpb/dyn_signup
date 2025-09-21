@@ -104,8 +104,14 @@ class OperationValidation(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=False
     )
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
-    object_id = models.PositiveIntegerField(null=True)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True
+    )
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    event = GenericForeignKey(
+        "content_type",
+        "object_id",
+    )
     event = GenericForeignKey()
     validation_type = models.IntegerField(
         choices=[

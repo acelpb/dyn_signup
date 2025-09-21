@@ -57,28 +57,6 @@ class OperationValidationAdmin(admin.ModelAdmin):
     event_link.short_description = "Payment purpose"
 
 
-# @admin.register(SignupOperation)
-# class InscriptionValidationAdmin(admin.ModelAdmin):
-#     list_display = (
-#         'id',
-#         'operation',
-#         'amount',
-#         'signup_group',
-#     )
-#
-#     def get_readonly_fields(self, request, obj=None):
-#         if obj:
-#             return ['operation', 'amount', 'event']
-#         else:
-#             return super().get_readonly_fields(request, obj)
-#
-#     def get_form(self, request, obj=None, change=False, **kwargs):
-#         return SignupOperationForm
-#
-#     def signup_group(self, instance):
-#         return instance.object_id
-
-
 # @admin.register(Justification)
 class JustificationAdmin(admin.ModelAdmin):
     list_display = (
