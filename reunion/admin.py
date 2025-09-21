@@ -1,20 +1,19 @@
 from django.contrib import admin, messages
+from django.contrib.admin import SimpleListFilter
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 from django_object_actions import DjangoObjectActions, action
 from import_export.admin import ExportMixin
 
 from accounts.models import OperationValidation
 
 from .models import (
-    CancelledParticipant,
     Participant,
     Signup,
-    UnconfirmedParticipant,
-    ValidatedParticipant,
 )
 
 
@@ -45,11 +44,45 @@ class ParticipantInline(admin.TabularInline):
     can_delete = True
     show_change_link = True
     fields = ("first_name", "last_name", "birthday", "amount_due_remaining", "is_payed")
-    readonly_fields = ("amount_due", "amount_due_remaining")
+    readonly_fields = ("amount_due_remaining", "is_payed")
+
+    def amount_due_remaining(self, obj: Participant):
+        return obj.amount_due_remaining
+
+    amount_due_remaining.admin_order_field = "amount_due_remaining"
+    amount_due_remaining.short_description = "amount due remaining"
+
+    def is_payed(self, obj: Participant):
+        return obj.is_payed
+
+    is_payed.admin_order_field = "is_payed"
+    is_payed.boolean = True
+    is_payed.short_description = "Payed"
+
+
+class CanBePayedAdminMixin(admin.ModelAdmin):
+    def status(self, obj: Signup):
+        return obj.status
+
+    status.admin_order_field = "status"
+    status.short_description = "Status"
+
+    def is_payed(self, obj: Signup):
+        return obj.is_payed
+
+    is_payed.admin_order_field = "is_payed"
+    is_payed.boolean = True
+    is_payed.short_description = "Payed"
+
+    def amount_due(self, obj: Signup):
+        return obj.amount_due
+
+    amount_due.admin_order_field = "amount_due"
+    amount_due.short_description = "amount due remaining"
 
 
 @admin.register(Signup)
-class SignupAmin(DjangoObjectActions, admin.ModelAdmin):
+class SignupAmin(DjangoObjectActions, CanBePayedAdminMixin, admin.ModelAdmin):
     inlines = [ParticipantInline]
     search_fields = ("owner__first_name", "owner__last_name", "owner__email")
     autocomplete_fields = ["owner"]
@@ -153,11 +186,53 @@ class SignupAmin(DjangoObjectActions, admin.ModelAdmin):
     amount_due.short_description = "amount due remaining"
 
 
+class StatusFilter(SimpleListFilter):
+    title = _("Status")
+    parameter_name = "status"
+
+    def lookups(self, request, model_admin):
+        return (
+            (None, _("Validated")),
+            ("payed", _("Payed")),
+            ("payment_needed", _("Awaiting payment")),
+            ("pending", _("Pending validation")),
+            ("on hold", _("On hold")),
+            ("cancelled", _("Cancelled")),
+            ("all", _("Absolument tout")),
+        )
+
+    def queryset(self, request, queryset):
+        filters = {
+            None: {"status__in": ["waiting payment", "payed"]},
+            "payed": {"is_payed": True},
+            "payment_needed": {"status": "waiting payment"},
+            "pending": {"status": "pending"},
+            "on hold": {"status": "on hold"},
+            "cancelled": {"status": "cancelled"},
+            "all": {},
+        }
+        return queryset.distinct().filter(**filters[self.value()])
+
+
 @admin.register(Participant)
-class ParticipantAmin(admin.ModelAdmin):
+class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
+    list_display = (
+        "id",
+        "first_name",
+        "last_name",
+        "signup_link",
+        "status",
+        "amount_due",
+        "is_payed",
+        "email",
+        "is_payed",
+    )
+    list_filter = (StatusFilter,)
+
+    search_fields = ("first_name", "last_name", "email")
     inlines = [PaymentInline]
     autocomplete_fields = ["signup"]
-    readonly_fields = ("amount_due_calculated",)
+    readonly_fields = ("is_payed", "amount_due", "amount_due_calculated")
     fieldsets = (
         (
             None,
@@ -181,30 +256,6 @@ class ParticipantAmin(admin.ModelAdmin):
         ),
     )
 
-
-# Admin classes that now rely on the proxy models' default managers
-@admin.register(ValidatedParticipant)
-class ValidatedParticipantAdmin(ExportMixin, admin.ModelAdmin):
-    list_display = (
-        "id",
-        "first_name",
-        "last_name",
-        "email",
-        "signup_link",
-        "is_helping_friday",
-        "is_helping_saturday_morning",
-        "is_helping_saturday_evening",
-        "is_payed",
-    )
-    search_fields = ("first_name", "last_name", "email")
-    list_filter = (
-        "is_helping_friday",
-        "is_helping_saturday_morning",
-        "is_helping_saturday_evening",
-        "is_payed",
-    )
-    inlines = [PaymentInline]
-
     def signup_link(self, obj):
         signup: Signup = obj.signup
         link = "<a href={}>{}</a>".format(
@@ -219,46 +270,3 @@ class ValidatedParticipantAdmin(ExportMixin, admin.ModelAdmin):
         return mark_safe(link)
 
     signup_link.short_description = "Signup"
-
-
-@admin.register(UnconfirmedParticipant)
-class UnconfirmedParticipantAdmin(admin.ModelAdmin):
-    list_display = ("id", "first_name", "last_name", "email", "signup", "signup_status")
-    search_fields = ("first_name", "last_name", "email")
-
-    def signup_status(self, obj):
-        return obj.signup.status
-
-    signup_status.short_description = "Signup status"
-
-
-@admin.register(CancelledParticipant)
-class CancelledParticipantAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "first_name",
-        "last_name",
-        "email",
-        "signup",
-        "signup_status",
-        "participant_cancelled",
-        "signup_cancelled",
-    )
-    search_fields = ("first_name", "last_name", "email")
-
-    def signup_status(self, obj):
-        return obj.signup.status
-
-    signup_status.short_description = "Signup status"
-
-    def participant_cancelled(self, obj):
-        return obj.cancelled_at is not None
-
-    participant_cancelled.boolean = True
-    participant_cancelled.short_description = "Participant cancelled"
-
-    def signup_cancelled(self, obj):
-        return obj.signup.cancelled_at is not None
-
-    signup_cancelled.boolean = True
-    signup_cancelled.short_description = "Signup cancelled"

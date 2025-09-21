@@ -1,5 +1,5 @@
 from datetime import date
-from decimal import Decimal
+from functools import cached_property
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
@@ -112,7 +112,50 @@ class Signup(models.Model):
         return
 
 
+class ParticipantQuerySet(models.QuerySet):
+    def with_amounts(self):
+        return (
+            self.annotate(
+                amount_due=Coalesce(
+                    "amount_due_modified",
+                    "amount_due_calculated",
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
+                amount_payed=Coalesce(
+                    Sum("payments__amount"),
+                    Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
+                cancelled=Q(cancelled_at__isnull=False)
+                | Q(signup__cancelled_at__isnull=False),
+            )
+            .annotate(
+                amount_due_remaining=F("amount_due") - F("amount_payed"),
+            )
+            .annotate(
+                status=Case(
+                    When(cancelled=True, then=Value("cancelled")),
+                    When(signup__validated_at__isnull=True, then=Value("pending")),
+                    When(signup__on_hold_at__isnull=False, then=Value("on hold")),
+                    When(amount_due__lte=Value(0), then=Value("payed")),
+                    default=Value("waiting payment"),
+                ),
+                is_payed=Case(
+                    When(amount_due_remaining__lte=Value(0), then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
+        )
+
+
+class ParticipantManager(models.Manager.from_queryset(ParticipantQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().with_amounts()
+
+
 class Participant(models.Model):
+    objects = ParticipantManager()
     signup = models.ForeignKey(
         Signup,
         on_delete=models.CASCADE,
@@ -153,22 +196,23 @@ class Participant(models.Model):
     amount_due_calculated = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
     )
-    amount_payed = models.DecimalField(
-        max_digits=10, decimal_places=2, default=Decimal("0.00")
-    )
-
-    amount_due_remaining = models.GeneratedField(
-        expression=Coalesce(F("amount_due_modified"), F("amount_due_calculated"))
-        - F("amount_payed"),
-        output_field=DecimalField(max_digits=10, decimal_places=2),
-        db_persist=False,
-    )
-    is_payed = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     cancelled_at = models.DateTimeField(null=True, blank=True)
 
     payments = GenericRelation(OperationValidation)
+
+    @cached_property
+    def amount_due(self):
+        return self.amount_due_modified or self.amount_due_calculated
+
+    @cached_property
+    def amoount_payed(self):
+        return self.payments.agg(amount=Sum("amount")).get("amount__sum") or 0
+
+    @cached_property
+    def is_payed(self):
+        return (self.amount_due_calculated - self.amoount_payed) <= 0
 
     def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}- signup {self.signup_id}"
@@ -180,18 +224,6 @@ class Participant(models.Model):
             last_day.year
             - birthday.year
             - ((last_day.month, last_day.day) < (birthday.month, birthday.day))
-        )
-
-    @property
-    def amount_due(self) -> Decimal:
-        """
-        Coalesce: use sum of modified amounts when at least one is provided,
-        otherwise use the calculated sum.
-        """
-        return (
-            self.amount_due_modified
-            if self.amount_due_modified is not None
-            else self.amount_due_calculated
         )
 
 
