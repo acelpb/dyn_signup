@@ -80,6 +80,12 @@ class CanBePayedAdminMixin(admin.ModelAdmin):
         return obj.amount_due
 
     amount_due.admin_order_field = "amount_due"
+    amount_due.short_description = "amount due"
+
+    def amount_due_remaining(self, obj: Signup):
+        return obj.amount_due_remaining
+
+    amount_due.admin_order_field = "amount_due_remaining"
     amount_due.short_description = "amount due remaining"
 
 
@@ -245,7 +251,8 @@ class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
         "last_name",
         "signup_link",
         "status",
-        "amount_due",
+        "age",
+        "amount_due_remaining",
         "is_payed",
         "email",
         "is_payed",
@@ -255,7 +262,14 @@ class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
     search_fields = ("first_name", "last_name", "email")
     inlines = [PaymentInline]
     autocomplete_fields = ["signup"]
-    readonly_fields = ("is_payed", "amount_due", "amount_due_calculated")
+    readonly_fields = (
+        "is_payed",
+        "amount_due_remaining",
+        "amount_due_calculated",
+        "amount_due_remaining",
+        "age",
+        "amount_due",
+    )
     fieldsets = (
         (
             None,
@@ -265,6 +279,7 @@ class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
                     "first_name",
                     "last_name",
                     "amount_due",
+                    "amount_due_modified",
                     "is_payed",
                     "email",
                     "phone",
@@ -296,3 +311,9 @@ class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
         return mark_safe(link)
 
     signup_link.short_description = "Signup"
+
+    def age(self, obj: Participant):
+        return obj.age
+
+    age.admin_order_field = "age"
+    age.short_description = "Age"
