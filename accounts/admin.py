@@ -1,7 +1,10 @@
 from datetime import datetime
 
-from django.contrib import admin
+from django.conf import settings
+from django.contrib import admin, messages
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail import send_mail
 from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
 from django.urls import reverse
 from django.utils.html import format_html
@@ -109,6 +112,7 @@ class ExpenseReportAdmin(admin.ModelAdmin):
     )
     list_filter = ("submitted_date", "signed", "validated")
     readonly_fields = ("total",)
+    autocomplete_fields = ["beneficiary"]
     fields = (
         "total",
         "iban",
@@ -152,6 +156,83 @@ class ExpenseReportAdmin(admin.ModelAdmin):
         else:
             return self.fields
 
+    def response_add(self, request, obj, post_url_continue=None):
+        self._email_treasurers(request, obj)
+        return super().response_add(request, obj, post_url_continue)
+
+    def _email_treasurers(self, request, obj: ExpenseReport):
+        group = Group.objects.filter(name="Trésorier").first()
+        if not group:
+            self.message_user(
+                request,
+                "No 'Trésorier' group found. No email sent.",
+                level=messages.WARNING,
+            )
+            return
+
+        emails = (
+            group.user_set.filter(is_active=True)
+            .exclude(email__isnull=True)
+            .exclude(email__exact="")
+            .values_list("email", flat=True)
+        )
+        recipient_list = sorted(set(emails))
+        if not recipient_list:
+            self.message_user(
+                request,
+                "No active recipients in 'Trésorier' group. No email sent.",
+                level=messages.WARNING,
+            )
+            return
+
+        subject = f"New expense report: {obj}"
+
+        beneficiary = obj.beneficiary
+        if beneficiary and hasattr(beneficiary, "get_full_name"):
+            who = (
+                beneficiary.get_full_name()
+                or getattr(beneficiary, "email", "")
+                or "unknown user"
+            )
+        else:
+            who = (
+                getattr(beneficiary, "email", "")
+                or getattr(beneficiary, "username", "unknown user")
+                if beneficiary
+                else "unknown user"
+            )
+
+        try:
+            change_url = reverse("admin:accounts_expensereport_change", args=[obj.pk])
+            link = request.build_absolute_uri(change_url)
+        except Exception:
+            link = None
+
+        lines = [
+            "Hello,",
+            "",
+            "A new expense report has been added.",
+            f"Title: {obj.title}",
+            f"ID: {obj.pk}",
+            f"Beneficiary: {who}",
+            f"Total: {obj.total}",
+        ]
+        if link:
+            lines.append(f"Admin link: {link}")
+
+        message = "\n".join(lines)
+        from_email = settings.DEFAULT_FROM_EMAIL
+
+        try:
+            send_mail(subject, message, from_email, recipient_list, fail_silently=True)
+        except Exception:
+            # Only notify user if there is an issue.
+            self.message_user(
+                request,
+                "Failed to send email to the 'Trésorier' group.",
+                level=messages.WARNING,
+            )
+
     def save_model(self, request, obj, form, change):
         if not obj.pk:
             # Only set added_by during the first save.
@@ -167,7 +248,10 @@ class ExpenseReportAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        if request.user.is_superuser:
+        if (
+            request.user.groups.filter(name="Trésorier").exists()
+            or request.user.is_superuser
+        ):
             return qs
 
         return qs.filter(Q(beneficiary=request.user))
