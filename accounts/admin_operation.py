@@ -338,7 +338,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
         if reunion_signup.validated_at is None:
             messages.error(request, f"Reunion signup {reunion_id} is not validated")
             raise Http404("Signup is not validated")
-        if reunion_signup.on_hold:
+        if reunion_signup.on_hold_at is not None:
             messages.error(request, f"Reunion signup {reunion_id} is on hold.")
             raise Http404("Signup is on hold.")
 
