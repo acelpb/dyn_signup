@@ -1,4 +1,5 @@
 # Create your views here.
+import datetime
 from pprint import pprint
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -19,10 +20,13 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
     template_name = "account_details.html"
 
     def get_context_data(self, **kwargs):
+        start_date = datetime.date(2025, 2, 1)
+        end_date = datetime.date(2026, 1, 1)
         movement_details = {
             validation_type: total
             for validation_type, total in OperationValidation.objects.filter(
-                operation__date__gte="2025-02-01",
+                operation__date__gte=start_date,
+                operation__date__lt=end_date,
             )
             .values("validation_type")
             .annotate(year_sum=Sum("amount"))
@@ -77,7 +81,7 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
                     Q(_justified_amount__exact=0), output_field=BooleanField()
                 ),
             )
-            .filter(date__year__gte=2024, _justified__isnull=True)
+            .filter(date__gte=start_date, date__lt=end_date, _justified__isnull=True)
         )
         kwargs["positive_pending_transactions"] = pending_operations.filter(
             amount__gt=0
