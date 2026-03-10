@@ -1,17 +1,117 @@
 {% extends "base.html" %}
 {% load humanize %}
-
+{% block navbar %}{% endblock %}
 {% block content %}
     <div class="row">
         <div class="col-md-2 col-lg-2"></div>
         <div class="col-sm-12 col-md-8 col-lg-8 ">
-
+            <div class="mb-4">
+                <div class="text-start">
+                    <div>Dynamobile ASBL</div>
+                    <div>N° d'entreprise 0465.274.752</div>
+                </div>
+                <h2 class="text-center mt-3 mb-1">Comptes annuels</h2>
+                {% if year %}
+                    <div class="text-center">Exercice comptable {{ year }}</div>
+                {% endif %}
+            </div>
             <h2>Reste a justifier</h2>
             <p>Un total de {{ positive_pending_transactions|floatformat:2|intcomma }} € en rentrée</p>
             <p>Un total de {{ negative_pending_transactions|floatformat:2|intcomma }} € en dépense</p>
+            <h2>A Etat du patrimoine</h2>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="2" width="70%">Avoirs</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Immeubles appartenant à l'association en pleine propriété</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Machines, installations et outillage appartenant à l'association en pleine propriété</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Mobilier et matériel roulant appartenant à l'association en pleine propriété</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Stocks</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Créances</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Placements de trésorerie</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Valeurs disponibles</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Autres avoirs</td><td>0.00 €</td>
+                    </tr>
+                    <tr><td colspan="2">&nbsp;</td></tr>
+                    <tr>
+                        <th colspan="2">Droits</th>
+                    </tr>
+                    <tr>
+                        <td>Subsides promis</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Dons promis</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Autres droits</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">TOTAL DES AVOIRS</td><td class="fw-bold">0.00 €</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th colspan="2" width="70%">Dettes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Dettes financières</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Dettes à l'égard de fournisseurs</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Dettes à l'égard des membres</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Dettes relatives aux impôts, rémunérations et charges sociales</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Autres dettes</td><td>0.00 €</td>
+                    </tr>
+                    <tr><td colspan="2">&nbsp;</td></tr>
+                    <tr>
+                        <th colspan="2">Engagements</th>
+                    </tr>
+                    <tr>
+                        <td>Hypothèques et promesses d'hypothèque</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Garanties données</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td>Autres engagements</td><td>0.00 €</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">TOTAL DES DETTES</td><td class="fw-bold">0.00 €</td>
+                    </tr>
+                </tbody>
+            </table>
+
 
             <h2>B Etat des dépenses et recettes</h2>
-            <table class="table">
+            <table class="table table-sm">
                 <thead>
                     <tr>
                         <tr></tr>

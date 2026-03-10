@@ -1,6 +1,5 @@
 # Create your views here.
 import datetime
-from pprint import pprint
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
@@ -15,13 +14,16 @@ from accounts.models import (
 )
 
 
-class AccountsDetailView(PermissionRequiredMixin, TemplateView):
+class AnnualAccountsView(PermissionRequiredMixin, TemplateView):
     permission_required = "is_superuser"
     template_name = "account_details.html"
 
     def get_context_data(self, **kwargs):
-        start_date = datetime.date(2025, 2, 1)
-        end_date = datetime.date(2026, 1, 1)
+        # Year is passed via URL. Calendar year: Jan 1 of <year> to Jan 1 of <year + 1> (exclusive)
+        year = int(self.kwargs.get("year"))
+        start_date = datetime.date(year, 1, 1)
+        end_date = datetime.date(year + 1, 1, 1)
+
         movement_details = {
             validation_type: total
             for validation_type, total in OperationValidation.objects.filter(
@@ -32,7 +34,6 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
             .annotate(year_sum=Sum("amount"))
             .values_list("validation_type", "year_sum")
         }
-        pprint(movement_details)
 
         charges = (
             ("60", "APPROVISIONNEMENTS ET MARCHANDISES"),
@@ -90,16 +91,10 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
             amount__lt=0
         ).aggregate(total=Sum("amount"))["total"]
         kwargs["total"] = kwargs["total_incomes"] + kwargs["total_spends"]
+        kwargs["year"] = year
+        # Display period as 01/01/<year> → 31/12/<year>
+        period_end_display = datetime.date(year, 12, 31)
+        kwargs["period"] = (
+            f"{start_date.strftime('%d/%m/%Y')} → {period_end_display.strftime('%d/%m/%Y')}"
+        )
         return kwargs
-
-
-# %%
-toto = {
-    k: v
-    for k, v in Operation.objects.filter(
-        date__year__in=[2024, 2025], account__IBAN="BE96001951747205"
-    )
-    .values("operationvalidation__validation_type")
-    .annotate(year_sum=Sum("amount"))
-    .values_list("operationvalidation__validation_type", "year_sum")
-}

@@ -14,3 +14,8 @@ A Dockerfile is generated
 
 Testing should be done using pytest-bdd.
 Coverage must be at least 80%
+
+
+# Commits
+
+Use standard SemVer specifications for committing changes
