@@ -1,5 +1,5 @@
 # Create your views here.
-from pprint import pprint
+import datetime
 
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
@@ -14,21 +14,26 @@ from accounts.models import (
 )
 
 
-class AccountsDetailView(PermissionRequiredMixin, TemplateView):
+class AnnualAccountsView(PermissionRequiredMixin, TemplateView):
     permission_required = "is_superuser"
     template_name = "account_details.html"
 
     def get_context_data(self, **kwargs):
+        # Year is passed via URL. Calendar year: Jan 1 of <year> to Jan 1 of <year + 1> (exclusive)
+        year = int(self.kwargs.get("year"))
+        start_date = datetime.date(year, 1, 1)
+        end_date = datetime.date(year + 1, 1, 1)
+
         movement_details = {
             validation_type: total
             for validation_type, total in OperationValidation.objects.filter(
-                operation__date__gte="2025-02-01",
+                operation__date__gte=start_date,
+                operation__date__lt=end_date,
             )
             .values("validation_type")
             .annotate(year_sum=Sum("amount"))
             .values_list("validation_type", "year_sum")
         }
-        pprint(movement_details)
 
         charges = (
             ("60", "APPROVISIONNEMENTS ET MARCHANDISES"),
@@ -77,7 +82,7 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
                     Q(_justified_amount__exact=0), output_field=BooleanField()
                 ),
             )
-            .filter(date__year__gte=2024, _justified__isnull=True)
+            .filter(date__gte=start_date, date__lt=end_date, _justified__isnull=True)
         )
         kwargs["positive_pending_transactions"] = pending_operations.filter(
             amount__gt=0
@@ -86,16 +91,10 @@ class AccountsDetailView(PermissionRequiredMixin, TemplateView):
             amount__lt=0
         ).aggregate(total=Sum("amount"))["total"]
         kwargs["total"] = kwargs["total_incomes"] + kwargs["total_spends"]
+        kwargs["year"] = year
+        # Display period as 01/01/<year> → 31/12/<year>
+        period_end_display = datetime.date(year, 12, 31)
+        kwargs["period"] = (
+            f"{start_date.strftime('%d/%m/%Y')} → {period_end_display.strftime('%d/%m/%Y')}"
+        )
         return kwargs
-
-
-# %%
-toto = {
-    k: v
-    for k, v in Operation.objects.filter(
-        date__year__in=[2024, 2025], account__IBAN="BE96001951747205"
-    )
-    .values("operationvalidation__validation_type")
-    .annotate(year_sum=Sum("amount"))
-    .values_list("operationvalidation__validation_type", "year_sum")
-}

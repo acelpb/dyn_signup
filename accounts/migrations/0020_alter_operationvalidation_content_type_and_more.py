@@ -12,26 +12,32 @@ def create_group_and_assign_users(apps, schema_editor):
     # Use the swappable user model
     group, _ = Group.objects.get_or_create(name="Trésorier")
 
-    # ContentTypes for Operation
-    op_ct = ContentType.objects.get(app_label="accounts", model="operation")
-    # Trésorier can view and modify opearations
-    view_operation = Permission.objects.get(
-        codename="view_operation", content_type=op_ct
+    # Be resilient during migrations: ensure required ContentTypes exist, even if
+    # the automatic post_migrate population hasn't run yet.
+    op_ct, _ = ContentType.objects.get_or_create(
+        app_label="accounts", model="operation"
     )
-    group.permissions.add(view_operation)
 
-    change_operation = Permission.objects.get(
+    # Trésorier can view and modify operations (only if permissions exist yet)
+    view_perm = Permission.objects.filter(
+        codename="view_operation", content_type=op_ct
+    ).first()
+    if view_perm:
+        group.permissions.add(view_perm)
+
+    change_perm = Permission.objects.filter(
         codename="change_operation", content_type=op_ct
-    )
-    group.permissions.add(change_operation)
+    ).first()
+    if change_perm:
+        group.permissions.add(change_perm)
 
     # Can do everything for OperationValidation, note de frais, bills
     for model in ["operationvalidation", "bill", "expensereport"]:
-        opv_ct = ContentType.objects.get(app_label="accounts", model=model)
+        opv_ct, _ = ContentType.objects.get_or_create(app_label="accounts", model=model)
         for perm in Permission.objects.filter(content_type=opv_ct):
             group.permissions.add(perm)
 
-    # can View Participants and Signup Groups
+    # can View Participants and Signup Groups (add if present)
     for perm in Permission.objects.filter(codename="view_participant"):
         group.permissions.add(perm)
     for perm in Permission.objects.filter(codename="view_signup"):

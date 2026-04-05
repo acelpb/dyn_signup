@@ -36,12 +36,29 @@ dev = [
     "django-debug-toolbar>=6.0.0",
 ]
 
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "dynasignup.settings"
-addopts = "--reuse-db --driver Chrome"
-
 [tool.ruff]
 fix = true
 
 [tool.ruff.lint]
 extend-select = ["I", "B", "Q"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "dynasignup.settings"
+bdd_features_base_dir = "tests/features/"
+FAIL_INVALID_TEMPLATE_VARS = true
+django_debug_mode = false
+addopts = "--reuse-db --driver Chrome --cov-report=term --cov=."
+
+[tool.coverage.run]
+source = [
+    "accounts/",
+    "dynasignup/",
+    "newsletter/",
+    "reunion/",
+    "signup2023/",
+]
+
+omit = [
+    "*/migrations/*",
+    "tests/*",
+]

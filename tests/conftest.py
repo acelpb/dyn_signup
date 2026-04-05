@@ -2,8 +2,6 @@ import pytest
 from django.conf import settings
 from model_bakery import baker
 from pytest_bdd import given
-import pytest
-
 
 
 @given(name="a participant", target_fixture="participant")
@@ -19,14 +17,17 @@ def admin(admin_user):
 
 @pytest.fixture(name="staff")
 def staff(django_user_model):
-    staff_user = django_user_model.objects.create_user(username="staff", password="something")
+    staff_user = django_user_model.objects.create_user(
+        username="staff", password="something"
+    )
     staff_user.is_staff = True
     staff_user.save()
     return staff_user
 
+
 @pytest.fixture
 def selenium(selenium):
-    selenium.implicitly_wait(10)
+    selenium.implicitly_wait(2)
     selenium.maximize_window()
     return selenium
 
@@ -48,6 +49,7 @@ def use_dummy_cache_backend(settings):
         },
     }
     settings.MIDDLEWARE = [
-        x for x in settings.MIDDLEWARE
+        x
+        for x in settings.MIDDLEWARE
         if x != "whitenoise.middleware.WhiteNoiseMiddleware"
     ]

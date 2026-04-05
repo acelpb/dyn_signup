@@ -1,5 +1,7 @@
 from django.urls import path
 
-from .views import AccountsDetailView
+from .views import AnnualAccountsView
 
-urlpatterns = [path("accountDetails", AccountsDetailView.as_view())]
+urlpatterns = [
+    path("annual/<int:year>/", AnnualAccountsView.as_view(), name="annual_accounts"),
+]

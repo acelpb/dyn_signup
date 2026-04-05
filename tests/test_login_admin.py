@@ -1,10 +1,6 @@
-import time
-
-import pytest
 from tests.pages.login_page import LoginPage
 
 
-@pytest.mark.login
 def test_login_functionality(selenium, live_server, admin_user):
     """
     Test the login functionality of the Practice Test Automation website
