@@ -413,7 +413,11 @@ class Bill(models.Model):
                         description += f"(partiel) {upfront_price} + {all_days_price} / 8 * {nb_days} "
 
                     if age < 18:
-                        child_reduction = min(0.5, 0.25 * child_nb)
+                        child_reduction = 0
+                        if child_nb == 1:
+                            child_reduction = 0.25
+                        elif child_nb >= 2:
+                            child_reduction = 0.50
                         price *= 1 - child_reduction
                         child_nb += 1
                         description += (

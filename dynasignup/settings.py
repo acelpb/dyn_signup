@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.humanize",
     "whitenoise",
+    "sass_processor",
     "crispy_forms",
     "crispy_bootstrap5",
     "magiclink",
@@ -109,12 +110,24 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
-                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.static",
             ],
         },
     },
+]
+
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+    "sass_processor.finders.CssFinder",
+]
+
+SASS_PROCESSOR_ROOT = Path(BASE_DIR) / "static"
+SASS_PROCESSOR_INCLUDE_DIRS = [
+    Path(BASE_DIR) / "static/scss",
 ]
 
 WSGI_APPLICATION = "dynasignup.wsgi.application"
@@ -199,16 +212,16 @@ SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
 brussels_tz = zoneinfo.ZoneInfo("Europe/Brussels")
 
 DYNAMOBILE_START_SIGNUP = parse_datetime(
-    config("DYNAMOBILE_START_SIGNUP", default="2025-04-22 20:00:00")
+    config("DYNAMOBILE_START_SIGNUP", default="2026-04-22 20:00:00")
 ).replace(tzinfo=brussels_tz)
-DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2025-05-22 17:00:00").replace(
+DYNAMOBILE_START_PARTIAL_SIGNUP = parse_datetime("2026-05-22 17:00:00").replace(
     tzinfo=brussels_tz
 )
-DYNAMOBILE_END_SIGNUP = parse_datetime("2025-07-18 17:00:00").replace(
+DYNAMOBILE_END_SIGNUP = parse_datetime("2026-07-17 10:00:00").replace(
     tzinfo=brussels_tz
 )
-DYNAMOBILE_FIRST_DAY = parse_date("2025-07-18")
-DYNAMOBILE_LAST_DAY = parse_date("2025-07-26")
+DYNAMOBILE_FIRST_DAY = parse_date("2026-07-17")
+DYNAMOBILE_LAST_DAY = parse_date("2026-07-25")
 
 DYNAMOBILE_DAYS = [
     (day, day.strftime("%Y-%m-%d"))
@@ -220,7 +233,7 @@ DYNAMOBILE_DAYS = [
 
 # We reserve the right to accept up to 150 people on a case by case basis
 DYNAMOBILE_MAX_PARTICIPANTS = config(
-    "DYNAMOBILE_MAX_PARTICIPANTS", default=110, cast=int
+    "DYNAMOBILE_MAX_PARTICIPANTS", default=120, cast=int
 )
 # We reserve the right to accept up to 25 people on a case by case basis
 DYNAMOBILE_MAX_VAE_PARTICIPANTS = config(
@@ -231,8 +244,8 @@ DYNAMOBILE_PRICES = (
     (0, 2, 0, 0),
     (2, 6, 100, 10),
     (6, 12, 190, 30),
-    (12, 18, 305, 40),
-    (18, 999, 400, 50),
+    (12, 18, 315, 40),
+    (18, 999, 415, 50),
 )
 
 

@@ -3,10 +3,10 @@ from datetime import date, datetime
 
 
 class DateConverter:
-    regex = "2022-07-[0-9]{2}"
+    regex = "2026-07-[0-9]{2}"
 
     def to_python(self, value):
-        return datetime.strptime("2022-07-18", "%Y-%m-%d").date()
+        return datetime.strptime("2026-07-17", "%Y-%m-%d").date()
 
     def to_url(self, value):
         if isinstance(value, datetime):

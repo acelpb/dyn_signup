@@ -10,13 +10,15 @@
         {% endblock %}
         {% block style %}
         <!-- Bootstrap CSS -->
-            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+            {% load static sass_tags %}
+            <link href="{% sass_src 'scss/custom_bootstrap.scss' %}" rel="stylesheet" type="text/css" />
         {% endblock %}
         <title>{% block title %}Inscriptions!{% endblock %}</title>
+        {% include 'partials/version.html' %}
     </head>
     <body>
         {% block navbar %}
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <nav class="navbar navbar-expand-lg">
                 <div class="container">
                     <a class="navbar-brand" href="https://dynamobile.net">Dynamobile</a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
