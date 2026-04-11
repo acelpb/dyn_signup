@@ -128,13 +128,12 @@ STATICFILES_FINDERS = [
 SASS_PROCESSOR_ROOT = BASE_DIR / "static_src"
 SASS_PROCESSOR_INCLUDE_DIRS = [
     BASE_DIR / "static_src/scss",
-    BASE_DIR / "node_modules",
 ]
 
 WSGI_APPLICATION = "dynasignup.wsgi.application"
 
 # Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+# https://docs.djangoproject.com/en/3.2/re  f/settings/#databases
 
 DATABASES = {
     "default": {
@@ -176,7 +175,7 @@ STORAGES = {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 STATIC_ROOT = BASE_DIR / "static"
