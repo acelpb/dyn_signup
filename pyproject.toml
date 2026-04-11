@@ -21,6 +21,7 @@ dependencies = [
     "schwifty>=2025.1.0",
     "crispy-bootstrap5>=2025.4",
     "django-sass-processor>=1.4.2",
+    "django-compressor>=4.6.0",
 ]
 
 [dependency-groups]

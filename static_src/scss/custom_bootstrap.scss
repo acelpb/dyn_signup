@@ -1,0 +1,57 @@
+// Custom Bootstrap SCSS
+
+// Color variables from the provided stylesheet
+$dyn-orange: #ee7202;
+$dyn-bg: #f4f2f2;
+$dyn-border: #d1d0d0;
+
+// Override Bootstrap variables
+$primary: $dyn-orange;
+$body-bg: $dyn-bg;
+$body-color: #000000;
+$border-color: $dyn-border;
+
+// Navigation/Header specific styles inspired by the provided stylesheet
+$navbar-light-bg: $dyn-orange;
+$navbar-light-color: #ffffff;
+$navbar-light-hover-color: rgba(255, 255, 255, 0.7);
+$navbar-light-active-color: #ffffff;
+
+// Import Bootstrap
+@import "bootstrap/bootstrap.scss";
+
+// Additional custom styles from the provided stylesheet
+header {
+    background-color: #ffffff;
+    h1 {
+        color: $dyn-orange;
+    }
+}
+
+nav.navbar {
+    background-color: $dyn-orange !important;
+    .nav-link {
+        color: #ffffff !important;
+        &:hover {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+    }
+}
+
+footer {
+    background-color: $dyn-orange;
+    color: #ffffff;
+    a {
+        color: #ffffff;
+        &:hover {
+            border-bottom: 4px solid rgba(250, 250, 250, 0.6);
+        }
+    }
+    p {
+        color: rgba(0, 0, 0, 0.5);
+    }
+}
+
+article {
+    border-top: solid 2px $dyn-border;
+}

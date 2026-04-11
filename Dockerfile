@@ -11,6 +11,7 @@ COPY ./pyproject.toml pyproject.toml
 RUN uv sync --frozen --no-install-project --compile-bytecode
 
 COPY ./ .
-RUN uv run python manage.py collectstatic --noinput
+RUN uv run python manage.py compilescss
+RUN uv run python manage.py collectstatic --noinput --ignore=*.scss
 
 CMD uv run gunicorn dynasignup.wsgi:application --bind 0.0.0.0:9000

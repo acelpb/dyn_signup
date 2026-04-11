@@ -125,9 +125,10 @@ STATICFILES_FINDERS = [
     "sass_processor.finders.CssFinder",
 ]
 
-SASS_PROCESSOR_ROOT = Path(BASE_DIR) / "static"
+SASS_PROCESSOR_ROOT = BASE_DIR / "static_src"
 SASS_PROCESSOR_INCLUDE_DIRS = [
-    Path(BASE_DIR) / "static/scss",
+    BASE_DIR / "static_src/scss",
+    BASE_DIR / "node_modules",
 ]
 
 WSGI_APPLICATION = "dynasignup.wsgi.application"
@@ -180,6 +181,10 @@ STORAGES = {
 }
 STATIC_ROOT = BASE_DIR / "static"
 STATIC_URL = "/static/"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static_src",
+]
 
 WHITENOISE_AUTOREFRESH = True
 
