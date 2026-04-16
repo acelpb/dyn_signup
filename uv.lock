@@ -350,11 +350,11 @@ wheels = [
 
 [[package]]
 name = "django-object-actions"
-version = "4.1.0"
+version = "5.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/6a/19/4cbee97d8322492c3cb470ea6fb870986ae475f2b0354820f274ff9c92e0/django_object_actions-4.1.0.tar.gz", hash = "sha256:b09360c1569e60d467428aee5c38d4d27c1924b9fe585c53947366274e8940c6", size = 18548, upload-time = "2022-11-14T20:17:32.151Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/3e/1a6e59a8f751e036b4d23edaa5252111dbcd89396850da7b00cfc0f75d72/django_object_actions-5.0.0.tar.gz", hash = "sha256:ea455f76344316b620f815e4103c0f5151530177d35202682fc1734027bf0116", size = 16364, upload-time = "2025-04-05T06:33:00.206Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4c/69/e91faeb9da9a9ba156ea53365a7f0ac4764f762c6e8a572c620493f0bba3/django_object_actions-4.1.0-py3-none-any.whl", hash = "sha256:9c14fa5239df94091edf1221f83b7e9db1518c0c1cdd37497d9b34680b242172", size = 18428, upload-time = "2022-11-14T20:17:30.052Z" },
+    { url = "https://files.pythonhosted.org/packages/a7/27/639dd4f0d933438dd5102bf07242f85581fc5ef78c9e7628d2ed9cd4a34c/django_object_actions-5.0.0-py3-none-any.whl", hash = "sha256:1d5bce0fd38b73544130fae036d208f2811de5b0ca7ccb23486235e915015519", size = 14782, upload-time = "2025-04-05T06:32:58.261Z" },
 ]
 
 [[package]]
@@ -385,14 +385,14 @@ wheels = [
 
 [[package]]
 name = "django-tables2"
-version = "2.9.0"
+version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ef/3b/957b973281d2562261c35a200d20d2ff17a13f7cd25640c1d39e4f73e2c3/django_tables2-2.9.0.tar.gz", hash = "sha256:687d99646165da7ba77240d5298ded76b55012733c3ee3123fdb32028af8d24e", size = 130058, upload-time = "2026-04-06T10:00:11.634Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e2/95/8e28e76c04b91d15cf595607040e2e821fd48b517428c2bae5d62af89b18/django_tables2-3.0.0.tar.gz", hash = "sha256:3c5343f72663b0d6684e8e6cbcb16caae10d7621a51c1cf3c581f57ce605f8ee", size = 130242, upload-time = "2026-04-13T07:42:44.463Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/98/f0/2b9778554306adafbe68665616ae688ea79b6e2362736abd509b06a89f55/django_tables2-2.9.0-py3-none-any.whl", hash = "sha256:54112f6cedcc56361184d7ac350255d1f2ded6ff630ca6faf394d088908a05af", size = 96409, upload-time = "2026-04-06T10:00:10.055Z" },
+    { url = "https://files.pythonhosted.org/packages/e3/61/55caa8304cdfdf40717227640d2cdfe8118e8f32b9d5cc1b81b972147185/django_tables2-3.0.0-py3-none-any.whl", hash = "sha256:2a5b5447f10d7a8cfb7a2e8f0b139d969c7eb2e675079a4b8ba0107956345bfa", size = 96405, upload-time = "2026-04-13T07:42:42.651Z" },
 ]
 
 [[package]]
@@ -443,15 +443,15 @@ requires-dist = [
     { name = "django-crispy-forms", specifier = ">=2.3" },
     { name = "django-import-export", extras = ["xlsx"], specifier = ">=4.3.3" },
     { name = "django-magiclink", specifier = ">=1.3.0" },
-    { name = "django-object-actions", specifier = "~=4.1.0" },
+    { name = "django-object-actions", specifier = ">=4.1.0" },
     { name = "django-phonenumber-field", extras = ["phonenumbers"], specifier = ">=8.1.0" },
     { name = "django-sass-processor", specifier = ">=1.4.2" },
     { name = "django-tables2", specifier = ">=2.7.5" },
     { name = "gunicorn", specifier = ">=23.0.0" },
-    { name = "ovh", specifier = "~=1.0.0" },
+    { name = "ovh", specifier = ">=1.0.0" },
     { name = "python-decouple", specifier = ">=3.8" },
     { name = "schwifty", specifier = ">=2025.1.0" },
-    { name = "tablib", specifier = "~=3.3" },
+    { name = "tablib", specifier = ">=3.3" },
     { name = "whitenoise", specifier = ">=6.8.2" },
 ]
 
@@ -481,11 +481,11 @@ wheels = [
 
 [[package]]
 name = "filelock"
-version = "3.25.2"
+version = "3.28.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/94/b8/00651a0f559862f3bb7d6f7477b192afe3f583cc5e26403b44e59a55ab34/filelock-3.25.2.tar.gz", hash = "sha256:b64ece2b38f4ca29dd3e810287aa8c48182bbecd1ae6e9ae126c9b35f1382694", size = 40480, upload-time = "2026-03-11T20:45:38.487Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d6/17/6e8890271880903e3538660a21d63a6c1fea969ac71d0d6b608b78727fa9/filelock-3.28.0.tar.gz", hash = "sha256:4ed1010aae813c4ee8d9c660e4792475ee60c4a0ba76073ceaf862bd317e3ca6", size = 56474, upload-time = "2026-04-14T22:54:33.625Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a4/a5/842ae8f0c08b61d6484b52f99a03510a3a72d23141942d216ebe81fefbce/filelock-3.25.2-py3-none-any.whl", hash = "sha256:ca8afb0da15f229774c9ad1b455ed96e85a81373065fb10446672f64444ddf70", size = 26759, upload-time = "2026-03-11T20:45:37.437Z" },
+    { url = "https://files.pythonhosted.org/packages/3b/21/2f728888c45033d34a417bfcd248ea2564c9e08ab1bfd301377cf05d5586/filelock-3.28.0-py3-none-any.whl", hash = "sha256:de9af6712788e7171df1b28b15eba2446c69721433fa427a9bee07b17820a9db", size = 39189, upload-time = "2026-04-14T22:54:32.037Z" },
 ]
 
 [[package]]
@@ -572,14 +572,14 @@ wheels = [
 
 [[package]]
 name = "mako"
-version = "1.3.10"
+version = "1.3.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markupsafe" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/9e/38/bd5b78a920a64d708fe6bc8e0a2c075e1389d53bef8413725c63ba041535/mako-1.3.10.tar.gz", hash = "sha256:99579a6f39583fa7e5630a28c3c1f440e4e97a414b80372649c0ce338da2ea28", size = 392474, upload-time = "2025-04-10T12:44:31.16Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/59/8a/805404d0c0b9f3d7a326475ca008db57aea9c5c9f2e1e39ed0faa335571c/mako-1.3.11.tar.gz", hash = "sha256:071eb4ab4c5010443152255d77db7faa6ce5916f35226eb02dc34479b6858069", size = 399811, upload-time = "2026-04-14T20:19:51.493Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/87/fb/99f81ac72ae23375f22b7afdb7642aba97c00a713c217124420147681a2f/mako-1.3.10-py3-none-any.whl", hash = "sha256:baef24a52fc4fc514a0887ac600f9f1cff3d82c61d4d700a1fa84d597b88db59", size = 78509, upload-time = "2025-04-10T12:50:53.297Z" },
+    { url = "https://files.pythonhosted.org/packages/68/a5/19d7aaa7e433713ffe881df33705925a196afb9532efc8475d26593921a6/mako-1.3.11-py3-none-any.whl", hash = "sha256:e372c6e333cf004aa736a15f425087ec977e1fcbd2966aae7f17c8dc1da27a77", size = 78503, upload-time = "2026-04-14T20:19:53.233Z" },
 ]
 
 [[package]]
@@ -656,6 +656,15 @@ wheels = [
 ]
 
 [[package]]
+name = "oauthlib"
+version = "3.3.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/5f/19930f824ffeb0ad4372da4812c50edbd1434f678c90c2733e1188edfc63/oauthlib-3.3.1.tar.gz", hash = "sha256:0f0f8aa759826a193cf66c12ea1af1637f87b9b4622d46e866952bb022e538c9", size = 185918, upload-time = "2025-06-19T22:48:08.269Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/be/9c/92789c596b8df838baa98fa71844d84283302f7604ed565dafe5a6b5041a/oauthlib-3.3.1-py3-none-any.whl", hash = "sha256:88119c938d2b8fb88561af5f6ee0eec8cc8d552b7bb1f712743136eb7523b7a1", size = 160065, upload-time = "2025-06-19T22:48:06.508Z" },
+]
+
+[[package]]
 name = "openpyxl"
 version = "3.1.5"
 source = { registry = "https://pypi.org/simple" }
@@ -681,14 +690,15 @@ wheels = [
 
 [[package]]
 name = "ovh"
-version = "1.0.0"
+version = "1.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
+    { name = "requests-oauthlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/11/07/91fc637104dfdc68523da2f36d7b8a34e0f54001d60af964c7966e9cd89e/ovh-1.0.0.tar.gz", hash = "sha256:210cf0bb48307cf34f38b40b08ef7d28be47bb6d3de18f9a7100455d51b31e15", size = 115653, upload-time = "2022-03-15T12:13:30.056Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/83/14/d8a9e302b6de0bb9b807f33f77afbfb32466a6afbbc70163b6e1f1ba8083/ovh-1.2.0.tar.gz", hash = "sha256:d311f08ec17b62cc61216b3dacf03ee89f95a1da9036a595dac29fc9d798b827", size = 119764, upload-time = "2024-07-23T14:53:27.044Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/25/17bd33075d6701b00b8cb3f83a0bdf4c5a27777a86550ac9efd7b21844f9/ovh-1.0.0-py2.py3-none-any.whl", hash = "sha256:c8170ea8b3ff2f0618279ce619952f2fb08a003dc9cb676c5bd2e8bd15061a54", size = 21597, upload-time = "2022-03-15T12:13:28.014Z" },
+    { url = "https://files.pythonhosted.org/packages/fa/e1/5b64ce848fe2a85b0aabad5b883fa00beadbe79d70e6654914a3e831d037/ovh-1.2.0-py2.py3-none-any.whl", hash = "sha256:0e9940bd53fc615dc89d3cfcd80f07282a4ad9f083c3f769b6fb98d501938307", size = 24899, upload-time = "2024-07-23T14:53:24.693Z" },
 ]
 
 [[package]]
@@ -727,11 +737,11 @@ wheels = [
 
 [[package]]
 name = "phonenumbers"
-version = "9.0.27"
+version = "9.0.28"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e3/d7/8e743354071ab0d6e265370b47a8b0ecc70f35f4e225eb74eecab141aa9f/phonenumbers-9.0.27.tar.gz", hash = "sha256:f99f533cfb052546d181f6dbd981bfbdd6a1527784585482173ff95ae6d1602e", size = 2298619, upload-time = "2026-04-01T11:13:15.535Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/db/72/97fd1961e3d6f8323b1396669c346557a8581874e2c2a478a83dc5d616e7/phonenumbers-9.0.28.tar.gz", hash = "sha256:f1d810aaa43fbf3a5cb1ee54733218f8333a2a92c85c4d579a810403d6260a8c", size = 2298779, upload-time = "2026-04-13T14:19:50.741Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d2/40/c6948bbeceb18c45472d4011b705bd3ca4f29b055373eb4733ddc1a85d8b/phonenumbers-9.0.27-py2.py3-none-any.whl", hash = "sha256:a7ba9f362e2fe8e2d6756e415cf44f4c8f0c33b40ba07b27a8450909021d7e37", size = 2585047, upload-time = "2026-04-01T11:13:12.575Z" },
+    { url = "https://files.pythonhosted.org/packages/68/bd/5e55cea252bf21402a2d5f2479edd7e24a4c9ebbe59f197080d0d4cd9093/phonenumbers-9.0.28-py2.py3-none-any.whl", hash = "sha256:ee8caabab4fd554efb6119e7b95cb69da40e0f04050611730eed839d93f39920", size = 2585077, upload-time = "2026-04-13T14:16:09.853Z" },
 ]
 
 [[package]]
@@ -1047,6 +1057,19 @@ wheels = [
 ]
 
 [[package]]
+name = "requests-oauthlib"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "oauthlib" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/f2/05f29bc3913aea15eb670be136045bf5c5bbf4b99ecb839da9b422bb2c85/requests-oauthlib-2.0.0.tar.gz", hash = "sha256:b3dffaebd884d8cd778494369603a9e7b58d29111bf6b41bdc2dcd87203af4e9", size = 55650, upload-time = "2024-03-22T20:32:29.939Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3b/5d/63d4ae3b9daea098d5d6f5da83984853c1bbacd5dc826764b249fe119d24/requests_oauthlib-2.0.0-py2.py3-none-any.whl", hash = "sha256:7dd8a5c40426b779b0868c404bdef9768deccf22749cde15852df527e6269b36", size = 24179, upload-time = "2024-03-22T20:32:28.055Z" },
+]
+
+[[package]]
 name = "rjsmin"
 version = "1.2.5"
 source = { registry = "https://pypi.org/simple" }
@@ -1275,7 +1298,7 @@ socks = [
 
 [[package]]
 name = "virtualenv"
-version = "21.2.1"
+version = "21.2.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "distlib" },
@@ -1283,9 +1306,9 @@ dependencies = [
     { name = "platformdirs" },
     { name = "python-discovery" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/97/c5/aff062c66b42e2183201a7ace10c6b2e959a9a16525c8e8ca8e59410d27a/virtualenv-21.2.1.tar.gz", hash = "sha256:b66ffe81301766c0d5e2208fc3576652c59d44e7b731fc5f5ed701c9b537fa78", size = 5844770, upload-time = "2026-04-09T18:47:11.482Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0c/98/3a7e644e19cb26133488caff231be390579860bbbb3da35913c49a1d0a46/virtualenv-21.2.4.tar.gz", hash = "sha256:b294ef68192638004d72524ce7ef303e9d0cf5a44c95ce2e54a7500a6381cada", size = 5850742, upload-time = "2026-04-14T22:15:31.438Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/0e/f083a76cb590e60dff3868779558eefefb8dfb7c9ed020babc7aa014ccbf/virtualenv-21.2.1-py3-none-any.whl", hash = "sha256:bd16b49c53562b28cf1a3ad2f36edb805ad71301dee70ddc449e5c88a9f919a2", size = 5828326, upload-time = "2026-04-09T18:47:09.331Z" },
+    { url = "https://files.pythonhosted.org/packages/27/8d/edd0bd910ff803c308ee9a6b7778621af0d10252219ad9f19ef4d4982a61/virtualenv-21.2.4-py3-none-any.whl", hash = "sha256:29d21e941795206138d0f22f4e45ff7050e5da6c6472299fb7103318763861ac", size = 5831232, upload-time = "2026-04-14T22:15:29.342Z" },
 ]
 
 [[package]]
