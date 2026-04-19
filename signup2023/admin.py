@@ -81,7 +81,6 @@ class ParticipantDaysInline(admin.TabularInline):
     )
 
 
-@admin.register(Signup)
 class SignupAdmin(DjangoObjectActions, admin.ModelAdmin):
     list_display = (
         "id",
@@ -232,7 +231,6 @@ class ParticipantResource(resources.ModelResource):
         model = Participant
 
 
-@admin.register(Participant)
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
     resource_class = ParticipantResource
     import_export_change_list_template = "admin/signups/participant_changelist.html"
@@ -337,7 +335,6 @@ class PaymentInline(GenericStackedInline):
         return False
 
 
-@admin.register(Bill)
 class BillAdmin(DjangoObjectActions, admin.ModelAdmin):
     list_display = (
         "id",
@@ -491,7 +488,6 @@ class ExtraInfoRessource(ModelResource):
         )
 
 
-@admin.register(ExtraParticipantInfo)
 class ExtraParticipantInfoAdmin(ExportMixin, admin.ModelAdmin):
     resource_classes = [ExtraInfoRessource]
 

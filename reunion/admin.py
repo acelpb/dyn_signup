@@ -89,7 +89,6 @@ class CanBePayedAdminMixin(admin.ModelAdmin):
     amount_due.short_description = "amount due remaining"
 
 
-@admin.register(Signup)
 class SignupAmin(DjangoObjectActions, CanBePayedAdminMixin, admin.ModelAdmin):
     inlines = [ParticipantInline]
     search_fields = ("owner__first_name", "owner__last_name", "owner__email")
@@ -243,7 +242,6 @@ class ParticipantResource(resources.ModelResource):
         )
 
 
-@admin.register(Participant)
 class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
     list_display = (
         "id",
