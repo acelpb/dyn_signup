@@ -153,6 +153,32 @@ class Signup(models.Model):
     def payed(self):
         return self.balance() <= 0
 
+    def waiting_number(self):
+        from django.db.models import Case, Value, When
+        from django.db.models.expressions import Window
+        from django.db.models.functions import RowNumber
+
+        waiting_signups = Signup.objects.filter(on_hold=True, year=2026)
+        ordered = waiting_signups.annotate(
+            ranking=Case(
+                When(
+                    validated_at__lt=settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
+                    on_hold_partial=False,
+                    then=Value(1),
+                ),
+                When(
+                    validated_at__lt=settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
+                    on_hold_partial=True,
+                    then=Value(2),
+                ),
+                default=Value(3),
+            )
+        ).annotate(
+            final_ranking=Window(RowNumber(), order_by=["ranking", "validated_at"])
+        )
+        collect = {k: v for k, v in ordered.values_list("id", "final_ranking")}
+        return collect.get(self.id, 0)
+
     def check_if_on_hold(self):
         # Vérification des limites (VAE, participants, partiels)
         if (
