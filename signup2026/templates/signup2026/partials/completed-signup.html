@@ -67,10 +67,9 @@
     <p>
         Votre inscription est validée (nous avons bien reçu votre paiement).
     </p>
-{% elif signup.bill.calculated_amount  %}
+{% elif signup.balance %}
     <p>
-        Le solde de votre inscription est de {{ signup.bill.amount|floatformat:2 }}€ <br />
-        {{ signup.bill.calculation|linebreaks }}
+        Le solde de votre inscription est de {{ signup.balance|floatformat:2 }}€
     </p>
     <p>
         Merci d'effectuer un paiement sur le compte de dynamobile:

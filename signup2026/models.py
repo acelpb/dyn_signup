@@ -117,6 +117,42 @@ class Signup(models.Model):
             total_price += price
         return total_price
 
+    def amount_due(self):
+        return (
+            self.participants_set.aggregate(
+                total=Coalesce(
+                    Sum(
+                        Coalesce(
+                            "amount_due_modified",
+                            "amount_due_calculated",
+                            output_field=DecimalField(max_digits=10, decimal_places=2),
+                        )
+                    ),
+                    Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                )
+            )["total"]
+            or 0
+        )
+
+    def amount_payed(self):
+        return (
+            self.participants_set.aggregate(
+                total=Coalesce(
+                    Sum("payments__amount"),
+                    Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                )
+            )["total"]
+            or 0
+        )
+
+    def balance(self):
+        return self.amount_due() - self.amount_payed()
+
+    def payed(self):
+        return self.balance() <= 0
+
     def check_if_on_hold(self):
         # Vérification des limites (VAE, participants, partiels)
         if (
