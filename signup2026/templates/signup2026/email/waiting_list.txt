@@ -1,7 +1,5 @@
-Bonjour à toutes et tous,
+La limite maximale de participants semble être atteinte. Vous occupez actuellement la place numéro : {{ signup.waiting_number }} dans la liste d'attente. Si des désistements permettent de libérer des places, nous vous contacterons.
 
-Le succès de Dynamobile ne se dément pas, et au stade actuel, nous avons atteint la limite du nombre de participant.es pour l'édition 2024. Vous êtes donc dans la liste d'attente. C'est une situation inconfortable, nous en sommes conscient.es. Nous ferons le point sur les éventuels désistements et annulations la dernière semaine du mois de mai et reviendrons vers vous dans la foulée.
+Vous pouvez visualiser les détails de votre inscription et suivre l'évolution de votre place dans la liste d'attente en utilisant le lien suivant : https://inscriptions.dynamobile.net{% url "signup2026:completed" %}
 
-Amitiés cyclistes,
-
-L'équipe de Dynamobile
+Les informations reprises sur cette page vous ont été envoyées à l'adresse email {{ signup.owner.email }}. Si vous constatez une erreur ou souhaitez modifier votre inscription, merci de nous contacter via inscriptions@dynamobile.net.

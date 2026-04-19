@@ -26,44 +26,49 @@
         <div class="row">
             <div class="col"></div>
             <div class="col-sm-12 col-md-10 col-lg-8 ">
-                <h2>Du {{ start|date:"d" }} au {{ end|date }}</h2>
-                <h3>Arlon – Hettange-Grande – Moselle – Ettelbruck – Wiltz – Bastogne</h3>
-                <p class="pt-3">
-                    Cette année, Dynamobile aura lieu du vendredi 17 juillet au samedi 25 juillet 2026 et nous emmènera à la découverte du Grand-Duché de Luxembourg, avec quelques incursions en France et en Allemagne. Les préparatifs vont bon train et les inscriptions seront bientôt lancées.
-                </p>
+                <h2>Dynamobile 2026 - du {{ start|date:"d" }} au {{ end|date }}</h2>
+                <h3>Arlon / Hettange-Grande / Moselle / Ettelbruck / Wiltz / Bastogne</h3>
                 <div class="pt-3">
-                    <strong>À lire avant de s'inscrire:</strong>
+                    <strong>À lire attentivement avant de s'inscrire :</strong>
                 </div>
                 <div>
                     Lors de la première étape, il vous sera demandé de vous inscrire avec <strong>une adresse mail valide</strong>.
                     Une fois votre identité confirmée grâce au lien reçu par e-mail, vous pourrez ensuite visualiser
-                    facilement votre inscription (et celle de votre famille)
+                    facilement votre inscription (et celle de votre famille).
+                    Si vous ne recevez pas le lien, vérifiez dans vos courriers indésirables (spams).
                     <br/><br/>
                     Afin de faciliter une bonne cohésion du groupe,
                     <strong>Dynamobile privilégiera les inscriptions complètes</strong>.
                     Par conséquent, <strong>les inscriptions partielles seront mises en suspens
-                        jusqu’au {{ partial_open|date }} au plus tard</strong>.
-                    Les personnes qui ont fait une demande d’inscription
+                        jusqu'au {{ partial_open|date }} au plus tard</strong>.
+                    Les personnes qui ont fait une demande d'inscription
                     partielle seront informées de la suite accordée à leur demande après cette date.
                     <br/><br/>
-                    Attention, cette année, il ne sera pas possible de planter de tentes autour des salles de sports.
-                    <br/><br/>
-                    Au moment de l’inscription, vous devrez communiquer votre souhait de participer avec
+                    Au moment de l'inscription, vous devrez communiquer votre souhait de participer avec
                     <strong>un vélo à assistance électrique</strong> ou non.
-                    La capacité d’accueil des vélos électriques étant limitée à une vingtaine,
+                    La capacité d'accueil des vélos électriques étant extrêmement limitée,
                     une fois la limite atteinte, il vous sera demandé si vous maintenez votre inscription en vélo
-                    « musculaire ».
+                    « musculaire ».
                     Merci pour votre compréhension.
                     <br/><br/>
-                    Les <strong>jeunes de moins de 18 ans</strong> (moins de 18 ans au 17 juillet 2026) doivent être inscrits
-                    par l’adulte référent qui en aura la charge pendant Dynamobile.
+                    Il vous sera également demandé si vous souhaitez loger à Arlon la veille du départ
+                    (le petit-déjeuner du lendemain et le pique-nique sont prévus pour celles et ceux qui choisissent cette option).
                     <br/><br/>
-                    Les inscriptions seront limitées à <strong>120 participants</strong>. Il y aura cependant une liste d’attente.
+                    Enfin, le formulaire comprend une question sur le trajet retour au départ de Bastogne.
+                    Vous devrez indiquer si vous prenez le car vers Bruxelles ou Namur.
+                    <br/><br/>
+                    Les <strong>jeunes de moins de 18 ans</strong> dont les parents ne participent pas à Dynamobile
+                    doivent être inscrit.es par l'adulte référent qui en aura la charge pendant Dynamobile.
+                    <br/><br/>
+                    Les inscriptions seront limitées à <strong>120 participants</strong>. Il y aura cependant une liste d'attente.
+                    <br/><br/>
+                    Dans le courant du mois de juin, les personnes dont l'inscription est effective recevront un courriel
+                    avec des informations pratiques sur la préparation du voyage.
                     <br/><br/>
                     <strong>Après inscription</strong>, vous recevrez par courriel un <strong>accusé de réception</strong>
                     dans lequel vous trouverez les informations relatives au paiement.
-                    L'inscription sera effective/validée après réception de la
-                    <strong>totalité du paiement au plus tard 5 jours après votre demande d’inscription</strong>.
+                    L'inscription sera effective après réception de la
+                    <strong>totalité du paiement au plus tard 5 jours après votre demande d'inscription</strong>.
                     Pour toute question liée au paiement, par ex. pour une demande de paiement échelonné, merci de contacter le trésorier via
                     <a href="mailto:secretariat@dynamobile.net">secretariat@dynamobile.net</a>
                     <br/><br/>
@@ -71,38 +76,42 @@
                     de faire la randonnée, vous pourrez choisir de payer un prix solidaire majoré de 10 euros
                     ou faire un don sur le compte de Dynamobile.
                     <p class="fst-italic">
-                        (NB : notre asbl ne dispose pas des autorisations pour une déduction fiscale des dons).
+                        (NB : notre asbl ne dispose pas des autorisations pour une déduction fiscale des dons).
                     </p>
                 </div>
                 <div>
-                    <b>Prix:</b>
+                    <b>Prix :</b>
                     <ul>
-                        <li><strong>Adulte</strong>: 415 euros + 50 euros d'inscription = 465 euros</li>
-                        <li><strong>Jeune de moins de 18 ans</strong>: 315 euros + 40 euros d'inscription = 355 euros</li>
-                        <li><strong>Enfant de moins de 12 ans</strong>: 190 euros + 30 euros d'inscription = 220 euros</li>
-                        <li><strong>Enfant de moins de 6 ans</strong>: 100 euros + 10 euros d'inscription = 110 euros</li>
-                        <li><strong>Enfant de 0 à 2 ans</strong>: gratuit</li>
-                        <li>Réduction de 25% pour le 2e enfant (de moins de 18 ans)
-                            et de 50% pour le 3 e enfant (de moins de 18 ans)
-                            d’une même famille vivant sous le même toit.
+                        <li><strong>Adulte</strong> : 415 euros + 50 euros de droits d'inscription = 465 euros</li>
+                        <li><strong>Jeune de moins de 18 ans</strong> : 315 euros + 40 euros de droits d'inscription = 355 euros</li>
+                        <li><strong>Enfant de moins de 12 ans</strong> : 190 euros + 30 euros de droits d'inscription = 220 euros</li>
+                        <li><strong>Enfant de moins de 6 ans</strong> : 100 euros + 10 euros de droits d'inscription = 110 euros</li>
+                        <li><strong>Enfant de 0 à 2 ans</strong> : gratuit</li>
+                        <li>Réduction de 25 % pour le 2e enfant (de moins de 18 ans)
+                            et de 50 % pour le 3e enfant (de moins de 18 ans)
+                            d'une même famille vivant sous le même toit.
                         </li>
                     </ul>
                 </div>
                 <div>
                     <b>Annulations</b> :
                     <ul>
-                        <li>formulées par écrit, elles donneront lieu à un remboursement intégral
-                            si elles sont reçues avant le 15 juin 2026 à minuit.
+                        <li>Formulées par écrit, elles donneront lieu à un remboursement intégral
+                            si elles sont reçues avant le 15 juin 2025.
                         </li>
                         <li>Entre le 15 juin et le 30 juin, 50 % du montant total sera retenu.</li>
                         <li>À partir du 1er juillet, aucun remboursement ne sera effectué.</li>
                     </ul>
                     <strong>
-                        Le montant correspondant aux droits d’inscription n’est en aucun cas remboursé.
+                        Le montant correspondant aux droits d'inscription n'est en aucun cas remboursé.
                     </strong>
                     <br/><br/>
-                    Si vous avez des questions ou rencontrez des problèmes lors de l’inscription, vous pouvez nous contacter
-                    par mail à <a href="mailto:inscriptions@dynamobile.net">inscriptions@dynamobile.net</a>
+                    Ces règles s'appliquent également en cas de force majeure ou de certificat maladie.
+                    Merci pour votre compréhension.
+                    <br/><br/>
+                    Si vous avez des questions ou rencontrez un problème lors de l'inscription, vous pouvez appeler le
+                    <a href="tel:0032475238598">0032 475 23 85 98</a> ou envoyer un mail à
+                    <a href="mailto:inscriptions@dynamobile.net">inscriptions@dynamobile.net</a>
                 </div>
                 <p class="pt-3">
                     <a href="{% url "signup2026:group_edit" %}" class="btn btn-primary">Commencez l'inscription</a>

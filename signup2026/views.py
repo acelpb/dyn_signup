@@ -102,16 +102,17 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
         signup.check_if_on_hold()
         signup.save()
         signup.calculate_amounts()
+        email_context = {
+            "signup": signup,
+            "partial_open": settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
+        }
         send_mail(
             subject="Votre inscription à dynamobile",
-            message=get_template("signup2026/email/email.txt").render(),
+            message=get_template("signup2026/email/email.txt").render(email_context),
             from_email=settings.EMAIL_HOST_USER,
             recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
             html_message=get_template("signup2026/email/email.html").render(
-                {
-                    "signup": signup,
-                    "partial_open": settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
-                }
+                email_context
             ),
         )
         return HttpResponseRedirect(self.success_url)

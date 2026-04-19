@@ -1,4 +1,19 @@
 <p>
-    Votre inscription est complète, vous pouvez la visualiser <a href="https://inscriptions.dynamobile.net{% url "signup2026:completed" %}">ici</a>.
+    Votre inscription a bien été enregistrée.
+</p>
+<p>
+    Ci-dessous vous trouverez un résumé de votre inscription ainsi que les instructions pour le paiement de celle-ci.
+    Votre inscription sera effective après réception de la totalité du paiement dans 5 jours au plus tard.
+    En cas de non-paiement, votre place sera attribuée à quelqu'un sur la liste d'attente.
+</p>
+<p>
+    Si vous n'êtes pas en mesure de régler le solde de votre inscription dans les 5 jours et souhaitez un paiement
+    échelonné, merci de contacter le trésorier via
+    <a href="mailto:secretariat@dynamobile.net?subject=inscription n°{{ signup.id }}">secretariat@dynamobile.net</a>.
 </p>
 {% include "signup2026/partials/completed-signup.html" %}
+<p>
+    Les informations reprises sur cette page vous ont été envoyées à l'adresse email {{ signup.owner.email }}.
+    Si vous constatez une erreur ou si vous souhaitez modifier votre inscription, merci de nous contacter via
+    <a href="mailto:inscriptions@dynamobile.net?subject=inscription n°{{ signup.id }}">inscriptions@dynamobile.net</a>.
+</p>

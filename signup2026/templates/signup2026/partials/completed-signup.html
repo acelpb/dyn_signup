@@ -48,17 +48,15 @@
         </p>
     {% elif signup.on_hold_partial %}
         <p>
-            Les inscriptions partielles ouvre à partir du {{ partial_open|date }} en fonction des places disponibles.
-            Vous occupez actuellement la place
-            numéro: {{ signup.waiting_number }} dans la liste d'attente.
-            Si des désistements permettent de libérer des places, nous prendrons contact avec vous.
+            Les inscriptions partielles ouvrent à partir du {{ partial_open|date }} en fonction des places disponibles.
+            Vous occupez actuellement la place numéro : {{ signup.waiting_number }} dans la liste d'attente.
+            Si des désistements permettent de libérer des places, nous vous contacterons.
         </p>
     {% else %}
         <p>
             La limite maximale de participants semble être atteinte.
-            Vous occupez actuellement la place
-            numéro: {{ signup.waiting_number }} dans la liste d'attente.
-            Si des désistements permettent de libérer des places, nous prendrons contact avec vous.
+            Vous occupez actuellement la place numéro : {{ signup.waiting_number }} dans la liste d’attente.
+            Si des désistements permettent de libérer des places, nous vous contacterons.
         </p>
     {% endif %}
     <p>
@@ -74,8 +72,8 @@
         Le solde de votre inscription est de {{ signup.balance|floatformat:2 }}€
     </p>
     <p>
-        Merci d'effectuer un paiement sur le compte de dynamobile:
-        <span class="font-weight-bold">Attention nouveau compte: </span>
+        Merci d'effectuer un paiement sur le compte de Dynamobile :<br/>
+        <span class="font-weight-bold">Attention nouveau compte : </span>
         <strong>BE96 0019 5174 7205</strong>
     </p>
     <p>
@@ -85,7 +83,7 @@
         Le paiement de l'inscription doit être fait <strong>dans 5 jours au plus tard.</strong>
         En cas de non-paiement, votre place sera attribuée à quelqu'un sur la liste d'attente.
         Si vous n'êtes pas en mesure de régler le solde de votre inscription dans les 5 jours et souhaitez un paiement
-        échelonné, merci de contacter le trésorier via:
+        échelonné, merci de contacter le trésorier via :
         <a href="mailto:secretariat@dynamobile.net?subject=inscription n°{{ signup.id }}">secretariat@dynamobile.net</a>.
     </p>
     <p>
