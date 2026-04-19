@@ -173,7 +173,7 @@ class ParticipantExtraForm(forms.ModelForm):
 
     class Meta:
         model = Participant
-        fields = ("first_name", "last_name", "vae")
+        fields = ("first_name", "last_name", "vae", "arrive_day_before")
 
 
 ParticipantExtraFormSet = inlineformset_factory(
@@ -190,6 +190,7 @@ class ParticipantExtraFormSetHelper(FormHelper):
                 Column(FloatingField("first_name"), css_class="col-auto"),
                 Column(FloatingField("last_name"), css_class="col-auto"),
                 Column(FloatingField("vae"), css_class="col-auto"),
+                Column(Field("arrive_day_before"), css_class="col-auto"),
             ),
         )
         self.add_input(Submit("submit", "Page Suivante"))

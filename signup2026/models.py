@@ -231,6 +231,11 @@ class Participant(models.Model):
         choices=((False, "non"), (True, "oui")),
         default=False,
     )
+    arrive_day_before = models.BooleanField(
+        _("Arrivée la veille"),
+        default=False,
+        help_text=_("Le participant arrivera-t-il la veille de l'édition ?"),
+    )
 
     # Jours de participation
     day1 = models.BooleanField(_("17-07"), default=True)

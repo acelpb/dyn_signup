@@ -49,6 +49,7 @@ class ParticipantInfoInline(admin.StackedInline):
         "city",
         "country",
         "vae",
+        "arrive_day_before",
     )
 
 
@@ -214,6 +215,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "day8",
         "day9",
         "vae",
+        "arrive_day_before",
         "country",
     )
     search_fields = ["first_name", "last_name"]
