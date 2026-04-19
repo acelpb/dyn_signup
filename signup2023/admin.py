@@ -297,11 +297,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         return mark_safe(link)
 
     def get_queryset(self, request):
-        return (
-            super()
-            .get_queryset(request)
-            .filter(signup_group__year=settings.DYNAMOBILE_LAST_DAY.year)
-        )
+        return super().get_queryset(request).filter(signup_group__year=2025)
 
 
 class PriceIsOddFilter(SimpleListFilter):

@@ -39,3 +39,5 @@ Feature: Signup 2026
       | Jean       | Dupont    | jean@example.com | 0470123456 | 2025-05-15 | Namur | Belgique |
     And I submit the participant form
     Then I should see an error that the group must include at least one adult
+
+  Scenario: Require participants signup with a VAE (electric bike) to read and close a pop up window that
