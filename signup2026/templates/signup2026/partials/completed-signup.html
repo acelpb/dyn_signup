@@ -1,0 +1,103 @@
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th scope="col" rowspan="2" colspan="1">Participant</th>
+            <th scope="col" rowspan="2" colspan="1">VAE</th>
+            <th scope="col" rowspan="1" colspan="9">Jours de participation</th>
+        </tr>
+        <tr>
+            <th>18</th>
+            <th>19</th>
+            <th>20</th>
+            <th>21</th>
+            <th>22</th>
+            <th>23</th>
+            <th>24</th>
+            <th>25</th>
+            <th>26</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for participant in signup.participants_set.all %}
+            <tr>
+                <td>{{ participant.first_name }} {{ participant.last_name }}</td>
+                <td>{{  participant.get_vae_display }}</td>
+                <td>{% if participant.day1 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day2 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day3 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day4 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day5 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day6 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day7 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day8 %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.day9 %}✅{% else %}❌{% endif %}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% if signup.on_hold %}
+    {% if signup.on_hold_vae %}
+        <p>
+            Nous avons atteint le maximum de participants souhaitants venir en VAE (Vélo avec assistance électrique).
+            Si vous voulez modifier votre participation pour une participation en vélo à assistance musculaire (pas
+            électrique),
+            vous pouvez nous contacter en suivant le lien ci-dessous. <br>
+            <a href="mailto:inscriptions@dynamobile.net?subject=VAE n°{{ signup.id }}">inscriptions@dynamobile.net</a>.
+        </p>
+    {% elif signup.on_hold_partial %}
+        <p>
+            Les inscriptions partielles ouvre à partir du {{ partial_open|date }} en fonction des places disponibles.
+            Vous occupez actuellement la place
+            numéro: {{ signup.waiting_number }} dans la liste d'attente.
+            Si des désistements permettent de libérer des places, nous prendrons contact avec vous.
+        </p>
+    {% else %}
+        <p>
+            La limite maximale de participants semble être atteinte.
+            Vous occupez actuellement la place
+            numéro: {{ signup.waiting_number }} dans la liste d'attente.
+            Si des désistements permettent de libérer des places, nous prendrons contact avec vous.
+        </p>
+    {% endif %}
+    <p>
+        Vous pouvez visualiser les détails de votre inscription et suivre l’évolution de votre place
+        dans la liste d’attente en cliquant <a href="{% url "completed_signup" %}">ici</a>.
+    </p>
+{% elif signup.payed %}
+    <p>
+        Votre inscription est validée (nous avons bien reçu votre paiement).
+    </p>
+{% elif signup.bill.calculated_amount  %}
+    <p>
+        Le solde de votre inscription est de {{ signup.bill.amount|floatformat:2 }}€ <br />
+        {{ signup.bill.calculation|linebreaks }}
+    </p>
+    <p>
+        Merci d'effectuer un paiement sur le compte de dynamobile:
+        <span class="font-weight-bold">Attention nouveau compte: </span>
+        <strong>BE96 0019 5174 7205</strong>
+    </p>
+    <p>
+        Comme communication, merci de mentionner <span class="font-weight-bold">inscription {{ signup.id }}</span>
+    </p>
+    <p>
+        Le paiement de l'inscription doit être fait <strong>dans 5 jours au plus tard.</strong>
+        En cas de non-paiement, votre place sera attribuée à quelqu'un sur la liste d'attente.
+        Si vous n'êtes pas en mesure de régler le solde de votre inscription dans les 5 jours et souhaitez un paiement
+        échelonné, merci de contacter le trésorier via:
+        <a href="mailto:secretariat@dynamobile.net?subject=inscription n°{{ signup.id }}">secretariat@dynamobile.net</a>.
+    </p>
+    <p>
+        Si vous voulez nous soutenir et permettre ainsi aux participants qui ont moins de moyens
+        de faire la randonnée, vous pourrez choisir de payer un prix solidaire majoré de 10 euros
+        ou faire un don sur le compte de Dynamobile.
+        <i>
+            (NB : notre asbl ne dispose pas des autorisations pour une déduction fiscale des dons).
+        </i>
+    </p>
+{% else %}
+    <p>
+        Mmmmh, il semble y avoir un soucis avec votre inscription.
+        Merci de contacter <a href="mailto:inscriptions@dynamobile.net">inscriptions@dynamobile.net</a>
+    </p>
+{% endif %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    {% crispy form helper %}
+{% endblock %}
+
+{% block extra_scripts %}
+    {{ form.media }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+        // Sélection du bouton ajouter
+            const addButton = document.getElementById('button-id-add_user');
+            const totalFormsInput = document.getElementById('id_participants_set-TOTAL_FORMS'); // Le champ caché indiquant le total des formulaires
+
+            addButton.addEventListener('click', function () {
+            // Récupérer le nombre actuel de formulaires
+                const totalForms = parseInt(totalFormsInput.value, 10);
+
+            // Trouver toutes les rangées du formulaire
+                const formRows = document.querySelectorAll('form .row'); // Sélectionne toutes les rangées ayant la classe "row g-2"
+                const lastFormRow = formRows[formRows.length - 1]; // Prend la dernière rangée
+
+            // Cloner la dernière rangée
+                const newFormRow = lastFormRow.cloneNode(true); // Cloner la dernière rangée
+
+            // Mise à jour des indices et suppression des valeurs des champs
+                newFormRow.querySelectorAll('input').forEach(function (input) {
+                    const name = input.name;
+                    const id = input.id;
+
+                // Incrémenter l'index dans les noms et IDs (ex. de participants_set-1- à participants_set-2-)
+                    const newName = name.replace(`participants_set-${totalForms - 1}-`, `participants_set-${totalForms}-`);
+                    const newId = id.replace(`participants_set-${totalForms - 1}-`, `participants_set-${totalForms}-`);
+
+                    input.name = newName;
+                    input.id = newId;
+
+                // Supprimer la valeur du champ (sauf pour les champs cachés)
+                    if (name !== 'hidden' || name.contains('id')){
+                        input.value = '';
+                    }
+
+                    if (name.includes('-DELETE')) {
+
+                    // Créer un bouton de suppression
+                        const deleteButton = document.createElement('button');
+                        deleteButton.type = 'button';
+                        deleteButton.textContent = 'Supprimer';
+                        deleteButton.classList.add('btn', 'btn-danger');
+                        deleteButton.setAttribute('onclick', `deleteForm('participants_set', this)`);
+
+                    // Remplacer le champ input par le bouton
+                        input.parentNode.replaceWith(deleteButton);
+                    }
+                });
+
+            // Mettre à jour les labels pour correspondre aux nouveaux IDs
+                newFormRow.querySelectorAll('label').forEach(function (label) {
+                    const oldFor = label.getAttribute('for');
+                    if (oldFor) {
+                        const newFor = oldFor.replace(`participants_set-${totalForms - 1}-`, `participants_set-${totalForms}-`);
+                        label.setAttribute('for', newFor);
+                    }
+                });
+
+                const hrElement = document.createElement('hr'); //
+
+            // Ajouter <hr> après la dernière rangée existante
+                lastFormRow.parentNode.insertBefore(hrElement, lastFormRow.nextSibling);
+            // Ajouter la nouvelle rangée au formulaire
+                lastFormRow.parentNode.insertBefore(newFormRow, hrElement.nextSibling); // Ajouter la nouvelle rangée juste après le <hr>
+
+            // Incrémenter le TOTAL_FORMS
+                totalFormsInput.value = totalForms + 1;
+            });
+        });
+        function deleteForm(prefix, btn) {
+    // Récupérer le champ TOTAL_FORMS
+            const totalFormsInput = document.getElementById('id_' + prefix + '-TOTAL_FORMS');
+            let totalForms = parseInt(totalFormsInput.value);
+
+            if (totalForms > 1) {
+        // Trouver la rangée contenant le bouton
+                const formRow = btn.closest('.row');
+
+        // Supprimer l'élément <hr> associé (l'élément précédent la rangée)
+                const previousElement = formRow.previousElementSibling;
+                if (previousElement && previousElement.tagName === 'HR') {
+                    previousElement.remove();
+                }
+
+        // Supprimer la rangée
+                formRow.remove();
+
+        // Récupérer toutes les rangées restantes
+                const formRows = document.querySelectorAll('form .row');
+
+        // Mettre à jour le champ TOTAL_FORMS
+                totalFormsInput.value = formRows.length;
+
+        // Renumérotation des indices pour les champs existants
+                formRows.forEach((row, index) => {
+                    row.querySelectorAll('input, label').forEach((element) => {
+                        if (element.tagName === 'INPUT') {
+                    // Mettre à jour le nom et l'id des champs
+                            const oldName = element.name;
+                            const oldId = element.id;
+                            if (oldName) {
+                                element.name = oldName.replace(/participants_set-\d+-/, `participants_set-${index}-`);
+                            }
+                            if (oldId) {
+                                element.id = oldId.replace(/participants_set-\d+-/, `participants_set-${index}-`);
+                            }
+                        } else if (element.tagName === 'LABEL') {
+                    // Mettre à jour l'attribut "for" des labels
+                            const oldFor = element.getAttribute('for');
+                            if (oldFor) {
+                                element.setAttribute('for', oldFor.replace(/participants_set-\d+-/, `participants_set-${index}-`));
+                            }
+                        }
+                    });
+                });
+            } else {
+                alert("Vous ne pouvez pas supprimer toutes les rangées !");
+            }
+
+            return false;
+        }
+
+    </script>
+{% endblock extra_scripts %}

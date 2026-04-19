@@ -1,0 +1,15 @@
+Bonjour,
+
+J'ai bien reçu votre demande d'inscription pour Dynamobile 2024, et celle-ci est confirmée.
+
+Sauf erreur de ma part je n'ai pas encore reçu votre paiement pour cette édition.
+Il est possible que vous n'ayez pas encore reçu de message et dans ce cas je vous prie de m'excuser, nous avons subit
+quelques déboire techniques du à l'afflux de demande.
+
+Les instructions de paiement peuvent être visualisée en  utilisant le lien suivant: https://inscriptions.dynamobile.net{% url "completed_signup" %}.
+
+Pour toute question, ou en cas d'erreur de ma part, merci de répondre à cet e-mail.
+
+Bien à vous,
+
+Augustin Borsu

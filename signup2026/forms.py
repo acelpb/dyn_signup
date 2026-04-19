@@ -1,0 +1,195 @@
+from datetime import date
+
+from crispy_bootstrap5.bootstrap5 import FloatingField
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import (
+    HTML,
+    Button,
+    Column,
+    Field,
+    Layout,
+    Row,
+    Submit,
+)
+from django import forms
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.forms.models import inlineformset_factory
+from django.template.defaultfilters import title
+
+from .models import ExtraParticipantInfo, Participant, Signup
+
+
+class DatePickerInput(forms.DateInput):
+    input_type = "date"
+
+    def format_value(self, value):
+        if isinstance(value, str):
+            return value
+        elif isinstance(value, date):
+            return value.isoformat()
+        else:
+            return value
+
+
+def ensure_mixed_case(name: str):
+    if name == name.upper() or name == name.lower():
+        return title(name)
+    else:
+        return name
+
+
+class ParticipantForm(forms.ModelForm):
+    birthday = forms.DateField(widget=DatePickerInput())
+
+    class Meta:
+        model = Participant
+        fields = (
+            "first_name",
+            "last_name",
+            "email",
+            "phone",
+            "birthday",
+            "city",
+            "country",
+        )
+
+    def clean_first_name(self):
+        value = self.cleaned_data["first_name"]
+        return ensure_mixed_case(value)
+
+    def clean_last_name(self):
+        value = self.cleaned_data["last_name"]
+        return ensure_mixed_case(value)
+
+    def clean_country(self):
+        value = self.cleaned_data["country"]
+        return ensure_mixed_case(value)
+
+
+class BaseParticipantFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        adult_cutoff = date(
+            settings.DYNAMOBILE_FIRST_DAY.year - 18,
+            settings.DYNAMOBILE_FIRST_DAY.month,
+            settings.DYNAMOBILE_FIRST_DAY.day,
+        )
+        has_adult = any(
+            form.cleaned_data.get("birthday") is not None
+            and form.cleaned_data["birthday"] <= adult_cutoff
+            for form in self.forms
+            if not form.cleaned_data.get("DELETE", False)
+        )
+        if not has_adult:
+            raise ValidationError(
+                "Chaque groupe doit être composé au minimum d'un adulte."
+            )
+
+
+ParticipantFormSet = inlineformset_factory(
+    Signup,
+    Participant,
+    form=ParticipantForm,
+    formset=BaseParticipantFormSet,
+    min_num=1,
+    extra=0,
+    can_delete=True,
+)
+
+
+class ParticipantFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = Layout(
+            HTML("{% if forloop.first %}{%else%}<hr>{% endif %}"),
+            Row(
+                Column(FloatingField("first_name"), css_class="col-auto"),
+                Column(FloatingField("last_name"), css_class="col-auto"),
+                Column(FloatingField("email"), css_class="col-auto"),
+                Column(FloatingField("phone"), css_class="col-auto"),
+                Column(FloatingField("birthday"), css_class="col-auto"),
+                Column(FloatingField("city"), css_class="col-auto"),
+                Column(FloatingField("country"), css_class="col-auto"),
+                Column(Field("DELETE"), css_class="col-auto"),
+            ),
+        )
+        self.add_input(
+            Button("add_user", "Ajouter un participant", css_class="btn-secondary")
+        )
+        self.add_input(Submit("submit", "Page Suivante"))
+
+
+class DaySignupForm(forms.ModelForm):
+    first_name = forms.CharField(label="Prénom", disabled=True)
+    last_name = forms.CharField(label="Nom", disabled=True)
+
+    class Meta:
+        model = Participant
+        fields = [
+            "first_name",
+            "last_name",
+            "day1",
+            "day2",
+            "day3",
+            "day4",
+            "day5",
+            "day6",
+            "day7",
+            "day8",
+            "day9",
+        ]
+
+
+DaySignupFormset = inlineformset_factory(
+    Signup, Participant, form=DaySignupForm, min_num=1, extra=0, can_delete=False
+)
+
+
+class DaySignupFormsetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = Layout(
+            HTML("{% if forloop.first %}{%else%}<hr>{% endif %}"),
+            Row(
+                Column(FloatingField("first_name"), css_class="col-auto"),
+                Column(FloatingField("last_name"), css_class="col-auto"),
+                *(Column(Field(day)) for day in [f"day{i}" for i in range(1, 10)]),
+            ),
+        )
+        self.add_input(Submit("submit", "Page Suivante"))
+
+
+class ExtraParticipantInfoForm(forms.ModelForm):
+    class Meta:
+        model = ExtraParticipantInfo
+        fields = "__all__"
+        exclude = ["participant"]
+
+
+class ParticipantExtraForm(forms.ModelForm):
+    first_name = forms.CharField(label="Prénom", disabled=True)
+    last_name = forms.CharField(label="Nom", disabled=True)
+
+    class Meta:
+        model = Participant
+        fields = ("first_name", "last_name", "vae")
+
+
+ParticipantExtraFormSet = inlineformset_factory(
+    Signup, Participant, form=ParticipantExtraForm, min_num=1, extra=0, can_delete=False
+)
+
+
+class ParticipantExtraFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.layout = Layout(
+            HTML("{% if forloop.first %}{%else%}<hr>{% endif %}"),
+            Row(
+                Column(FloatingField("first_name"), css_class="col-auto"),
+                Column(FloatingField("last_name"), css_class="col-auto"),
+                Column(FloatingField("vae"), css_class="col-auto"),
+            ),
+        )
+        self.add_input(Submit("submit", "Page Suivante"))

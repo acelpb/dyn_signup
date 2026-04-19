@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "django_object_actions",
     "debug_toolbar",
     "signup2023.apps.Signup2023Config",
+    "signup2026.apps.Signup2026Config",
     "newsletter.apps.NewsletterConfig",
     "reunion.apps.ReunionConfig",
 ]
@@ -99,7 +100,7 @@ MAGICLINK_REQUIRE_SAME_IP = False
 MAGICLINK_AUTH_TIMEOUT = 3 * 24 * 60 * 60  # 3 days
 MAGICLINK_TOKEN_USES = 99
 MAGICLINK_ONE_TOKEN_PER_USER = False
-MAGICLINK_ALLOW_SUPERUSER_LOGIN = False
+MAGICLINK_LOGIN_REDIRECT_URL = "/group/"
 
 TEMPLATES = [
     {

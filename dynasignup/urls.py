@@ -24,7 +24,8 @@ from newsletter.views import SignupToNewsletterView
 
 urlpatterns = [
     path("", include("accounts.urls")),
-    path("", include("signup2023.urls")),
+    path("2023/", include("signup2023.urls")),
+    path("", include("signup2026.urls")),
     path("dFUeJlGX/", include("reunion.urls")),
     path("auth/", include("magiclink.urls", namespace="magiclink")),
     path(
