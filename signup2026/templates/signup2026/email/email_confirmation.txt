@@ -1,1 +1,1 @@
-Votre inscription est validée, vous pouvez la visualiser en utilisant le lien suivant: https://inscriptions.dynamobile.net{% url "completed_signup" %} .
+Votre inscription est validée, vous pouvez la visualiser en utilisant le lien suivant: https://inscriptions.dynamobile.net{% url "signup2026:completed" %} .

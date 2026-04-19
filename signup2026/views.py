@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.mail import send_mail
 from django.http import HttpResponseRedirect
+from django.template.loader import get_template
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import DetailView, FormView, TemplateView, UpdateView
@@ -100,7 +102,18 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
         signup.check_if_on_hold()
         signup.save()
         signup.calculate_amounts()
-        # signup.create_bill() # TODO: implement or migrate bill logic
+        send_mail(
+            subject="Votre inscription à dynamobile",
+            message=get_template("signup2026/email/email.txt").render(),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
+            html_message=get_template("signup2026/email/email.html").render(
+                {
+                    "signup": signup,
+                    "partial_open": settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
+                }
+            ),
+        )
         return HttpResponseRedirect(self.success_url)
 
 

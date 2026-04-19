@@ -150,9 +150,8 @@ def check_confirmation_message(response):
 
 
 @then('a confirmation email should have been sent to "test@example.com"')
-def check_confirmation_email():
-    # Email sending not yet implemented in GroupReviewView (TODO)
-    pass
+def check_confirmation_email(mailoutbox):
+    assert any("test@example.com" in m.to for m in mailoutbox)
 
 
 @then("I should see an error that the group must include at least one adult")
