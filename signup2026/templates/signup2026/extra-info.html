@@ -1,6 +1,32 @@
-{%  extends "base.html" %}
+{% extends "base.html" %}
 {% load crispy_forms_tags %}
 
 {% block content %}
     {% crispy form helper %}
 {% endblock %}
+
+{% block extra_scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('select[id$="-vae"]').forEach(function (select) {
+                var previousValue = select.value;
+
+                select.addEventListener('change', function () {
+                    if (this.value === 'True') {
+                        var confirmed = window.confirm(
+                            "Vous avez sélectionné un Vélo à Assistance Électrique (VAE).\n\n" +
+                            "Le nombre de places VAE est limité. Si la limite est atteinte, " +
+                            "votre inscription sera mise en liste d'attente.\n\n" +
+                            "Confirmez-vous ce choix ?"
+                        );
+                        if (!confirmed) {
+                            this.value = previousValue;
+                            return;
+                        }
+                    }
+                    previousValue = this.value;
+                });
+            });
+        });
+    </script>
+{% endblock extra_scripts %}

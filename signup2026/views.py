@@ -71,7 +71,7 @@ class SelectDayView(SignupStartedMixin, FormView):
 
 
 class GroupExtraEditView(SignupStartedMixin, FormView):
-    template_name = "signup2026/formset.html"
+    template_name = "signup2026/extra-info.html"
     success_url = reverse_lazy("signup2026:review")
 
     def get_form(self, form_class=None):
