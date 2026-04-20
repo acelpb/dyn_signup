@@ -23,6 +23,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="participant",
             name="takes_car_back",
-            field=models.BooleanField(default=False, verbose_name="Ramène la voiture"),
+            field=models.BooleanField(default=False, verbose_name="Rentre en car"),
         ),
     ]

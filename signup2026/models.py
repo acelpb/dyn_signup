@@ -284,8 +284,11 @@ class Participant(models.Model):
         help_text=_("Le participant arrivera-t-il la veille de l'édition ?"),
     )
     takes_car_back = models.BooleanField(
-        _("Ramène la voiture"),
+        _("Rentre en car"),
         default=False,
+        help_text=_(
+            "Le participant rentre-t-il en car depuis Bastogne vers Namur ou Bruxelles ?"
+        ),
     )
     extra_activities = models.CharField(
         _("Proposition d'aide"),
