@@ -24,7 +24,14 @@ class HomePage(TemplateView):
 
     def get_context_data(self, **kwargs):
         kwargs = super().get_context_data(**kwargs)
-        kwargs["registration_open"] = timezone.now() >= settings.DYNAMOBILE_START_SIGNUP
+        user = self.request.user
+        can_pre_signup = (
+            user.is_authenticated
+            and user.groups.filter(name="préinscriptions").exists()
+        )
+        kwargs["registration_open"] = (
+            can_pre_signup or timezone.now() >= settings.DYNAMOBILE_START_SIGNUP
+        )
         time_remaining = settings.DYNAMOBILE_START_SIGNUP - timezone.now()
         kwargs["hours_remaining"] = int(time_remaining.total_seconds() // 3600)
         kwargs["minutes_remaining"] = int(time_remaining.total_seconds() // 60 % 60)
