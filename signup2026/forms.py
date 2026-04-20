@@ -16,6 +16,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.forms.models import inlineformset_factory
 from django.template.defaultfilters import title
+from django.urls import reverse
 
 from .models import ExtraParticipantInfo, Participant, Signup
 
@@ -157,6 +158,16 @@ class DaySignupFormsetHelper(FormHelper):
                 *(Column(Field(day)) for day in [f"day{i}" for i in range(1, 10)]),
             ),
         )
+        self.add_input(
+            Button(
+                "cancel",
+                "Page précédente",
+                css_class="btn-secondary",
+                onclick="window.location.href = '{}';".format(
+                    reverse("signup2026:group_edit")
+                ),
+            )
+        )
         self.add_input(Submit("submit", "Page Suivante"))
 
 
@@ -173,7 +184,14 @@ class ParticipantExtraForm(forms.ModelForm):
 
     class Meta:
         model = Participant
-        fields = ("first_name", "last_name", "vae", "arrive_day_before")
+        fields = (
+            "first_name",
+            "last_name",
+            "vae",
+            "arrive_day_before",
+            "takes_car_back",
+            "extra_activities",
+        )
 
 
 ParticipantExtraFormSet = inlineformset_factory(
@@ -191,6 +209,18 @@ class ParticipantExtraFormSetHelper(FormHelper):
                 Column(FloatingField("last_name"), css_class="col-auto"),
                 Column(FloatingField("vae"), css_class="col-auto"),
                 Column(Field("arrive_day_before"), css_class="col-auto"),
+                Column(Field("takes_car_back"), css_class="col-auto"),
+                Column(Field("extra_activities"), css_class="col-auto"),
             ),
+        )
+        self.add_input(
+            Button(
+                "cancel",
+                "Page précédente",
+                css_class="btn-secondary",
+                onclick="window.location.href = '{}';".format(
+                    reverse("signup2026:group_edit")
+                ),
+            )
         )
         self.add_input(Submit("submit", "Page Suivante"))
