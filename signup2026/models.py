@@ -52,7 +52,7 @@ class Signup(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     validated_at = models.DateTimeField(default=None, null=True, blank=True)
     cancelled_at = models.DateTimeField(default=None, null=True, blank=True)
-    on_hold = models.BooleanField(default=False)
+    on_hold_at = models.DateTimeField(default=None, null=True, blank=True)
     on_hold_vae = models.BooleanField(default=False)
     on_hold_partial = models.BooleanField(default=False)
 
@@ -158,7 +158,7 @@ class Signup(models.Model):
         from django.db.models.expressions import Window
         from django.db.models.functions import RowNumber
 
-        waiting_signups = Signup.objects.filter(on_hold=True, year=2026)
+        waiting_signups = Signup.objects.filter(on_hold_at__isnull=False, year=2026)
         ordered = waiting_signups.annotate(
             ranking=Case(
                 When(
@@ -186,7 +186,7 @@ class Signup(models.Model):
             and settings.DYNAMOBILE_START_PARTIAL_SIGNUP > timezone.now()
         ):
             self.on_hold_partial = True
-            self.on_hold = True
+            self.on_hold_at = timezone.now()
 
         # VAE limit
         if additional_vae := self.has_vae():
@@ -200,20 +200,20 @@ class Signup(models.Model):
                 > settings.DYNAMOBILE_MAX_VAE_PARTICIPANTS
             ):
                 self.on_hold_vae = True
-                self.on_hold = True
+                self.on_hold_at = timezone.now()
 
         # Total participants limit
         nb_participants = (
             Participant.objects.filter(
                 signup_group__validated_at__isnull=False,
-                signup_group__on_hold=False,
+                signup_group__on_hold_at__isnull=True,
                 signup_group__cancelled_at__isnull=True,
                 signup_group__year=2026,
             ).count()
             + self.participants_set.count()
         )
         if nb_participants > settings.DYNAMOBILE_MAX_PARTICIPANTS:
-            self.on_hold = True
+            self.on_hold_at = timezone.now()
 
 
 class ParticipantQuerySet(models.QuerySet):

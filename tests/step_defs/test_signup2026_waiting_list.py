@@ -50,7 +50,7 @@ def set_vae_limit(settings):
 def existing_validated_signup():
     owner = baker.make("auth.User", email="existing@example.com")
     signup = baker.make(
-        Signup, owner=owner, year=2026, validated_at=timezone.now(), on_hold=False
+        Signup, owner=owner, year=2026, validated_at=timezone.now(), on_hold_at=None
     )
     baker.make(
         Participant,
@@ -64,7 +64,7 @@ def existing_validated_signup():
 def existing_validated_vae_signup():
     owner = baker.make("auth.User", email="existing_vae@example.com")
     signup = baker.make(
-        Signup, owner=owner, year=2026, validated_at=timezone.now(), on_hold=False
+        Signup, owner=owner, year=2026, validated_at=timezone.now(), on_hold_at=None
     )
     baker.make(
         Participant,
@@ -153,13 +153,13 @@ def check_on_hold(client):
     signup = Signup.objects.get(
         owner=client.session["_auth_user_id"] and _get_user(client), year=2026
     )
-    assert signup.on_hold is True
+    assert signup.on_hold_at is not None
 
 
 @then("my signup should be on hold for VAE")
 def check_on_hold_vae(client):
     signup = Signup.objects.get(owner=_get_user(client), year=2026)
-    assert signup.on_hold is True
+    assert signup.on_hold_at is not None
     assert signup.on_hold_vae is True
 
 

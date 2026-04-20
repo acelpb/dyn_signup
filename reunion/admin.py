@@ -62,7 +62,7 @@ class ParticipantInline(admin.TabularInline):
     is_payed.short_description = "Payed"
 
 
-class CanBePayedAdminMixin(admin.ModelAdmin):
+class CanBePayedAdminMixin:
     def status(self, obj: Signup):
         return obj.status
 
@@ -89,7 +89,7 @@ class CanBePayedAdminMixin(admin.ModelAdmin):
     amount_due.short_description = "amount due remaining"
 
 
-class SignupAmin(DjangoObjectActions, CanBePayedAdminMixin, admin.ModelAdmin):
+class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
     inlines = [ParticipantInline]
     search_fields = ("owner__first_name", "owner__last_name", "owner__email")
     autocomplete_fields = ["owner"]

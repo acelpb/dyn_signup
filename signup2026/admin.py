@@ -1,18 +1,18 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
-from django.contrib.contenttypes.admin import GenericStackedInline
 from django.core.mail import send_mail
 from django.template.loader import get_template
 from django.urls import path, reverse
 from django.utils.safestring import mark_safe
 from django.utils.timezone import localdate
-from django_object_actions import DjangoObjectActions
 from import_export import resources
 from import_export.admin import ExportMixin
 from import_export.resources import ModelResource
 
-from accounts.models import OperationValidation
+from reunion.admin import (
+    SignupAminMixin,
+)
 
 from .admin_views import SyncMailingListFormView
 from .models import ExtraParticipantInfo, Participant, Signup
@@ -21,7 +21,7 @@ from .models import ExtraParticipantInfo, Participant, Signup
 @admin.action(description="Send place on waiting list")
 def waiting_list(modeladmin, request, queryset):
     for el in queryset:
-        if el.signup_group.on_hold:
+        if el.signup_group.on_hold_at:
             send_mail(
                 subject="Dynamobile place sur la liste d'attente",
                 message=get_template("signup/email/waiting_list.txt").render(),
@@ -71,29 +71,16 @@ class ParticipantDaysInline(admin.TabularInline):
 
 
 @admin.register(Signup)
-class SignupAdmin(DjangoObjectActions, admin.ModelAdmin):
-    list_display = (
-        "id",
-        "owner",
-        "participants",
-        "validated_at",
-        "cancelled_at",
-        "on_hold",
-        "on_hold_vae",
-        "on_hold_partial",
-    )
-    fields = (
-        "owner",
-        "validated_at",
-        "cancelled_at",
-        "on_hold",
-        "on_hold_vae",
-        "on_hold_partial",
-    )
-    list_filter = ("on_hold", "year")
+class SignupAdmin(SignupAminMixin, admin.ModelAdmin):
     inlines = [ParticipantInfoInline, ParticipantDaysInline]
 
-    change_actions = ("validate",)
+    change_actions = (
+        "validate",
+        "recalculate_amounts",
+        "validate_signup",
+        "cancel_signup",
+        "put_on_hold_signup",
+    )
 
     def validate(self, request, obj):
         obj.validated_at = localdate()
@@ -128,7 +115,7 @@ class SignupStatusFilter(SimpleListFilter):
                 "signup_group__cancelled_at__isnull": True,
             },
             "on_hold": {
-                "signup_group__on_hold": True,
+                "signup_group__on_hold_at__isnull": False,
                 "signup_group__validated_at__isnull": False,
                 "signup_group__cancelled_at__isnull": True,
             },
@@ -144,7 +131,7 @@ class SignupStatusFilter(SimpleListFilter):
             },
             "validated": {
                 "signup_group__validated_at__isnull": False,
-                "signup_group__on_hold": False,
+                "signup_group__on_hold_at__isnull": True,
                 "signup_group__cancelled_at__isnull": True,
             },
             "cancelled": {"signup_group__cancelled_at__isnull": False},
@@ -249,26 +236,6 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
             .get_queryset(request)
             .filter(signup_group__year=settings.DYNAMOBILE_LAST_DAY.year)
         )
-
-
-class PaymentInline(GenericStackedInline):
-    model = OperationValidation
-    extra = 0
-    ct_field_name = "content_type"
-    id_field_name = "object_id"
-
-    def get_formset(self, request, obj=None, **kwargs):
-        self.fields = ("operation", "amount")
-        return super().get_formset(request, obj, **kwargs)
-
-    def has_view_permission(self, request, obj=None):
-        return True
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
 
 
 class ExtraInfoRessource(ModelResource):
