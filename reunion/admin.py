@@ -88,12 +88,18 @@ class CanBePayedAdminMixin:
     amount_due.admin_order_field = "amount_due_remaining"
     amount_due.short_description = "amount due remaining"
 
+    def balance(self, obj: Signup):
+        return obj.balance
+
+    balance.admin_order_field = "balance"
+    amount_due.short_description = "amount due remaining"
+
 
 class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
     inlines = [ParticipantInline]
     search_fields = ("owner__first_name", "owner__last_name", "owner__email")
     autocomplete_fields = ["owner"]
-    list_display = ("id", "owner", "status", "is_payed", "amount_due")
+    list_display = ("id", "owner", "status", "is_payed", "balance")
     fields = (
         "owner",
         "status",

@@ -2,10 +2,13 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import (
+    BooleanField,
+    Case,
     DecimalField,
     F,
     Sum,
     Value,
+    When,
 )
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -19,21 +22,38 @@ class SignupQuerySet(models.QuerySet):
     def with_amounts(self):
         # Note: Cette méthode est inspirée de 'reunion', mais adaptée pour 'signup2026'
         # Elle suppose l'existence de relations et de champs similaires
-        return self.annotate(
-            amount_due_total=Sum(
-                Coalesce(
-                    "participants_set__amount_due_modified",
-                    "participants_set__amount_due_calculated",
+        return (
+            self.annotate(
+                amount_due_total=Sum(
+                    Coalesce(
+                        "participants_set__amount_due_modified",
+                        "participants_set__amount_due_calculated",
+                        output_field=DecimalField(max_digits=10, decimal_places=2),
+                    ),
+                ),
+                amount_payed_total=Coalesce(
+                    Sum("participants_set__payments__amount"),
+                    Value(0),
                     output_field=DecimalField(max_digits=10, decimal_places=2),
                 ),
-            ),
-            amount_payed_total=Coalesce(
-                Sum("participants_set__payments__amount"),
-                Value(0),
-                output_field=DecimalField(max_digits=10, decimal_places=2),
-            ),
-        ).annotate(
-            balance=F("amount_due_total") - F("amount_payed_total"),
+            )
+            .annotate(
+                balance=F("amount_due_total") - F("amount_payed_total"),
+            )
+            .annotate(
+                status=Case(
+                    When(cancelled_at__isnull=False, then=Value("cancelled")),
+                    When(validated_at__isnull=True, then=Value("pending")),
+                    When(on_hold_at__isnull=False, then=Value("on hold")),
+                    When(balance__lte=Value(0), then=Value("payed")),
+                    default=Value("waiting payment"),
+                ),
+                is_payed=Case(
+                    When(balance__lte=Value(0), then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
         )
 
 
