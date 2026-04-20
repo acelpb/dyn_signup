@@ -75,6 +75,7 @@ class Signup(models.Model):
     on_hold_at = models.DateTimeField(default=None, null=True, blank=True)
     on_hold_vae = models.BooleanField(default=False)
     on_hold_partial = models.BooleanField(default=False)
+    comments = models.TextField(_("Commentaires"), blank=True)
 
     objects = SignupManager()
 
