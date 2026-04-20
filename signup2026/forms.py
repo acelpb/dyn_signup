@@ -116,7 +116,9 @@ class ParticipantFormSetHelper(FormHelper):
             ),
         )
         self.add_input(
-            Button("add_user", "Ajouter un participant", css_class="btn-secondary")
+            Button(
+                "add_user", "➕ Ajouter un participant", css_class="btn-success btn-lg"
+            )
         )
         self.add_input(Submit("submit", "Page Suivante"))
 
