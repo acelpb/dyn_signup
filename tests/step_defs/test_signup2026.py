@@ -16,6 +16,21 @@ def test_underage_participant(transactional_db):
     pass
 
 
+@scenario(
+    "signup2026.feature", "Day selection step has a back button to the participant step"
+)
+def test_day_selection_back_button(transactional_db):
+    pass
+
+
+@scenario(
+    "signup2026.feature",
+    "Extra info step has a back button and includes the new fields",
+)
+def test_extra_info_back_button_and_new_fields(transactional_db):
+    pass
+
+
 @given("I arrive on the signup 2026 home page", target_fixture="response")
 def arrive_home(client, settings):
     settings.DYNAMOBILE_START_SIGNUP = timezone.now() - timezone.timedelta(days=1)
@@ -158,3 +173,17 @@ def check_confirmation_email(mailoutbox):
 def check_underage_error(response):
     assert response.request["PATH_INFO"] == reverse("signup2026:group_edit")
     assert "adulte" in response.content.decode("utf-8")
+
+
+@then("I should see a back button to the participant step")
+def check_back_button(response):
+    content = response.content.decode("utf-8")
+    assert "Page précédente" in content
+    assert reverse("signup2026:group_edit") in content
+
+
+@then("I should see the takes_car_back and extra_activities fields")
+def check_new_fields(response):
+    content = response.content.decode("utf-8")
+    assert "takes_car_back" in content
+    assert "extra_activities" in content

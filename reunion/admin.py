@@ -124,6 +124,15 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
         "put_on_hold_signup",
     )
 
+    def get_readonly_fields(self, request, obj=None):
+        if request.user.is_superuser:
+            return (
+                "status",
+                "amount_due",
+            )
+        else:
+            return self.readonly_fields
+
     def get_change_actions(self, request, object_id, form_url):
         if object_id is not None:
             signup = Signup.objects.get(pk=object_id)

@@ -4,6 +4,7 @@
             <th scope="col" rowspan="2" colspan="1">Participant</th>
             <th scope="col" rowspan="2" colspan="1">VAE</th>
             <th scope="col" rowspan="2" colspan="1">Arrivée la veille</th>
+            <th scope="col" rowspan="2" colspan="1">Reviens en car</th>
             <th scope="col" rowspan="1" colspan="9">Jours de participation</th>
         </tr>
         <tr>
@@ -24,6 +25,7 @@
                 <td>{{ participant.first_name }} {{ participant.last_name }}</td>
                 <td>{{ participant.get_vae_display }}</td>
                 <td>{% if participant.arrive_day_before %}✅{% else %}❌{% endif %}</td>
+                <td>{% if participant.takes_car_back %}✅{% else %}❌{% endif %}</td>
                 <td>{% if participant.day1 %}✅{% else %}❌{% endif %}</td>
                 <td>{% if participant.day2 %}✅{% else %}❌{% endif %}</td>
                 <td>{% if participant.day3 %}✅{% else %}❌{% endif %}</td>
@@ -37,6 +39,11 @@
         {% endfor %}
     </tbody>
 </table>
+{% for participant in signup.participants_set.all %}
+    {% if participant.extra_activities %}
+        <p><strong>{{ participant.first_name }} {{ participant.last_name }}</strong> — {{ participant.extra_activities }}</p>
+    {% endif %}
+{% endfor %}
 {% if signup.on_hold_at %}
     {% if signup.on_hold_vae %}
         <p>

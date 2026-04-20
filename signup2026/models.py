@@ -283,6 +283,17 @@ class Participant(models.Model):
         default=False,
         help_text=_("Le participant arrivera-t-il la veille de l'édition ?"),
     )
+    takes_car_back = models.BooleanField(
+        _("Ramène la voiture"),
+        default=False,
+    )
+    extra_activities = models.CharField(
+        _("Proposition d'aide"),
+        default="",
+        blank=True,
+        max_length=300,
+        help_text=_("Proposition d'aide"),
+    )
 
     # Jours de participation
     day1 = models.BooleanField(_("17-07"), default=True)
