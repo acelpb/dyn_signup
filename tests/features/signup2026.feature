@@ -71,4 +71,51 @@ Feature: Signup 2026
     And I should see a back button to the participant step
     And I should see the takes_car_back and extra_activities fields
 
-  Scenario: Require participants signup with a VAE (electric bike) to read and close a pop up window that
+  Scenario: Partial signup date is shown on the landing page
+    Given I arrive on the signup 2026 home page
+    Then I should see the partial signup opening date
+
+  Scenario: Partial signup date is shown on the completed signup page for a partial signup
+    Given I arrive on the signup 2026 home page
+    When I submit my email address "test@example.com" for a login token
+    And I click on the magic link received by email
+    And I fill the participant form for 1 participant:
+      | first_name | last_name | email            | phone      | birthday   | city  | country  |
+      | Jean       | Dupont    | jean@example.com | 0470123456 | 1980-05-15 | Namur | Belgique |
+    And I submit the participant form
+    And I select only the first 5 days for all participants
+    And I submit the day selection form
+    And I set VAE to true for the first participant
+    And I submit the extra info form
+    And I confirm my signup
+    Then I should see the partial signup opening date
+
+  Scenario: Partial signup date is included in the confirmation email for a partial signup
+    Given I arrive on the signup 2026 home page
+    When I submit my email address "test@example.com" for a login token
+    And I click on the magic link received by email
+    And I fill the participant form for 1 participant:
+      | first_name | last_name | email            | phone      | birthday   | city  | country  |
+      | Jean       | Dupont    | jean@example.com | 0470123456 | 1980-05-15 | Namur | Belgique |
+    And I submit the participant form
+    And I select only the first 5 days for all participants
+    And I submit the day selection form
+    And I set VAE to true for the first participant
+    And I submit the extra info form
+    And I confirm my signup
+    Then the confirmation email should mention the partial signup opening date
+
+  Scenario: Require participants signup with a VAE (electric bike) to read and close a pop up window that informs them that it might cause them to be put on hold.
+    Given I arrive on the signup 2026 home page
+    When I submit my email address "test@example.com" for a login token
+    And I click on the magic link received by email
+    And I fill the participant form for 1 participant:
+      | first_name | last_name | email            | phone      | birthday   | city  | country  |
+      | Jean       | Dupont    | jean@example.com | 0470123456 | 1980-05-15 | Namur | Belgique |
+    And I submit the participant form
+    And I select all days for all participants
+    And I submit the day selection form
+    When I set VAE to true and submit without confirming the VAE warning
+    Then I should see the VAE warning popup
+    When I confirm the VAE warning and resubmit
+    Then I should be on the review step

@@ -103,7 +103,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
     fields = (
         "owner",
         "status",
-        "amount_due",
+        "balance",
         "validated_at",
         "on_hold_at",
         "cancelled_at",
@@ -111,7 +111,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
     )
     readonly_fields = (
         "status",
-        "amount_due",
+        "balance",
         "validated_at",
         "cancelled_at",
         "on_hold_at",
@@ -128,7 +128,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
         if request.user.is_superuser:
             return (
                 "status",
-                "amount_due",
+                "balance",
             )
         else:
             return self.readonly_fields

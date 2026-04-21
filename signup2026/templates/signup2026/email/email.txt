@@ -2,7 +2,8 @@ Votre inscription a bien été enregistrée.
 
 Vous pouvez la visualiser en utilisant le lien suivant : https://inscriptions.dynamobile.net{% url "signup2026:completed" %}
 
-Votre inscription sera effective après réception de la totalité du paiement dans 5 jours au plus tard. En cas de non-paiement, votre place sera attribuée à quelqu'un sur la liste d'attente.
+{% if signup.on_hold_partial %}Les inscriptions partielles seront examinées à partir du {{ partial_open|date }}.
+{% endif %}Votre inscription sera effective après réception de la totalité du paiement dans 5 jours au plus tard. En cas de non-paiement, votre place sera attribuée à quelqu'un sur la liste d'attente.
 
 Si vous n'êtes pas en mesure de régler le solde dans les 5 jours et souhaitez un paiement échelonné, merci de contacter le trésorier via secretariat@dynamobile.net.
 

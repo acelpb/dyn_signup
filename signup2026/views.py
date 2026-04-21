@@ -93,6 +93,11 @@ class GroupExtraEditView(SignupStartedMixin, FormView):
         return super().get_context_data(**kwargs, helper=ParticipantExtraFormSetHelper)
 
     def form_valid(self, form):
+        has_vae = any(f.cleaned_data.get("vae") for f in form.forms if f.cleaned_data)
+        if has_vae and not self.request.POST.get("vae_popup_confirmed"):
+            return self.render_to_response(
+                self.get_context_data(form=form, show_vae_modal=True)
+            )
         form.save()
         return super().form_valid(form)
 
@@ -135,3 +140,8 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
             owner=self.request.user,
             year=2026,
         ).first()
+
+    def get_context_data(self, **kwargs):
+        kwargs = super().get_context_data(**kwargs)
+        kwargs["partial_open"] = settings.DYNAMOBILE_START_PARTIAL_SIGNUP
+        return kwargs

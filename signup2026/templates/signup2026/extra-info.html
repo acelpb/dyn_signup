@@ -3,29 +3,82 @@
 
 {% block content %}
     {% crispy form helper %}
+
+    <div class="modal fade" id="vaeWarningModal" tabindex="-1"
+         aria-labelledby="vaeWarningModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="vaeWarningModalLabel">
+                        Vélo à Assistance Électrique (VAE)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        Le nombre de places VAE est limité. Si la limite est déjà atteinte
+                        au moment de la validation de votre inscription, votre inscription
+                        sera <strong>mise en liste d'attente</strong> jusqu'à ce qu'une place
+                        se libère ou que vous souhaitiez participer sans VAE.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                            id="cancelVaeBtn" data-bs-dismiss="modal">
+                        Annuler
+                    </button>
+                    <button type="button" class="btn btn-primary" id="confirmVaeBtn">
+                        Je comprends, continuer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block extra_scripts %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            var vaeModal = new bootstrap.Modal(document.getElementById('vaeWarningModal'));
+            var pendingSelect = null;
+            var previousValues = {};
+
+            {% if show_vae_modal %}
+                vaeModal.show();
+            {% endif %}
+
             document.querySelectorAll('select[id$="-vae"]').forEach(function (select) {
-                var previousValue = select.value;
+                previousValues[select.id] = select.value;
 
                 select.addEventListener('change', function () {
                     if (this.value === 'True') {
-                        var confirmed = window.confirm(
-                            "Vous avez sélectionné un Vélo à Assistance Électrique (VAE).\n\n" +
-                            "Le nombre de places VAE est limité. Si la limite est atteinte, " +
-                            "votre inscription sera mise en liste d'attente.\n\n" +
-                            "Confirmez-vous ce choix ?"
-                        );
-                        if (!confirmed) {
-                            this.value = previousValue;
-                            return;
-                        }
+                        pendingSelect = this;
+                        vaeModal.show();
+                    } else {
+                        previousValues[this.id] = this.value;
                     }
-                    previousValue = this.value;
                 });
+            });
+
+            document.getElementById('cancelVaeBtn').addEventListener('click', function () {
+                if (pendingSelect) {
+                    pendingSelect.value = previousValues[pendingSelect.id];
+                    pendingSelect = null;
+                }
+            });
+
+            document.getElementById('confirmVaeBtn').addEventListener('click', function () {
+                if (pendingSelect) {
+                    previousValues[pendingSelect.id] = pendingSelect.value;
+                    pendingSelect = null;
+                }
+                var input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'vae_popup_confirmed';
+                input.value = 'true';
+                document.querySelector('form').appendChild(input);
+                document.querySelector('form').submit();
             });
         });
     </script>

@@ -132,6 +132,8 @@ def _complete_flow(client, email, vae):
         "participants_set-MIN_NUM_FORMS": "1",
         "participants_set-MAX_NUM_FORMS": "1000",
     }
+    if vae:
+        extra_data["vae_popup_confirmed"] = "true"
     for i, p in enumerate(participants):
         extra_data[f"participants_set-{i}-id"] = str(p.id)
         extra_data[f"participants_set-{i}-vae"] = "True" if vae else "False"
