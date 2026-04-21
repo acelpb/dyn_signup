@@ -203,6 +203,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "day9",
         "vae",
         "arrive_day_before",
+        "takes_car_back",
         "country",
     )
     search_fields = ["first_name", "last_name"]
@@ -211,6 +212,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         SignupDayFilter,
         "vae",
         "country",
+        "takes_car_back",
     )
     fields = []
 
