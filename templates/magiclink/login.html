@@ -3,7 +3,7 @@
 {% block title %}{% trans "Login" %}{% endblock %}
 
 {% block smallcontent %}
-    Bonjour, afin de pouvoir procéder à l'inscription nous aimerions vérifier que vous avez une adrese email valide.
+    Bonjour, afin de pouvoir procéder à l'inscription, nous aimerions vérifier que vous avez une adresse email valide.
     <div>
         {% if user.is_authenticated %}
             {% with username=user.username %}
