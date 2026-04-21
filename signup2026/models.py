@@ -283,9 +283,17 @@ class Participant(models.Model):
         default=False,
         help_text=_("Le participant arrivera-t-il la veille de l'édition ?"),
     )
-    takes_car_back = models.BooleanField(
+
+    class CarBackChoice(models.TextChoices):
+        NO = "no", _("Non")
+        BRUSSELS = "brussels", _("Bruxelles")
+        NAMUR = "namur", _("Namur")
+
+    takes_car_back = models.CharField(
         _("Rentre en car"),
-        default=False,
+        max_length=10,
+        choices=CarBackChoice.choices,
+        default=CarBackChoice.NO,
         help_text=_(
             "Le participant rentre-t-il en car depuis Bastogne vers Namur ou Bruxelles ?"
         ),

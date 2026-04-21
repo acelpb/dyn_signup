@@ -137,6 +137,7 @@ def _complete_flow(client, email, vae):
     for i, p in enumerate(participants):
         extra_data[f"participants_set-{i}-id"] = str(p.id)
         extra_data[f"participants_set-{i}-vae"] = "True" if vae else "False"
+        extra_data[f"participants_set-{i}-takes_car_back"] = "no"
     client.post(reverse("signup2026:group_extra_info"), data=extra_data, follow=True)
 
 

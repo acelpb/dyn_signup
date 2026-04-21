@@ -179,6 +179,7 @@ def set_vae():
     for i, p in enumerate(participants):
         form_data[f"participants_set-{i}-id"] = str(p.id)
         form_data[f"participants_set-{i}-vae"] = "True" if i == 0 else "False"
+        form_data[f"participants_set-{i}-takes_car_back"] = "no"
     return form_data
 
 
@@ -253,6 +254,7 @@ def submit_vae_without_confirmation(client):
     for i, p in enumerate(participants):
         form_data[f"participants_set-{i}-id"] = str(p.id)
         form_data[f"participants_set-{i}-vae"] = "True" if i == 0 else "False"
+        form_data[f"participants_set-{i}-takes_car_back"] = "no"
     return client.post(
         reverse("signup2026:group_extra_info"), data=form_data, follow=True
     )
@@ -280,6 +282,7 @@ def confirm_vae_and_resubmit(client):
     for i, p in enumerate(participants):
         form_data[f"participants_set-{i}-id"] = str(p.id)
         form_data[f"participants_set-{i}-vae"] = "True" if i == 0 else "False"
+        form_data[f"participants_set-{i}-takes_car_back"] = "no"
     return client.post(
         reverse("signup2026:group_extra_info"), data=form_data, follow=True
     )
