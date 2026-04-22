@@ -104,13 +104,15 @@ class Signup(models.Model):
         return True
 
     def calculate_amounts(self):
-        # Fusion de la logique de calcul de prix
+        description = ""
         total_price = 0
         child_nb = 0
         participants = self.participants_set.all().order_by("birthday")
         for participant in participants:
             age = participant.age_at_dynamobile_end()
-            price = 0
+            description += (
+                f"prix pour {participant.first_name} {participant.last_name}: "
+            )
             for (
                 min_age,
                 max_age,
@@ -120,9 +122,11 @@ class Signup(models.Model):
                 if min_age <= age < max_age:
                     if participant.complete_signup():
                         price = upfront_price + all_days_price
+                        description += f"(totalité) {upfront_price} + {all_days_price} "
                     else:
                         nb_days = participant.nb_of_days()
                         price = upfront_price + (all_days_price / 8 * nb_days)
+                        description += f"(partiel) {upfront_price} + {all_days_price} / 8 * {nb_days} "
 
                     if age < 18:
                         reduction = 0
@@ -132,10 +136,20 @@ class Signup(models.Model):
                             reduction = 0.50
                         price *= 1 - reduction
                         child_nb += 1
+                        description += f"enfant {child_nb} réduction {reduction:.0%} "
+
+                    total_price += price
+                    description += f"= {price:.2f}€\n"
                     break
+            else:
+                raise ValueError(
+                    f"Aucune tranche de prix pour {participant} (âge {age})"
+                )
             participant.amount_due_calculated = price
             participant.save()
-            total_price += price
+        description += f"total: {total_price:.2f}€"
+        self.comments = description
+        self.save()
         return total_price
 
     def amount_due(self):

@@ -12,6 +12,7 @@ from import_export.admin import ExportMixin
 from import_export.fields import Field
 
 from accounts.models import OperationValidation
+from signup2026.models import Signup as Signup2026
 
 from .models import (
     Participant,
@@ -135,7 +136,8 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
 
     def get_change_actions(self, request, object_id, form_url):
         if object_id is not None:
-            signup = Signup.objects.get(pk=object_id)
+            signup = Signup2026.objects.with_amounts().get(pk=object_id)
+            print(signup.status)
             if signup.status == "waiting payment" or signup.status == "payed":
                 return [
                     "cancel_signup",
@@ -156,7 +158,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
     def recalculate_amounts(self, request, signup):
         signup.calculate_amounts()
         messages.success(request, "Amounts have been recalculated.")
-        return redirect("admin:reunion_signup_change", signup.id)
+        return redirect("admin:signup2026_signup_change", signup.id)
 
     @action(description="validate")
     def validate_signup(self, request, signup):
@@ -167,9 +169,9 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
         signup.on_hold_at = None  # Remove on-hold status
         signup.cancelled_at = None  # Remove cancelled status
         signup.cancelled_reason = None
-        signup.comments += f"Signup validated by {request.user.username}.\n\n"
+        signup.comments += f"\nSignup validated by {request.user.username}.\n\n"
         signup.save()
-        return redirect("admin:reunion_signup_change", signup.id)
+        return redirect("admin:signup2026_signup_change", signup.id)
 
     @action(description="cancel signup")
     def cancel_signup(self, request, signup):
@@ -177,7 +179,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
         signup.comments += f"Signup cancelled by {request.user.username}."
         signup.save()
         messages.success(request, f"Signup #{signup.id} has been cancelled.\n\n")
-        return redirect("admin:reunion_signup_changelist")
+        return redirect("admin:signup2026_signup_changelist")
 
     @action(description="Put signup on hold")
     def put_on_hold_signup(self, request, signup):
@@ -186,7 +188,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
         signup.comments += f"Signup put on hold by {request.user.username}.\n\n"
         signup.save()
         messages.success(request, f"Signup #{signup.id} has been put on hold.")
-        return redirect("admin:reunion_signup_change", signup.id)
+        return redirect("admin:signup2026_signup_change", signup.id)
 
     def status(self, obj: Signup):
         return obj.status
