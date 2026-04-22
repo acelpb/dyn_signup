@@ -50,6 +50,8 @@ class ParticipantInfoInline(admin.StackedInline):
         "country",
         "vae",
         "arrive_day_before",
+        "takes_car_back",
+        "extra_activities",
     )
 
 
