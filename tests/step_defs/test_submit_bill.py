@@ -1,5 +1,3 @@
-import time
-
 from pytest_bdd import given, scenario, then, when
 
 
@@ -25,7 +23,6 @@ def staff_session(live_server, selenium, staff):
 @when('I navigate to the "Create Bill" page')
 def navigate_to_bill(live_server, logged_in_staff):
     logged_in_staff.get(live_server.url + "/admin/accounts/bill/add/")
-    time.sleep(20)
 
 
 @given("I fill in the bill details")

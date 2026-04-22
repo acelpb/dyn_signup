@@ -15,7 +15,7 @@ from reunion.admin import (
 )
 
 from .admin_views import SyncMailingListFormView
-from .models import ExtraParticipantInfo, Participant, Signup
+from .models import ExtraParticipantInfo, Participant, Signup, WaitingListParticipant
 
 
 @admin.action(description="Send place on waiting list")
@@ -261,6 +261,83 @@ class ExtraInfoRessource(ModelResource):
             "animator",
             "comments",
         )
+
+
+@admin.action(description="Débloquer le(s) participant(s)")
+def unblock_participant(modeladmin, request, queryset):
+    signups_done = set()
+    for participant in queryset.select_related("signup_group__owner"):
+        signup = participant.signup_group
+        if signup.id in signups_done:
+            continue
+        signups_done.add(signup.id)
+        signup.on_hold_at = None
+        signup.on_hold_vae = False
+        signup.on_hold_partial = False
+        signup.save()
+        signup.calculate_amounts()
+        send_mail(
+            subject="Votre inscription à Dynamobile",
+            message=get_template("signup2026/email/unblock_waitinglist.txt").render(
+                {"signup": signup}
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
+            html_message=get_template(
+                "signup2026/email/unblock_waitinglist.html"
+            ).render({"signup": signup}),
+        )
+    modeladmin.message_user(
+        request, f"{len(signups_done)} inscription(s) débloquée(s)."
+    )
+
+
+@admin.register(WaitingListParticipant)
+class WaitingListParticipantAdmin(admin.ModelAdmin):
+    actions = [unblock_participant]
+    list_display = (
+        "waiting_number",
+        "first_name",
+        "last_name",
+        "on_hold_reason",
+        "vae",
+        "day1",
+        "day2",
+        "day3",
+        "day4",
+        "day5",
+        "day6",
+        "day7",
+        "day8",
+        "day9",
+    )
+    ordering = ()
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .filter(
+                signup_group__on_hold_at__isnull=False,
+                signup_group__validated_at__isnull=False,
+                signup_group__cancelled_at__isnull=True,
+                signup_group__year=2026,
+            )
+            .select_related("signup_group")
+        )
+
+    @admin.display(description="N° d'attente")
+    def waiting_number(self, obj):
+        return obj.signup_group.waiting_number()
+
+    @admin.display(description="Raison")
+    def on_hold_reason(self, obj):
+        signup = obj.signup_group
+        if signup.on_hold_vae:
+            return "VAE"
+        if signup.on_hold_partial:
+            return "Inscription partielle"
+        return "Limite participants"
 
 
 @admin.register(ExtraParticipantInfo)

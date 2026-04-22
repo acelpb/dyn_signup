@@ -375,6 +375,13 @@ class Participant(models.Model):
         )
 
 
+class WaitingListParticipant(Participant):
+    class Meta:
+        proxy = True
+        verbose_name = "Participant en attente 2026"
+        verbose_name_plural = "Participants en attente 2026"
+
+
 class ExtraParticipantInfo(models.Model):
     participant = models.OneToOneField(
         Participant, on_delete=models.CASCADE, related_name="extra_info"
