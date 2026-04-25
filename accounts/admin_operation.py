@@ -229,6 +229,11 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 name="accounts_operation_link_to_signup",
             ),
             path(
+                "<int:operation_id>/link-to-signup2026/<int:signup_id>/",
+                self.admin_site.admin_view(self.link_to_signup2026_view),
+                name="accounts_operation_link_to_signup2026",
+            ),
+            path(
                 "<int:operation_id>/link-to-reunion/<int:reunion_id>/",
                 self.admin_site.admin_view(self.link_to_reunion_view),
                 name="accounts_operation_link_to_reunion",
@@ -280,15 +285,20 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 print("erreur")
                 pass
 
-        # Vérifier si la communication contient le motif "inscription +(\d+-"
         match = re.search(r"(inscription +)?(\d+)", obj.communication, re.IGNORECASE)
         if match:
-            # Extraire l'ID depuis le motif
             signup_id = match.group(2)
-            # Créer un lien ou bouton HTML pour l'action
-            url = reverse(
-                "admin:accounts_operation_link_to_signup", args=[obj.id, signup_id]
-            )
+            from signup2026.models import Signup as Signup2026
+
+            if Signup2026.objects.filter(id=signup_id).exists():
+                url = reverse(
+                    "admin:accounts_operation_link_to_signup2026",
+                    args=[obj.id, signup_id],
+                )
+            else:
+                url = reverse(
+                    "admin:accounts_operation_link_to_signup", args=[obj.id, signup_id]
+                )
             return format_html(
                 '<p>{}</p><a class="button" href="{}">Link to #{}</a>',
                 obj.communication,
@@ -325,6 +335,48 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
         messages.success(
             request,
             f"L’opération {operation_id} a été liée à l’inscription {signup_id}.",
+        )
+        return redirect("admin:accounts_operation_changelist")
+
+    def link_to_signup2026_view(self, request, operation_id, signup_id):
+        from signup2026.models import Signup
+
+        operation = get_object_or_404(Operation, id=operation_id)
+        signup = get_object_or_404(Signup, id=signup_id)
+
+        remaining = operation.amount
+
+        with transaction.atomic():
+            for participant in signup.participants_set.with_amounts().filter(
+                amount_due_remaining__gt=0
+            ):
+                if remaining <= 0:
+                    break
+                amount = min(remaining, participant.amount_due_remaining)
+                OperationValidation.objects.create(
+                    operation=operation,
+                    amount=amount,
+                    event=participant,
+                    validation_type=IncomeChoices.SIGNUP,
+                    created_by=request.user,
+                )
+                remaining -= amount
+
+            if remaining > 0:
+                OperationValidation.objects.create(
+                    operation=operation,
+                    amount=remaining,
+                    event=signup,
+                    validation_type=IncomeChoices.DONATION,
+                    created_by=request.user,
+                )
+
+        if signup.payed():
+            signup.send_payment_confirmation_mail()
+
+        messages.success(
+            request,
+            f"L'opération {operation_id} a été liée à l'inscription 2026 {signup_id}.",
         )
         return redirect("admin:accounts_operation_changelist")
 

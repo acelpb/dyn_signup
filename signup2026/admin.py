@@ -1,11 +1,13 @@
 from django.conf import settings
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.core.mail import send_mail
+from django.shortcuts import redirect
 from django.template.loader import get_template
 from django.urls import path, reverse
 from django.utils.safestring import mark_safe
 from django.utils.timezone import localdate
+from django_object_actions import action
 from import_export import resources
 from import_export.admin import ExportMixin
 from import_export.resources import ModelResource
@@ -82,12 +84,28 @@ class SignupAdmin(SignupAminMixin, admin.ModelAdmin):
         "validate_signup",
         "cancel_signup",
         "put_on_hold_signup",
+        "send_payment_confirmation",
     )
 
     def validate(self, request, obj):
         obj.validated_at = localdate()
         obj.calculate_amounts()
         self.message_user(request, "Amounts calculated and signup validated.")
+
+    def get_change_actions(self, request, object_id, form_url):
+        actions = list(super().get_change_actions(request, object_id, form_url) or [])
+        if (
+            object_id is not None
+            and Signup.objects.filter(pk=object_id, validated_at__isnull=False).exists()
+        ):
+            actions.append("send_payment_confirmation")
+        return actions
+
+    @action(description="Send payment confirmation")
+    def send_payment_confirmation(self, request, signup):
+        signup.send_payment_confirmation_mail()
+        messages.success(request, f"Payment confirmation sent to {signup.owner.email}.")
+        return redirect("admin:signup2026_signup_change", signup.id)
 
     def get_queryset(self, request):
         return super().get_queryset(request).with_amounts()

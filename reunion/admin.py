@@ -100,7 +100,14 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
     inlines = [ParticipantInline]
     search_fields = ("owner__first_name", "owner__last_name", "owner__email")
     autocomplete_fields = ["owner"]
-    list_display = ("id", "owner", "status", "is_payed", "balance")
+    list_display = (
+        "id",
+        "owner",
+        "status",
+        "is_payed",
+        "balance",
+        "payment_confirmation_sent_at",
+    )
     fields = (
         "owner",
         "status",
@@ -108,6 +115,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
         "validated_at",
         "on_hold_at",
         "cancelled_at",
+        "payment_confirmation_sent_at",
         "comments",
     )
     readonly_fields = (
@@ -116,6 +124,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
         "validated_at",
         "cancelled_at",
         "on_hold_at",
+        "payment_confirmation_sent_at",
     )
 
     change_actions = (

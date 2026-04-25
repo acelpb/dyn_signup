@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
+from django.core.mail import send_mail
 from django.db import models
 from django.db.models import (
     BooleanField,
@@ -11,6 +12,7 @@ from django.db.models import (
     When,
 )
 from django.db.models.functions import Coalesce
+from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
@@ -73,6 +75,9 @@ class Signup(models.Model):
     validated_at = models.DateTimeField(default=None, null=True, blank=True)
     cancelled_at = models.DateTimeField(default=None, null=True, blank=True)
     on_hold_at = models.DateTimeField(default=None, null=True, blank=True)
+    payment_confirmation_sent_at = models.DateTimeField(
+        default=None, null=True, blank=True
+    )
     on_hold_vae = models.BooleanField(default=False)
     on_hold_partial = models.BooleanField(default=False)
     comments = models.TextField(_("Commentaires"), blank=True)
@@ -187,6 +192,22 @@ class Signup(models.Model):
 
     def payed(self):
         return self.balance() <= 0
+
+    def send_payment_confirmation_mail(self):
+        context = {"signup": self}
+        send_mail(
+            subject="Confirmation de paiement - Dynamobile",
+            message=get_template("signup2026/email/email_confirmation.txt").render(
+                context
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[self.owner.email, settings.EMAIL_HOST_USER],
+            html_message=get_template(
+                "signup2026/email/email_confirmation.html"
+            ).render(context),
+        )
+        self.payment_confirmation_sent_at = timezone.now()
+        self.save(update_fields=["payment_confirmation_sent_at"])
 
     def waiting_number(self):
         from django.db.models import Case, Value, When

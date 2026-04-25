@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from schwifty import IBAN
@@ -129,8 +129,11 @@ class OperationValidation(models.Model):
                 event._meta.app_label,
                 event._meta.model_name,
             )
-            change_url = reverse(url_name, args=[event.id])
-            return mark_safe('<a href="%s">%s</a>' % (change_url, str(event)))
+            try:
+                change_url = reverse(url_name, args=[event.id])
+                return mark_safe('<a href="%s">%s</a>' % (change_url, str(event)))
+            except NoReverseMatch:
+                pass
         return "-"
 
     def __str__(self):
