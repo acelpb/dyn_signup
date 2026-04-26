@@ -83,6 +83,12 @@ class CanBePayedAdminMixin:
     amount_due.admin_order_field = "amount_due"
     amount_due.short_description = "amount due"
 
+    def amount_due_total(self, obj: Signup):
+        return obj.amount_due_total
+
+    amount_due.admin_order_field = "amount_due_total"
+    amount_due.short_description = "total amount due"
+
     def amount_due_remaining(self, obj: Signup):
         return obj.amount_due_remaining
 
@@ -105,6 +111,7 @@ class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
         "owner",
         "status",
         "is_payed",
+        "amount_due_total",
         "balance",
         "payment_confirmation_sent_at",
     )
