@@ -6,7 +6,7 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 
 from .admin_inline import ExpenseFileInline, PaymentInline
@@ -49,13 +49,16 @@ class OperationValidationAdmin(admin.ModelAdmin):
 
     def event_link(self, obj):
         event = getattr(obj, "event", None)
-        if not event:
-            return "-"
-        url = reverse(
-            f"admin:{event._meta.app_label}_{event._meta.model_name}_change",
-            args=[event.pk],
-        )
-        return format_html('<a href="{}">{}</a>', url, str(event))
+        if event:
+            try:
+                url = reverse(
+                    f"admin:{event._meta.app_label}_{event._meta.model_name}_change",
+                    args=[event.pk],
+                )
+                return format_html('<a href="{}">{}</a>', url, str(event))
+            except NoReverseMatch:
+                pass
+        return "-"
 
     event_link.short_description = "Payment purpose"
 
