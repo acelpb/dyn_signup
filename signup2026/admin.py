@@ -1,7 +1,11 @@
 from django.conf import settings
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
+from django.contrib.contenttypes.admin import GenericTabularInline
+from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.core.mail import send_mail
+from django.db.models import Q
+from django.forms.models import BaseModelFormSet
 from django.shortcuts import redirect
 from django.template.loader import get_template
 from django.urls import path, reverse
@@ -12,12 +16,40 @@ from import_export import resources
 from import_export.admin import ExportMixin
 from import_export.resources import ModelResource
 
+from accounts.models import OperationValidation
 from reunion.admin import (
     SignupAminMixin,
 )
 
 from .admin_views import SyncMailingListFormView
 from .models import ExtraParticipantInfo, Participant, Signup, WaitingListParticipant
+
+
+class _PassthroughFormSet(BaseGenericInlineFormSet):
+    """Uses the queryset as-is without re-filtering by content_type/object_id."""
+
+    def __init__(
+        self,
+        data=None,
+        files=None,
+        instance=None,
+        save_as_new=False,
+        prefix=None,
+        queryset=None,
+        **kwargs,
+    ):
+        self.instance = instance
+        self.save_as_new = save_as_new
+        opts = self.model._meta
+        self.rel_name = (
+            f"{opts.app_label}-{opts.model_name}"
+            f"-{self.ct_field.name}-{self.ct_fk_field.name}"
+        )
+        if queryset is None:
+            queryset = self.model._default_manager.none()
+        BaseModelFormSet.__init__(
+            self, data, files, prefix=prefix, queryset=queryset, **kwargs
+        )
 
 
 @admin.action(description="Send place on waiting list")
@@ -36,6 +68,59 @@ def waiting_list(modeladmin, request, queryset):
                     {"signup": el.signup_group}
                 ),
             )
+
+
+class SignupPaymentsInline(GenericTabularInline):
+    model = OperationValidation
+    ct_field = "content_type"
+    fk_field = "object_id"
+    formset = _PassthroughFormSet
+    extra = 0
+    can_delete = False
+    verbose_name = "Paiement"
+    verbose_name_plural = "Paiements (inscription + participants)"
+    readonly_fields = (
+        "operation",
+        "amount",
+        "validation_type",
+        "event_display",
+        "created_on",
+        "created_by",
+    )
+    fields = readonly_fields
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def get_queryset(self, request):
+        from django.contrib.contenttypes.models import ContentType
+
+        signup_pk = request.resolver_match.kwargs.get("object_id")
+        if not signup_pk:
+            return OperationValidation.objects.none()
+
+        signup_ct = ContentType.objects.get_for_model(Signup)
+        participant_ct = ContentType.objects.get_for_model(Participant)
+        participant_pks = Participant.objects.filter(
+            signup_group_id=signup_pk
+        ).values_list("pk", flat=True)
+
+        return (
+            OperationValidation.objects.filter(
+                Q(content_type=signup_ct, object_id=signup_pk)
+                | Q(content_type=participant_ct, object_id__in=participant_pks)
+            )
+            .select_related("operation", "content_type", "created_by")
+            .order_by("created_on")
+        )
+
+    def event_display(self, obj):
+        return str(obj.event) if obj.event else "-"
+
+    event_display.short_description = "Pour"
 
 
 class ParticipantInfoInline(admin.StackedInline):
@@ -76,7 +161,7 @@ class ParticipantDaysInline(admin.TabularInline):
 
 @admin.register(Signup)
 class SignupAdmin(SignupAminMixin, admin.ModelAdmin):
-    inlines = [ParticipantInfoInline, ParticipantDaysInline]
+    inlines = [ParticipantInfoInline, ParticipantDaysInline, SignupPaymentsInline]
 
     change_actions = (
         "validate",
