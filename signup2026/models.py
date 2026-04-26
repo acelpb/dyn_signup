@@ -7,6 +7,8 @@ from django.db.models import (
     Case,
     DecimalField,
     F,
+    OuterRef,
+    Subquery,
     Sum,
     Value,
     When,
@@ -22,8 +24,19 @@ from accounts.models import OperationValidation
 
 class SignupQuerySet(models.QuerySet):
     def with_amounts(self):
-        # Note: Cette méthode est inspirée de 'reunion', mais adaptée pour 'signup2026'
-        # Elle suppose l'existence de relations et de champs similaires
+        # amount_payed_total uses a correlated subquery starting from Participant
+        # (not from OperationValidation) so that OuterRef("pk") resolves to the
+        # signup pk at exactly one nesting level, not to the OV row id.
+        # This also removes the OV join from the main query, preventing the
+        # multiplication bug where amount_due_total was counted once per OV row.
+        payments_subq = Subquery(
+            Participant.objects.filter(signup_group_id=OuterRef("pk"))
+            .values("signup_group_id")
+            .annotate(total=Sum("payments__amount"))
+            .values("total")[:1],
+            output_field=DecimalField(max_digits=10, decimal_places=2),
+        )
+
         return (
             self.annotate(
                 amount_due_total=Sum(
@@ -34,7 +47,7 @@ class SignupQuerySet(models.QuerySet):
                     ),
                 ),
                 amount_payed_total=Coalesce(
-                    Sum("participants_set__payments__amount"),
+                    payments_subq,
                     Value(0),
                     output_field=DecimalField(max_digits=10, decimal_places=2),
                 ),
