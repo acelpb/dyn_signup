@@ -13,7 +13,6 @@ from .forms import (
     DaySignupFormset,
     DaySignupFormsetHelper,
     FollowupExtraInfoFormSet,
-    FollowupExtraInfoFormSetHelper,
     ParticipantExtraFormSet,
     ParticipantExtraFormSetHelper,
     ParticipantFormSet,
@@ -162,6 +161,15 @@ class FollowupExtraInfoView(LoginRequiredMixin, TemplateView):
 
     template_name = "signup2026/followup-extra-info.html"
 
+    # Number of days before departure after which the form becomes read-only.
+    LOCK_DAYS_BEFORE_DEPARTURE = 10
+
+    def is_locked(self):
+        cutoff = settings.DYNAMOBILE_FIRST_DAY - timezone.timedelta(
+            days=self.LOCK_DAYS_BEFORE_DEPARTURE
+        )
+        return timezone.localdate() >= cutoff
+
     def get_editable_participants(self):
         user = self.request.user
         return (
@@ -183,14 +191,18 @@ class FollowupExtraInfoView(LoginRequiredMixin, TemplateView):
             .select_related("participant")
             .order_by("participant_id")  # ordre d'inscription
         )
-        return FollowupExtraInfoFormSet(data, queryset=queryset)
+        return FollowupExtraInfoFormSet(
+            data, queryset=queryset, form_kwargs={"locked": self.is_locked()}
+        )
 
     def get_context_data(self, **kwargs):
-        kwargs.setdefault("helper", FollowupExtraInfoFormSetHelper())
         kwargs.setdefault("formset", self.get_formset())
+        kwargs.setdefault("locked", self.is_locked())
         return super().get_context_data(**kwargs)
 
     def post(self, request, *args, **kwargs):
+        if self.is_locked():
+            return self.render_to_response(self.get_context_data())
         formset = self.get_formset(data=request.POST)
         if formset.is_valid():
             formset.save()

@@ -10,10 +10,11 @@ Feature: Signup 2026 follow-up extra info form
       | Kid        | Boss      |                   |
     When the owner opens the follow-up form
     Then the form should show 2 participants
-    When the owner submits the follow-up form choosing July 20 "option1", tandem pilot and car return "brussels"
+    When the owner submits the follow-up form choosing July 20 "option1", tandem pilot, car return "brussels" and lodging on July 16
     Then the answers should be saved for every participant
     And the answers should record July 20 choice "option1" and tandem pilot true
     And every participant should have car return "brussels"
+    And every participant should be lodging on July 16
 
   Scenario: An individual participant only sees their own follow-up form
     Given a validated 2026 signup owned by "owner@example.com" with participants:
@@ -22,6 +23,24 @@ Feature: Signup 2026 follow-up extra info form
       | Member     | Friend    | member@example.com |
     When "member@example.com" opens the follow-up form
     Then the form should show 1 participants
+
+  Scenario: The form becomes read-only 10 days before departure
+    Given the departure is in 5 days
+    And a validated 2026 signup owned by "owner@example.com" with participants:
+      | first_name | last_name | email             |
+      | Owner      | Boss      | owner@example.com |
+    When the owner opens the follow-up form
+    Then the form should be read-only
+    And the form should show a message to contact the organisers
+
+  Scenario: Volunteer roles are hidden for minor participants
+    Given a validated 2026 signup owned by "owner@example.com" with participants:
+      | first_name | last_name | email             | birthday   |
+      | Owner      | Boss      | owner@example.com | 1980-01-01 |
+      | Kid        | Boss      |                   | 2015-01-01 |
+    When the owner opens the follow-up form
+    Then the volunteer roles should be shown for "Owner"
+    And the volunteer roles should be hidden for "Kid"
 
   Scenario: An anonymous user cannot access the follow-up form
     When an anonymous user opens the follow-up form

@@ -10,10 +10,13 @@
         compagnies de car.
     </p>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-success">{{ message }}</div>
-        {% endfor %}
+    {% if locked %}
+        <div class="alert alert-warning">
+            Nous sommes à moins de 10 jours du départ : ce formulaire n'est plus
+            modifiable. Si vous souhaitez encore apporter des modifications, merci de
+            nous contacter via
+            <a href="mailto:inscriptions@dynamobile.net">inscriptions@dynamobile.net</a>.
+        </div>
     {% endif %}
 
     {% if formset.forms %}
@@ -23,9 +26,11 @@
             {% for form in formset %}
                 {% if not forloop.first %}<hr class="my-4">{% endif %}
                 <h4>{{ form.instance.participant.first_name }} {{ form.instance.participant.last_name }}</h4>
-                {% crispy form helper %}
+                {% crispy form %}
             {% endfor %}
-            <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
+            {% if not locked %}
+                <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
+            {% endif %}
         </form>
     {% else %}
         <p>
