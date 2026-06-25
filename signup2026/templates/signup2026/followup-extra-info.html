@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h1>Informations complémentaires</h1>
+    <p>
+        Merci de compléter les informations ci-dessous pour chaque participant
+        au plus tard pour le <strong>30 juin</strong>, afin que nous puissions
+        organiser les réservations et confirmer le nombre de passagers aux
+        compagnies de car.
+    </p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    {% if formset.forms %}
+        <form method="post">
+            {% csrf_token %}
+            {{ formset.management_form }}
+            {% for form in formset %}
+                {% if not forloop.first %}<hr class="my-4">{% endif %}
+                <h4>{{ form.instance.participant.first_name }} {{ form.instance.participant.last_name }}</h4>
+                {% crispy form helper %}
+            {% endfor %}
+            <button type="submit" class="btn btn-primary mt-3">Enregistrer</button>
+        </form>
+    {% else %}
+        <p>
+            Aucune inscription validée n'est associée à votre adresse email.
+            Pour toute question, contactez-nous via
+            <a href="mailto:inscriptions@dynamobile.net">inscriptions@dynamobile.net</a>.
+        </p>
+    {% endif %}
+{% endblock content %}
