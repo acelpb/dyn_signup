@@ -496,6 +496,7 @@ class ExtraParticipantInfo(models.Model):
     tandem_pilot = models.BooleanField("Accompagner Claude (tandem)", default=False)
 
     class July20LoopChoice(models.TextChoices):
+        ABSENT = "absent", _("Je ne suis pas à Dynamobile à cette date.")
         OPTION1 = (
             "option1",
             _(

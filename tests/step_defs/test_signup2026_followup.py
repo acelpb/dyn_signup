@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+import pytest
 from django.urls import reverse
 from django.utils import timezone
 from pytest_bdd import given, parsers, scenario, then, when
@@ -5,11 +8,25 @@ from pytest_bdd import given, parsers, scenario, then, when
 from signup2026.models import ExtraParticipantInfo, Participant, Signup
 
 
+@pytest.fixture(autouse=True)
+def _departure_far_away(settings):
+    """Keep the follow-up form unlocked by default, regardless of wall-clock."""
+    settings.DYNAMOBILE_FIRST_DAY = timezone.localdate() + timedelta(days=60)
+
+
 @scenario(
     "signup2026_followup.feature",
     "Group owner fills the follow-up form for all participants",
 )
 def test_owner_fills_followup(db):
+    pass
+
+
+@scenario(
+    "signup2026_followup.feature",
+    "The form becomes read-only 10 days before departure",
+)
+def test_form_read_only_before_departure(db):
     pass
 
 
@@ -23,10 +40,23 @@ def test_individual_participant_followup(db):
 
 @scenario(
     "signup2026_followup.feature",
+    "Volunteer roles are hidden for minor participants",
+)
+def test_volunteer_roles_hidden_for_minors(db):
+    pass
+
+
+@scenario(
+    "signup2026_followup.feature",
     "An anonymous user cannot access the follow-up form",
 )
 def test_anonymous_followup(db):
     pass
+
+
+@given(parsers.parse("the departure is in {days:d} days"))
+def departure_in_days(settings, days):
+    settings.DYNAMOBILE_FIRST_DAY = timezone.localdate() + timedelta(days=days)
 
 
 @given(
@@ -48,7 +78,7 @@ def validated_signup(django_user_model, owner_email, datatable):
             first_name=data["first_name"],
             last_name=data["last_name"],
             email=data["email"],
-            birthday="1980-01-01",
+            birthday=data.get("birthday") or "1980-01-01",
             city="Namur",
         )
     return signup
@@ -86,7 +116,7 @@ def form_shows_participants(response, count):
 @when(
     parsers.parse(
         'the owner submits the follow-up form choosing July 20 "{choice}", '
-        'tandem pilot and car return "{car_return}"'
+        'tandem pilot, car return "{car_return}" and lodging on July 16'
     ),
     target_fixture="response",
 )
@@ -107,6 +137,7 @@ def owner_submits(client, signup, choice, car_return):
         data[f"form-{i}-july20_loop"] = choice
         data[f"form-{i}-tandem_pilot"] = "on"
         data[f"form-{i}-takes_car_back"] = car_return
+        data[f"form-{i}-arrive_day_before"] = "on"
     return client.post(
         reverse("signup2026:followup_extra_info"), data=data, follow=True
     )
@@ -133,6 +164,48 @@ def answers_recorded(signup, choice):
 def car_return_recorded(signup, car_return):
     participants = signup.participants_set.all()
     assert all(p.takes_car_back == car_return for p in participants)
+
+
+@then("every participant should be lodging on July 16")
+def lodging_recorded(signup):
+    participants = signup.participants_set.all()
+    assert all(p.arrive_day_before for p in participants)
+
+
+def _form_for(response, first_name):
+    return next(
+        f
+        for f in response.context["formset"]
+        if f.instance.participant.first_name == first_name
+    )
+
+
+@then(parsers.parse('the volunteer roles should be shown for "{first_name}"'))
+def volunteer_roles_shown(response, first_name):
+    form = _form_for(response, first_name)
+    assert all(name in form.fields for name in form.VOLUNTEER_FIELDS)
+
+
+@then(parsers.parse('the volunteer roles should be hidden for "{first_name}"'))
+def volunteer_roles_hidden(response, first_name):
+    form = _form_for(response, first_name)
+    assert all(name not in form.fields for name in form.VOLUNTEER_FIELDS)
+
+
+@then("the form should be read-only")
+def form_is_read_only(response):
+    assert response.context["locked"] is True
+    for form in response.context["formset"]:
+        assert all(
+            field.disabled for name, field in form.fields.items() if name != "id"
+        )
+
+
+@then("the form should show a message to contact the organisers")
+def form_shows_contact_message(response):
+    content = response.content.decode("utf-8")
+    assert "inscriptions@dynamobile.net" in content
+    assert "10 jours" in content
 
 
 @then("they should be redirected to the login page")

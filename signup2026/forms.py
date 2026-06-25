@@ -183,14 +183,29 @@ class ExtraParticipantInfoForm(forms.ModelForm):
 class FollowupExtraInfoForm(forms.ModelForm):
     """Post-registration follow-up form filled in by each participant.
 
-    ``takes_car_back`` lives on the related :class:`Participant`, so it is added
-    as an extra field that is initialised from and saved back to the participant.
+    ``takes_car_back`` and ``arrive_day_before`` live on the related
+    :class:`Participant`, so they are added as extra fields that are initialised
+    from and saved back to the participant.
+
+    The "Proposer votre aide" volunteer roles are hidden (and dropped from the
+    form) for minor participants.
     """
 
+    VOLUNTEER_FIELDS = (
+        "road_captain",
+        "mechanicien",
+        "healthpro",
+        "animator",
+        "tandem_pilot",
+    )
+
+    arrive_day_before = forms.BooleanField(
+        label="Logement le 16 juillet à Arlon",
+        required=False,
+    )
     takes_car_back = forms.ChoiceField(
         label=Participant._meta.get_field("takes_car_back").verbose_name,
         choices=Participant.CarBackChoice.choices,
-        help_text=Participant._meta.get_field("takes_car_back").help_text,
     )
 
     class Meta:
@@ -211,20 +226,77 @@ class FollowupExtraInfoForm(forms.ModelForm):
         widgets = {
             "july20_loop": forms.RadioSelect,
         }
+        labels = {
+            "image_rights": (
+                "J'autorise Dynamobile à diffuser des photos ou vidéos sur "
+                "lesquelles j'apparais via son site internet et ses canaux de "
+                "communication (page facebook)."
+            ),
+            "share_contact_info": (
+                "J'accepte que mes coordonnées (nom, prénom, adresse, numéro de "
+                "téléphone) soient partagées avec les autres participant.es de "
+                "l'édition 2026."
+            ),
+            "animator": "Animations (précisez dans les commentaires)",
+        }
+        help_texts = {
+            "july20_loop": "",
+        }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, locked=False, **kwargs):
         super().__init__(*args, **kwargs)
+        is_minor = False
         if self.instance and self.instance.pk:
-            self.fields[
-                "takes_car_back"
-            ].initial = self.instance.participant.takes_car_back
+            participant = self.instance.participant
+            self.fields["takes_car_back"].initial = participant.takes_car_back
+            self.fields["arrive_day_before"].initial = participant.arrive_day_before
+            is_minor = participant.age_at_dynamobile_end() < 18
+        if is_minor:
+            for name in self.VOLUNTEER_FIELDS:
+                self.fields.pop(name, None)
+        if locked:
+            for field in self.fields.values():
+                field.disabled = True
+        self.helper = self._build_helper(include_volunteer=not is_minor)
+
+    @classmethod
+    def _build_helper(cls, include_volunteer):
+        helper = FormHelper()
+        helper.form_tag = False  # the <form> tag is provided by the template
+        # Keep the hidden modelformset ``id`` field, which is not in the layout.
+        helper.render_unmentioned_fields = False
+        helper.render_hidden_fields = True
+        blocks = [
+            Field("full_address"),
+            Field("emergency_contact"),
+            Field("arrive_day_before"),
+            Field("takes_car_back"),
+            Field("july20_loop"),
+            Field("image_rights"),
+            Field("share_contact_info"),
+        ]
+        if include_volunteer:
+            blocks += [
+                HTML('<p class="fw-bold mb-1">Proposer votre aide</p>'),
+                Row(
+                    Column(Field("road_captain"), css_class="col-auto"),
+                    Column(Field("mechanicien"), css_class="col-auto"),
+                    Column(Field("healthpro"), css_class="col-auto"),
+                    Column(Field("animator"), css_class="col-auto"),
+                    Column(Field("tandem_pilot"), css_class="col-auto"),
+                ),
+            ]
+        blocks.append(Field("comments"))
+        helper.layout = Layout(*blocks)
+        return helper
 
     def save(self, commit=True):
         instance = super().save(commit=commit)
         if commit:
             participant = instance.participant
             participant.takes_car_back = self.cleaned_data["takes_car_back"]
-            participant.save(update_fields=["takes_car_back"])
+            participant.arrive_day_before = self.cleaned_data["arrive_day_before"]
+            participant.save(update_fields=["takes_car_back", "arrive_day_before"])
         return instance
 
 
@@ -234,32 +306,6 @@ FollowupExtraInfoFormSet = modelformset_factory(
     extra=0,
     can_delete=False,
 )
-
-
-class FollowupExtraInfoFormSetHelper(FormHelper):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.form_tag = False  # the <form> tag is provided by the template
-        # Keep the hidden modelformset ``id`` field, which is not in the layout.
-        self.render_unmentioned_fields = False
-        self.render_hidden_fields = True
-        self.layout = Layout(
-            Field("full_address"),
-            Field("emergency_contact"),
-            Field("takes_car_back"),
-            Field("july20_loop"),
-            Field("image_rights"),
-            Field("share_contact_info"),
-            HTML('<p class="fw-bold mb-1">Proposer votre aide</p>'),
-            Row(
-                Column(Field("road_captain"), css_class="col-auto"),
-                Column(Field("mechanicien"), css_class="col-auto"),
-                Column(Field("healthpro"), css_class="col-auto"),
-                Column(Field("animator"), css_class="col-auto"),
-                Column(Field("tandem_pilot"), css_class="col-auto"),
-            ),
-            Field("comments"),
-        )
 
 
 class ParticipantExtraForm(forms.ModelForm):
