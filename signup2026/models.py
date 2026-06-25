@@ -439,6 +439,33 @@ class Participant(models.Model):
             - ((last_day.month, last_day.day) < (birthday.month, birthday.day))
         )
 
+    @classmethod
+    def active_emails(cls):
+        """Emails of all active participants and signup owners for the year.
+
+        :return: set of lowercased emails for every validated, non-cancelled,
+            non-on-hold signup.
+        """
+        year = settings.DYNAMOBILE_LAST_DAY.year
+        active = set(
+            cls.objects.filter(
+                signup_group__year=year,
+                signup_group__validated_at__isnull=False,
+                signup_group__on_hold_at__isnull=True,
+                signup_group__cancelled_at__isnull=True,
+            ).values_list("email", flat=True)
+        )
+        active |= set(
+            Signup.objects.filter(
+                year=year,
+                validated_at__isnull=False,
+                on_hold_at__isnull=True,
+                cancelled_at__isnull=True,
+            ).values_list("owner__email", flat=True)
+        )
+        active.discard("")
+        return {email.lower() for email in active if email}
+
 
 class WaitingListParticipant(Participant):
     class Meta:
@@ -466,3 +493,29 @@ class ExtraParticipantInfo(models.Model):
     mechanicien = models.BooleanField("Mécano", default=False)
     healthpro = models.BooleanField("Premiers soins", default=False)
     animator = models.BooleanField("Animations", default=False)
+    tandem_pilot = models.BooleanField("Accompagner Claude (tandem)", default=False)
+
+    class July20LoopChoice(models.TextChoices):
+        OPTION1 = (
+            "option1",
+            _(
+                "Option 1 : réserve naturelle Haff Réimech "
+                "et parc aquatique Erlefnis Baggerweier"
+            ),
+        )
+        OPTION2 = (
+            "option2",
+            _("Option 2 : boucle sportive via Schengen et la Römer Route"),
+        )
+
+    july20_loop = models.CharField(
+        _("Boucle du 20 juillet"),
+        max_length=10,
+        choices=July20LoopChoice.choices,
+        blank=True,
+        default="",
+        help_text=_("Choix de la boucle pour la journée du lundi 20 juillet"),
+    )
+
+    def __str__(self):
+        return f"Infos complémentaires - {self.participant}"

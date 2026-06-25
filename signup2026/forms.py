@@ -14,7 +14,7 @@ from crispy_forms.layout import (
 from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.forms.models import inlineformset_factory
+from django.forms.models import inlineformset_factory, modelformset_factory
 from django.template.defaultfilters import title
 from django.urls import reverse
 
@@ -178,6 +178,88 @@ class ExtraParticipantInfoForm(forms.ModelForm):
         model = ExtraParticipantInfo
         fields = "__all__"
         exclude = ["participant"]
+
+
+class FollowupExtraInfoForm(forms.ModelForm):
+    """Post-registration follow-up form filled in by each participant.
+
+    ``takes_car_back`` lives on the related :class:`Participant`, so it is added
+    as an extra field that is initialised from and saved back to the participant.
+    """
+
+    takes_car_back = forms.ChoiceField(
+        label=Participant._meta.get_field("takes_car_back").verbose_name,
+        choices=Participant.CarBackChoice.choices,
+        help_text=Participant._meta.get_field("takes_car_back").help_text,
+    )
+
+    class Meta:
+        model = ExtraParticipantInfo
+        fields = (
+            "full_address",
+            "emergency_contact",
+            "july20_loop",
+            "image_rights",
+            "share_contact_info",
+            "road_captain",
+            "mechanicien",
+            "healthpro",
+            "animator",
+            "tandem_pilot",
+            "comments",
+        )
+        widgets = {
+            "july20_loop": forms.RadioSelect,
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields[
+                "takes_car_back"
+            ].initial = self.instance.participant.takes_car_back
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        if commit:
+            participant = instance.participant
+            participant.takes_car_back = self.cleaned_data["takes_car_back"]
+            participant.save(update_fields=["takes_car_back"])
+        return instance
+
+
+FollowupExtraInfoFormSet = modelformset_factory(
+    ExtraParticipantInfo,
+    form=FollowupExtraInfoForm,
+    extra=0,
+    can_delete=False,
+)
+
+
+class FollowupExtraInfoFormSetHelper(FormHelper):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.form_tag = False  # the <form> tag is provided by the template
+        # Keep the hidden modelformset ``id`` field, which is not in the layout.
+        self.render_unmentioned_fields = False
+        self.render_hidden_fields = True
+        self.layout = Layout(
+            Field("full_address"),
+            Field("emergency_contact"),
+            Field("takes_car_back"),
+            Field("july20_loop"),
+            Field("image_rights"),
+            Field("share_contact_info"),
+            HTML('<p class="fw-bold mb-1">Proposer votre aide</p>'),
+            Row(
+                Column(Field("road_captain"), css_class="col-auto"),
+                Column(Field("mechanicien"), css_class="col-auto"),
+                Column(Field("healthpro"), css_class="col-auto"),
+                Column(Field("animator"), css_class="col-auto"),
+                Column(Field("tandem_pilot"), css_class="col-auto"),
+            ),
+            Field("comments"),
+        )
 
 
 class ParticipantExtraForm(forms.ModelForm):

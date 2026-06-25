@@ -36,7 +36,10 @@ class SyncMailingListFormView(AdminRequiredMixin, views.generic.FormView):
 
     @cached_property
     def mailing_list(self):
-        return MailingList(f"participants{settings.DYNAMOBILE_LAST_DAY.year}")
+        return MailingList(
+            f"participants{settings.DYNAMOBILE_LAST_DAY.year}",
+            active_emails=Participant.active_emails,
+        )
 
     def get_context_data(self, **kwargs):
         to_remove, to_add = self.mailing_list.check_mailing_list()

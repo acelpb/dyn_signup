@@ -349,6 +349,9 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
 
     @admin.display(boolean=True, description="Payé", ordering="amount_due_remaining")
     def is_payed(self, obj: Participant):
+        # No amount due computed yet -> unknown (renders the grey "?" icon).
+        if obj.amount_due_remaining is None:
+            return None
         return obj.amount_due_remaining <= 0
 
     def signup_link(self, obj: Participant):
@@ -386,10 +389,12 @@ class ExtraInfoRessource(ModelResource):
             "emergency_contact",
             "share_contact_info",
             "image_rights",
+            "july20_loop",
             "road_captain",
             "mechanicien",
             "healthpro",
             "animator",
+            "tandem_pilot",
             "comments",
         )
 
@@ -485,9 +490,11 @@ class ExtraParticipantInfoAdmin(ExportMixin, admin.ModelAdmin):
         "emergency_contact",
         "share_contact_info",
         "image_rights",
+        "july20_loop",
         "road_captain",
         "mechanicien",
         "healthpro",
         "animator",
+        "tandem_pilot",
         "comments",
     )

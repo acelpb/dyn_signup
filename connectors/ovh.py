@@ -1,12 +1,13 @@
 import ovh
 from django.conf import settings
 
-from signup2023.models import Participant
-
 
 class MailingList:
-    def __init__(self, name):
+    def __init__(self, name, active_emails=None):
         self.name = name
+        # Callable returning the set of emails that should be on the list.
+        # Injected by the caller so the connector stays year/model agnostic.
+        self._active_emails = active_emails
         self._ovh = ovh.Client(
             endpoint="ovh-eu",
             application_key=settings.OVH_API_KEY,
@@ -20,9 +21,12 @@ class MailingList:
         )
 
     def check_mailing_list(self):
-        mailing_list_participants = set(self.get_all_members())
-        mailing_list_participants = {x.lower() for x in mailing_list_participants}
-        active_participants = Participant.active_emails()
+        if self._active_emails is None:
+            raise ValueError(
+                "MailingList was created without an `active_emails` source."
+            )
+        mailing_list_participants = {x.lower() for x in self.get_all_members()}
+        active_participants = self._active_emails()
         to_remove = mailing_list_participants - active_participants
         to_add = active_participants - mailing_list_participants
         return to_remove, to_add

@@ -1,23 +1,26 @@
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.db.models import Case, Count, Q, Value, When
 from django.http import HttpResponseRedirect
 from django.template.loader import get_template
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.generic import DetailView, FormView, TemplateView, UpdateView
 
 from .forms import (
     DaySignupFormset,
     DaySignupFormsetHelper,
+    FollowupExtraInfoFormSet,
+    FollowupExtraInfoFormSetHelper,
     ParticipantExtraFormSet,
     ParticipantExtraFormSetHelper,
     ParticipantFormSet,
     ParticipantFormSetHelper,
 )
 from .mixins import SignupStartedMixin
-from .models import Participant, Signup
+from .models import ExtraParticipantInfo, Participant, Signup
 
 
 class HomePage(TemplateView):
@@ -146,6 +149,54 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
         kwargs = super().get_context_data(**kwargs)
         kwargs["partial_open"] = settings.DYNAMOBILE_START_PARTIAL_SIGNUP
         return kwargs
+
+
+class FollowupExtraInfoView(LoginRequiredMixin, TemplateView):
+    """Post-registration follow-up form.
+
+    Accessible to the logged-in user for every participant they may edit:
+    all participants of the group(s) they own, plus the participant whose
+    email matches the logged-in user's email. Matching is done on the email
+    address of the person logging in.
+    """
+
+    template_name = "signup2026/followup-extra-info.html"
+
+    def get_editable_participants(self):
+        user = self.request.user
+        return (
+            Participant.objects.filter(
+                signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
+                signup_group__validated_at__isnull=False,
+                signup_group__cancelled_at__isnull=True,
+            )
+            .filter(Q(signup_group__owner=user) | Q(email__iexact=user.email))
+            .distinct()
+        )
+
+    def get_formset(self, data=None):
+        participants = list(self.get_editable_participants())
+        for participant in participants:
+            ExtraParticipantInfo.objects.get_or_create(participant=participant)
+        queryset = (
+            ExtraParticipantInfo.objects.filter(participant__in=participants)
+            .select_related("participant")
+            .order_by("participant_id")  # ordre d'inscription
+        )
+        return FollowupExtraInfoFormSet(data, queryset=queryset)
+
+    def get_context_data(self, **kwargs):
+        kwargs.setdefault("helper", FollowupExtraInfoFormSetHelper())
+        kwargs.setdefault("formset", self.get_formset())
+        return super().get_context_data(**kwargs)
+
+    def post(self, request, *args, **kwargs):
+        formset = self.get_formset(data=request.POST)
+        if formset.is_valid():
+            formset.save()
+            messages.success(request, "Merci, vos réponses ont été enregistrées.")
+            return HttpResponseRedirect(reverse("signup2026:followup_extra_info"))
+        return self.render_to_response(self.get_context_data(formset=formset))
 
 
 class KitchenView(TemplateView):
