@@ -57,7 +57,9 @@ class TestAccountsAdminPages:
         get(self.client, reverse("admin:accounts_operation_add"))
 
     def test_operation_change(self):
-        operation = baker.make("accounts.Operation")
+        # OperationAdmin.get_queryset filters year__gte=2023, so the operation
+        # must have a recent year to be reachable in the admin.
+        operation = baker.make("accounts.Operation", year=2026)
         get(
             self.client, reverse("admin:accounts_operation_change", args=[operation.pk])
         )

@@ -11,4 +11,5 @@ urlpatterns = [
     path("extra/", views.GroupExtraEditView.as_view(), name="group_extra_info"),
     path("review/", views.GroupReviewView.as_view(), name="review"),
     path("completed/", views.CompletedSignupView.as_view(), name="completed"),
+    path("kitchen/", views.KitchenView.as_view(), name="kitchen"),
 ]

@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
+from django.db.models import Case, Count, Q, Value, When
 from django.http import HttpResponseRedirect
 from django.template.loader import get_template
 from django.urls import reverse_lazy
@@ -16,7 +17,7 @@ from .forms import (
     ParticipantFormSetHelper,
 )
 from .mixins import SignupStartedMixin
-from .models import Signup
+from .models import Participant, Signup
 
 
 class HomePage(TemplateView):
@@ -145,3 +146,80 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
         kwargs = super().get_context_data(**kwargs)
         kwargs["partial_open"] = settings.DYNAMOBILE_START_PARTIAL_SIGNUP
         return kwargs
+
+
+class KitchenView(TemplateView):
+    template_name = "signup/kitchen.html"
+
+    def get_context_data(self, **context):
+        active = Participant.objects.with_age().filter(
+            signup_group__validated_at__isnull=False,
+            signup_group__on_hold_at__isnull=True,
+            signup_group__cancelled_at__isnull=True,
+        )
+        days = (
+            ("day1", "day 1"),
+            ("day2", "day 2"),
+            ("day3", "day 3"),
+            ("day4", "day 4"),
+            ("day5", "day 5"),
+            ("day6", "day 6"),
+            ("day7", "day 7"),
+            ("day8", "day 8"),
+            ("day9", "day 9"),
+        )
+        context["days"] = {
+            label: {
+                k: v
+                for k, v in active.filter(
+                    **{field: True},
+                )
+                .values(
+                    age_group=Case(
+                        When(age__lte=6, then=Value("a0_6")),
+                        When(age__lte=12, then=Value("a6_12")),
+                        When(age__lt=18, then=Value("a12_18")),
+                        default=Value("a18plus"),
+                    ),
+                )
+                .annotate(participants=Count("age_group"))
+                .values_list("age_group", "participants")
+            }
+            for field, label in days
+        }
+
+        for _, label in days:
+            total = sum(context["days"][label].values())
+            context["days"][label]["total"] = total
+            context["days"][label]["eaters"] = total - context["days"][label].get(
+                "a0_6", 0
+            )
+
+        context["total_signups"] = active.count()
+        context["total_vae"] = active.filter(vae=True).count()
+        context["total_partials"] = active.filter(
+            Q(day1=False)
+            | Q(day2=False)
+            | Q(day3=False)
+            | Q(day4=False)
+            | Q(day5=False)
+            | Q(day6=False)
+            | Q(day7=False)
+            | Q(day8=False)
+            | Q(day9=False)
+        ).count()
+        participants_this_year = Participant.objects.filter(
+            signup_group__validated_at__isnull=False,
+        )
+        context["total_on_hold"] = participants_this_year.filter(
+            signup_group__validated_at__isnull=False,
+            signup_group__on_hold_at__isnull=True,
+        ).count()
+        context["total_on_hold_vae"] = participants_this_year.filter(
+            signup_group__on_hold_vae=True
+        ).count()
+        context["total_on_hold_partial"] = participants_this_year.filter(
+            signup_group__on_hold_partial=True
+        ).count()
+
+        return super().get_context_data(**context)

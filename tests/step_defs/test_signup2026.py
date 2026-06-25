@@ -1,3 +1,6 @@
+from datetime import timedelta
+
+import pytest
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -5,6 +8,14 @@ from magiclink.models import MagicLink
 from pytest_bdd import given, scenario, then, when
 
 from signup2026.models import Signup
+
+
+@pytest.fixture
+def partial_signup_not_open(settings):
+    """Pin the partial-signup opening date to the future so a partial signup is
+    put on hold regardless of the current wall-clock date."""
+    settings.DYNAMOBILE_START_PARTIAL_SIGNUP = timezone.now() + timedelta(days=30)
+    return settings.DYNAMOBILE_START_PARTIAL_SIGNUP
 
 
 @scenario("signup2026.feature", "Complete signup process for 2026")
@@ -49,7 +60,9 @@ def test_partial_date_on_landing_page(transactional_db):
     "signup2026.feature",
     "Partial signup date is shown on the completed signup page for a partial signup",
 )
-def test_partial_date_on_completed_page(transactional_db, mailoutbox):
+def test_partial_date_on_completed_page(
+    transactional_db, mailoutbox, partial_signup_not_open
+):
     pass
 
 
@@ -57,7 +70,9 @@ def test_partial_date_on_completed_page(transactional_db, mailoutbox):
     "signup2026.feature",
     "Partial signup date is included in the confirmation email for a partial signup",
 )
-def test_partial_date_in_confirmation_email(transactional_db, mailoutbox):
+def test_partial_date_in_confirmation_email(
+    transactional_db, mailoutbox, partial_signup_not_open
+):
     pass
 
 

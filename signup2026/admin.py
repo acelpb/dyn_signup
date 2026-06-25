@@ -139,7 +139,10 @@ class ParticipantInfoInline(admin.StackedInline):
         "arrive_day_before",
         "takes_car_back",
         "extra_activities",
+        "amount_due_calculated",
+        "amount_due_modified",
     )
+    readonly_fields = ("amount_due_calculated",)
 
 
 class ParticipantDaysInline(admin.TabularInline):
@@ -267,6 +270,24 @@ class SignupDayFilter(SimpleListFilter):
             return queryset.distinct().filter(**{self.value(): True})
 
 
+class ParticipantPayedFilter(SimpleListFilter):
+    title = "Payé"
+    parameter_name = "is_payed_filter"
+
+    def lookups(self, request, model_admin):
+        return [
+            ("yes", "Payé"),
+            ("no", "Non payé"),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == "yes":
+            return queryset.filter(amount_due_remaining__lte=0)
+        if self.value() == "no":
+            return queryset.filter(amount_due_remaining__gt=0)
+        return queryset
+
+
 class ParticipantResource(resources.ModelResource):
     class Meta:
         model = Participant
@@ -310,6 +331,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "arrive_day_before",
         "takes_car_back",
         "country",
+        "is_payed",
     )
     search_fields = ["first_name", "last_name"]
     list_filter = (
@@ -318,11 +340,16 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
         "vae",
         "country",
         "takes_car_back",
+        ParticipantPayedFilter,
     )
     fields = []
 
     def age(self, obj: Participant):
         return obj.age_at_dynamobile_end()
+
+    @admin.display(boolean=True, description="Payé", ordering="amount_due_remaining")
+    def is_payed(self, obj: Participant):
+        return obj.amount_due_remaining <= 0
 
     def signup_link(self, obj: Participant):
         signup: Signup = obj.signup_group
@@ -342,6 +369,7 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
             super()
             .get_queryset(request)
             .filter(signup_group__year=settings.DYNAMOBILE_LAST_DAY.year)
+            .with_amounts()
         )
 
 

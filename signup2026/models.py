@@ -8,6 +8,7 @@ from django.db.models import (
     DecimalField,
     F,
     OuterRef,
+    Q,
     Subquery,
     Sum,
     Value,
@@ -302,10 +303,26 @@ class ParticipantQuerySet(models.QuerySet):
             amount_due_remaining=F("amount_due") - F("amount_payed"),
         )
 
+    def with_age(self):
+        last_day = settings.DYNAMOBILE_LAST_DAY
+        return self.annotate(
+            age=(
+                last_day.year
+                - F("birthday__year")
+                - models.ExpressionWrapper(
+                    Q(birthday__month__gt=last_day.month)
+                    | (
+                        Q(birthday__month=last_day.month)
+                        & Q(birthday__day__gt=last_day.day)
+                    ),
+                    output_field=models.IntegerField(),
+                )
+            )
+        )
+
 
 class ParticipantManager(models.Manager.from_queryset(ParticipantQuerySet)):
-    def get_queryset(self):
-        return super().get_queryset()
+    pass
 
 
 class Participant(models.Model):
@@ -414,7 +431,7 @@ class Participant(models.Model):
         )
 
     def age_at_dynamobile_end(self):
-        last_day = settings.DYNAMOBILE_FIRST_DAY
+        last_day = settings.DYNAMOBILE_LAST_DAY
         birthday = self.birthday
         return (
             last_day.year
