@@ -479,7 +479,7 @@ class ExtraParticipantInfo(models.Model):
         Participant, on_delete=models.CASCADE, related_name="extra_info"
     )
     full_address = models.CharField(
-        "Addresse complète", max_length=255, default="", blank=True
+        "Adresse complète", max_length=255, default="", blank=True
     )
     emergency_contact = models.CharField(
         "Contact en cas d'urgence", max_length=255, default="", blank=True

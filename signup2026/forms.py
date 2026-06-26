@@ -207,6 +207,14 @@ class FollowupExtraInfoForm(forms.ModelForm):
         label=Participant._meta.get_field("takes_car_back").verbose_name,
         choices=Participant.CarBackChoice.choices,
     )
+    # Declared explicitly (no blank "---------" choice) as there is no option
+    # other than the listed ones.
+    july20_loop = forms.ChoiceField(
+        label=ExtraParticipantInfo._meta.get_field("july20_loop").verbose_name,
+        choices=ExtraParticipantInfo.July20LoopChoice.choices,
+        widget=forms.RadioSelect,
+        required=False,
+    )
 
     class Meta:
         model = ExtraParticipantInfo
@@ -223,9 +231,6 @@ class FollowupExtraInfoForm(forms.ModelForm):
             "tandem_pilot",
             "comments",
         )
-        widgets = {
-            "july20_loop": forms.RadioSelect,
-        }
         labels = {
             "image_rights": (
                 "J'autorise Dynamobile à diffuser des photos ou vidéos sur "
@@ -238,9 +243,6 @@ class FollowupExtraInfoForm(forms.ModelForm):
                 "l'édition 2026."
             ),
             "animator": "Animations (précisez dans les commentaires)",
-        }
-        help_texts = {
-            "july20_loop": "",
         }
 
     def __init__(self, *args, locked=False, **kwargs):

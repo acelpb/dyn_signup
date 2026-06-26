@@ -113,6 +113,14 @@ def form_shows_participants(response, count):
     assert response.context["formset"].total_form_count() == count
 
 
+@then("the July 20 choice should not offer a blank option")
+def july20_has_no_blank(response):
+    for form in response.context["formset"]:
+        values = [value for value, _ in form.fields["july20_loop"].choices]
+        assert "" not in values
+        assert values == ["absent", "option1", "option2"]
+
+
 @when(
     parsers.parse(
         'the owner submits the follow-up form choosing July 20 "{choice}", '

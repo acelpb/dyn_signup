@@ -10,6 +10,7 @@ Feature: Signup 2026 follow-up extra info form
       | Kid        | Boss      |                   |
     When the owner opens the follow-up form
     Then the form should show 2 participants
+    And the July 20 choice should not offer a blank option
     When the owner submits the follow-up form choosing July 20 "option1", tandem pilot, car return "brussels" and lodging on July 16
     Then the answers should be saved for every participant
     And the answers should record July 20 choice "option1" and tandem pilot true
