@@ -387,6 +387,8 @@ class ExtraInfoRessource(ModelResource):
             "participant",
             "full_address",
             "emergency_contact",
+            "participant__arrive_day_before",
+            "participant__takes_car_back",
             "share_contact_info",
             "image_rights",
             "july20_loop",
