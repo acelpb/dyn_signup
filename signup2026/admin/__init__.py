@@ -5,7 +5,8 @@ Importing the submodules here runs their @admin.register decorators.
 
 from .extra_info import ExtraInfoRessource, ExtraParticipantInfoAdmin
 from .filters import PayedFilter, SignupDayFilter, SignupStatusFilter
-from .participant import ParticipantAdmin, ParticipantResource, PaymentParticipantAdmin
+from .participant import ParticipantAdmin, ParticipantResource
+from .payments import PaymentParticipantAdmin, PaymentSignupAdmin
 from .signup import SignupAdmin
 from .waiting_list import WaitingListParticipantAdmin, unblock_participant
 
@@ -16,6 +17,7 @@ __all__ = [
     "ParticipantResource",
     "PayedFilter",
     "PaymentParticipantAdmin",
+    "PaymentSignupAdmin",
     "SignupAdmin",
     "SignupDayFilter",
     "SignupStatusFilter",

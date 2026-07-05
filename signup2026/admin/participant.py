@@ -5,13 +5,10 @@ from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ExportMixin
 
-from reunion.admin import PaymentInline
-
 from ..admin_views import SyncMailingListFormView
-from ..models import Participant, PaymentParticipant, Signup
+from ..models import Participant, Signup
 from .filters import (
     DAY_FIELDS,
-    PayedFilter,
     SignupDayFilter,
     SignupStatusFilter,
 )
@@ -86,68 +83,3 @@ class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
             str(signup),
         )
         return mark_safe(link)
-
-
-@admin.register(PaymentParticipant)
-class PaymentParticipantAdmin(admin.ModelAdmin):
-    """Payment follow-up per participant: balance, payed status, payments."""
-
-    list_display = (
-        "id",
-        "signup_group",
-        "first_name",
-        "last_name",
-        "amount_due_calculated",
-        "balance",
-        "is_payed",
-    )
-
-    ordering = ("signup_group", "id")
-    list_filter = (PayedFilter,)
-    list_editable = ("amount_due_calculated",)
-    search_fields = (
-        "first_name",
-        "last_name",
-        "email",
-        "signup_group__owner__email",
-    )
-
-    autocomplete_fields = ("signup_group",)
-    fields = (
-        "signup_group",
-        "first_name",
-        "last_name",
-        "amount_due_calculated",
-        "balance",
-    )
-    readonly_fields = ("balance",)
-
-    inlines = [PaymentInline]
-
-    def get_queryset(self, request):
-        return (
-            super()
-            .get_queryset(request)
-            .filter(
-                signup_group__on_hold_at__isnull=True,
-                signup_group__validated_at__isnull=False,
-                signup_group__cancelled_at__isnull=True,
-                signup_group__year=settings.DYNAMOBILE_LAST_DAY.year,
-            )
-            .select_related("signup_group")
-            .with_amounts()
-        )
-
-    @admin.display(boolean=True, description="Payé", ordering="balance")
-    def is_payed(self, obj: Participant):
-        # No amount due computed yet -> unknown (renders the grey "?" icon).
-        if obj.balance is None:
-            return None
-        return obj.balance <= 0
-
-    @admin.display(description="Balance", ordering="balance")
-    def balance(self, obj: Participant):
-        # No amount due computed yet -> unknown (renders the grey "?" icon).
-        if obj.balance is None:
-            return None
-        return obj.balance

@@ -170,6 +170,25 @@ class TestSignup2026AdminPages:
     def test_waitinglistparticipant_changelist(self):
         get(self.client, reverse("admin:signup2026_waitinglistparticipant_changelist"))
 
+    # --- PaymentSignup / PaymentParticipant ---
+
+    def test_paymentsignup_changelist(self):
+        get(self.client, reverse("admin:signup2026_paymentsignup_changelist"))
+
+    def test_paymentsignup_change(self):
+        from django.utils import timezone
+
+        signup = self._make_signup()
+        signup.validated_at = timezone.now()
+        signup.save()
+        get(
+            self.client,
+            reverse("admin:signup2026_paymentsignup_change", args=[signup.pk]),
+        )
+
+    def test_paymentparticipant_changelist(self):
+        get(self.client, reverse("admin:signup2026_paymentparticipant_changelist"))
+
     # --- ExtraParticipantInfo ---
 
     def test_extraparticipantinfo_changelist(self):
@@ -382,7 +401,7 @@ class TestSignup2026PaymentConfirmationButton:
         )
 
         url = reverse(
-            "admin:signup2026_signup_actions",
+            "admin:signup2026_paymentsignup_actions",
             kwargs={"pk": signup.pk, "tool": "send_payment_confirmation"},
         )
         response = self.client.post(url)
@@ -409,7 +428,7 @@ class TestSignup2026PaymentConfirmationButton:
         )
 
         url = reverse(
-            "admin:signup2026_signup_actions",
+            "admin:signup2026_paymentsignup_actions",
             kwargs={"pk": signup.pk, "tool": "send_payment_confirmation"},
         )
         self.client.post(url)

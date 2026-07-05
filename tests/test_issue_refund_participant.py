@@ -50,17 +50,18 @@ def test_offer_refund_links_to_participant(admin_client):
 
     from django.contrib.admin.sites import AdminSite
 
-    from signup2026.admin import SignupAdmin
+    from signup2026.admin import PaymentSignupAdmin
+    from signup2026.models import PaymentSignup
 
     admin_site = AdminSite()
-    signup_admin = SignupAdmin(Signup, admin_site)
+    signup_admin = PaymentSignupAdmin(PaymentSignup, admin_site)
 
     # Mock request
     from django.contrib.messages.storage.base import BaseStorage
     from django.test import RequestFactory
 
     request = RequestFactory().get(
-        reverse("admin:signup2026_signup_change", args=[signup.id])
+        reverse("admin:signup2026_paymentsignup_change", args=[signup.id])
     )
     storage = BaseStorage(request)
     storage._queued_messages = []
@@ -147,17 +148,18 @@ def test_accept_as_donation_links_to_participant(admin_client):
 
     from django.contrib.admin.sites import AdminSite
 
-    from signup2026.admin import SignupAdmin
+    from signup2026.admin import PaymentSignupAdmin
+    from signup2026.models import PaymentSignup
 
     admin_site = AdminSite()
-    signup_admin = SignupAdmin(Signup, admin_site)
+    signup_admin = PaymentSignupAdmin(PaymentSignup, admin_site)
 
     # Mock request
     from django.contrib.messages.storage.base import BaseStorage
     from django.test import RequestFactory
 
     request = RequestFactory().get(
-        reverse("admin:signup2026_signup_change", args=[signup.id])
+        reverse("admin:signup2026_paymentsignup_change", args=[signup.id])
     )
     storage = BaseStorage(request)
     storage._queued_messages = []
