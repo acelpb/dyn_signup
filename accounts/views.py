@@ -289,10 +289,29 @@ class PendingPaymentsView(TreasurerRequiredMixin, TemplateView):
                 Q(content_type=signup_ct) | Q(content_type=participant_ct),
                 operation__isnull=True,
                 amount__lt=0,
-            ).select_related("created_by")
+            ).select_related("created_by", "content_type")
         )
         for refund in refunds:
             refund.to_pay = abs(refund.amount)
+
+            # Find IBAN and owner name from previous payments for the same event
+            previous_payment = (
+                OperationValidation.objects.filter(
+                    content_type=refund.content_type,
+                    object_id=refund.object_id,
+                    operation__isnull=False,
+                )
+                .select_related("operation")
+                .order_by("-operation__date")
+                .first()
+            )
+            if previous_payment:
+                refund.iban = previous_payment.operation.counterparty_IBAN
+                refund.iban_owner = previous_payment.operation.counterparty_name
+            else:
+                refund.iban = None
+                refund.iban_owner = None
+
             # Find candidate operations (bank operations that are negative because they are outgoing payments)
             # refund.amount is already negative, e.g. -50.00
             refund.matches = [

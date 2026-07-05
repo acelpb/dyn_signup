@@ -141,7 +141,20 @@
                                         {{ refund.event|default:refund.content_type }} #{{ refund.object_id }}
                                     </a>
                                 </td>
-                                <td>{{ refund.event.owner.get_full_name|default:refund.event.owner.email }}</td>
+                                <td>
+                                    {% if refund.iban_owner %}
+                                        <strong>{{ refund.iban_owner }}</strong><br>
+                                        <code>{{ refund.iban }}</code>
+                                    {% else %}
+                                        {% if refund.event.owner %}
+                                            {{ refund.event.owner.get_full_name|default:refund.event.owner.email }}
+                                        {% elif refund.event.signup_group.owner %}
+                                            {{ refund.event.signup_group.owner.get_full_name|default:refund.event.signup_group.owner.email }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
                                 <td class="text-end">{{ refund.to_pay|floatformat:2|intcomma }} €</td>
                                 <td>
                                     {% for match in refund.matches %}

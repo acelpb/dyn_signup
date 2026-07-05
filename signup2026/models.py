@@ -483,6 +483,11 @@ class Participant(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+    def get_admin_url(self):
+        from django.urls import reverse
+
+        return reverse("admin:signup2026_participant_change", args=[self.id])
+
     def complete_signup(self):
         return all(
             [
