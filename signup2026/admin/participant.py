@@ -11,19 +11,10 @@ from ..admin_views import SyncMailingListFormView
 from ..models import Participant, PaymentParticipant, Signup
 from .filters import (
     DAY_FIELDS,
-    ParticipantPayedFilter,
+    PayedFilter,
     SignupDayFilter,
     SignupStatusFilter,
 )
-
-
-class PayedColumnMixin:
-    @admin.display(boolean=True, description="Payé", ordering="balance")
-    def is_payed(self, obj: Participant):
-        # No amount due computed yet -> unknown (renders the grey "?" icon).
-        if obj.balance is None:
-            return None
-        return obj.balance <= 0
 
 
 class ParticipantResource(resources.ModelResource):
@@ -32,7 +23,9 @@ class ParticipantResource(resources.ModelResource):
 
 
 @admin.register(Participant)
-class ParticipantAdmin(PayedColumnMixin, ExportMixin, admin.ModelAdmin):
+class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
+    """Data check and export; payment follow-up lives in PaymentParticipantAdmin."""
+
     resource_class = ParticipantResource
     import_export_change_list_template = "admin/signups/participant_changelist.html"
 
@@ -49,7 +42,6 @@ class ParticipantAdmin(PayedColumnMixin, ExportMixin, admin.ModelAdmin):
         "arrive_day_before",
         "takes_car_back",
         "country",
-        "is_payed",
     )
     search_fields = ["first_name", "last_name"]
     list_filter = (
@@ -58,7 +50,6 @@ class ParticipantAdmin(PayedColumnMixin, ExportMixin, admin.ModelAdmin):
         "vae",
         "country",
         "takes_car_back",
-        ParticipantPayedFilter,
     )
     fields = []
 
@@ -78,7 +69,6 @@ class ParticipantAdmin(PayedColumnMixin, ExportMixin, admin.ModelAdmin):
             super()
             .get_queryset(request)
             .filter(signup_group__year=settings.DYNAMOBILE_LAST_DAY.year)
-            .with_amounts()
         )
 
     def age(self, obj: Participant):
@@ -99,7 +89,9 @@ class ParticipantAdmin(PayedColumnMixin, ExportMixin, admin.ModelAdmin):
 
 
 @admin.register(PaymentParticipant)
-class PaymentParticipantAdmin(PayedColumnMixin, admin.ModelAdmin):
+class PaymentParticipantAdmin(admin.ModelAdmin):
+    """Payment follow-up per participant: balance, payed status, payments."""
+
     list_display = (
         "id",
         "signup_group",
@@ -111,7 +103,7 @@ class PaymentParticipantAdmin(PayedColumnMixin, admin.ModelAdmin):
     )
 
     ordering = ("signup_group", "id")
-    list_filter = (ParticipantPayedFilter,)
+    list_filter = (PayedFilter,)
     list_editable = ("amount_due_calculated",)
     search_fields = (
         "first_name",
@@ -145,6 +137,13 @@ class PaymentParticipantAdmin(PayedColumnMixin, admin.ModelAdmin):
             .select_related("signup_group")
             .with_amounts()
         )
+
+    @admin.display(boolean=True, description="Payé", ordering="balance")
+    def is_payed(self, obj: Participant):
+        # No amount due computed yet -> unknown (renders the grey "?" icon).
+        if obj.balance is None:
+            return None
+        return obj.balance <= 0
 
     @admin.display(description="Balance", ordering="balance")
     def balance(self, obj: Participant):

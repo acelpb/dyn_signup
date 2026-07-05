@@ -69,7 +69,9 @@ class SignupDayFilter(SimpleListFilter):
             return queryset.distinct().filter(**{self.value(): True})
 
 
-class ParticipantPayedFilter(SimpleListFilter):
+class PayedFilter(SimpleListFilter):
+    """Works on any queryset annotated with balance (Signup or Participant)."""
+
     title = "Payé"
     parameter_name = "is_payed_filter"
 
