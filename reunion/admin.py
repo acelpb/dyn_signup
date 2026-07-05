@@ -1,18 +1,14 @@
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.admin import SimpleListFilter
 from django.contrib.contenttypes.admin import GenericTabularInline
-from django.shortcuts import redirect
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from django_object_actions import DjangoObjectActions, action
 from import_export import resources
 from import_export.admin import ExportMixin
 from import_export.fields import Field
 
 from accounts.models import OperationValidation
-from signup2026.models import Signup as Signup2026
 
 from .models import (
     Participant,
@@ -61,176 +57,6 @@ class ParticipantInline(admin.TabularInline):
     is_payed.admin_order_field = "is_payed"
     is_payed.boolean = True
     is_payed.short_description = "Payed"
-
-
-class CanBePayedAdminMixin:
-    def status(self, obj: Signup):
-        return obj.status
-
-    status.admin_order_field = "status"
-    status.short_description = "Status"
-
-    def is_payed(self, obj: Signup):
-        return obj.is_payed
-
-    is_payed.admin_order_field = "is_payed"
-    is_payed.boolean = True
-    is_payed.short_description = "Payed"
-
-    def amount_due(self, obj: Signup):
-        return obj.amount_due
-
-    amount_due.admin_order_field = "amount_due"
-    amount_due.short_description = "amount due"
-
-    def amount_payed_total(self, obj: Signup):
-        return obj.amount_payed_total
-
-    amount_due.admin_order_field = "amount_payed_total"
-    amount_due.short_description = "total amount payed"
-
-    def amount_due_total(self, obj: Signup):
-        return obj.amount_due_total
-
-    amount_due.admin_order_field = "amount_due_total"
-    amount_due.short_description = "total amount due"
-
-    def amount_due_remaining(self, obj: Signup):
-        return obj.amount_due_remaining
-
-    amount_due.admin_order_field = "amount_due_remaining"
-    amount_due.short_description = "amount due remaining"
-
-    def balance(self, obj: Signup):
-        return obj.balance
-
-    balance.admin_order_field = "balance"
-    amount_due.short_description = "amount due remaining"
-
-
-class SignupAminMixin(DjangoObjectActions, CanBePayedAdminMixin):
-    inlines = [ParticipantInline]
-    search_fields = ("owner__first_name", "owner__last_name", "owner__email")
-    autocomplete_fields = ["owner"]
-    list_display = (
-        "id",
-        "owner",
-        "status",
-        "is_payed",
-        "amount_due_total",
-        "amount_payed_total",
-        "balance",
-        "payment_confirmation_sent_at",
-    )
-    fields = (
-        "owner",
-        "status",
-        "balance",
-        "validated_at",
-        "on_hold_at",
-        "cancelled_at",
-        "payment_confirmation_sent_at",
-        "comments",
-    )
-    readonly_fields = (
-        "status",
-        "balance",
-        "validated_at",
-        "cancelled_at",
-        "on_hold_at",
-        "payment_confirmation_sent_at",
-    )
-
-    change_actions = (
-        "recalculate_amounts",
-        "validate_signup",
-        "cancel_signup",
-        "put_on_hold_signup",
-    )
-
-    def get_readonly_fields(self, request, obj=None):
-        if request.user.is_superuser:
-            return (
-                "status",
-                "balance",
-            )
-        else:
-            return self.readonly_fields
-
-    def get_change_actions(self, request, object_id, form_url):
-        if object_id is not None:
-            signup = Signup2026.objects.with_amounts().get(pk=object_id)
-            print(signup.status)
-            if signup.status == "waiting payment" or signup.status == "payed":
-                return [
-                    "cancel_signup",
-                    "put_on_hold_signup",
-                    "recalculate_amounts",
-                ]
-            elif signup.status == "on hold":
-                return [
-                    "validate_signup",
-                    "cancel_signup",
-                ]
-            else:
-                return [
-                    "validate_signup",
-                ]
-
-    @action(description="Recalculate amounts")
-    def recalculate_amounts(self, request, signup):
-        signup.calculate_amounts()
-        messages.success(request, "Amounts have been recalculated.")
-        return redirect("admin:signup2026_signup_change", signup.id)
-
-    @action(description="validate")
-    def validate_signup(self, request, signup):
-        if signup.validated_at:
-            messages.warning(request, "This signup was already validated.")
-        signup.validated_at = timezone.now()
-        signup.calculate_amounts()
-        signup.on_hold_at = None  # Remove on-hold status
-        signup.cancelled_at = None  # Remove cancelled status
-        signup.cancelled_reason = None
-        signup.comments += f"\nSignup validated by {request.user.username}.\n\n"
-        signup.save()
-        return redirect("admin:signup2026_signup_change", signup.id)
-
-    @action(description="cancel signup")
-    def cancel_signup(self, request, signup):
-        signup.cancelled_at = timezone.now()
-        signup.comments += f"Signup cancelled by {request.user.username}."
-        signup.save()
-        messages.success(request, f"Signup #{signup.id} has been cancelled.\n\n")
-        return redirect("admin:signup2026_signup_changelist")
-
-    @action(description="Put signup on hold")
-    def put_on_hold_signup(self, request, signup):
-        signup.on_hold_at = timezone.now()
-        signup.cancelled_at = None  # Remove cancelled status
-        signup.comments += f"Signup put on hold by {request.user.username}.\n\n"
-        signup.save()
-        messages.success(request, f"Signup #{signup.id} has been put on hold.")
-        return redirect("admin:signup2026_signup_change", signup.id)
-
-    def status(self, obj: Signup):
-        return obj.status
-
-    status.admin_order_field = "status"
-    status.short_description = "Status"
-
-    def is_payed(self, obj: Signup):
-        return obj.is_payed
-
-    is_payed.admin_order_field = "is_payed"
-    is_payed.boolean = True
-    is_payed.short_description = "Payed"
-
-    def amount_due(self, obj: Signup):
-        return obj.amount_due
-
-    amount_due.admin_order_field = "amount_due"
-    amount_due.short_description = "amount due remaining"
 
 
 class StatusFilter(SimpleListFilter):
@@ -282,7 +108,12 @@ class ParticipantResource(resources.ModelResource):
         )
 
 
-class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
+class SignupAdmin(admin.ModelAdmin):
+    search_fields = ("owner__first_name", "owner__last_name", "owner__email")
+    list_display = ("id", "owner", "created_at", "validated_at")
+
+
+class ParticipantAmin(ExportMixin, admin.ModelAdmin):
     list_display = (
         "id",
         "first_name",
@@ -355,3 +186,32 @@ class ParticipantAmin(ExportMixin, CanBePayedAdminMixin, admin.ModelAdmin):
 
     age.admin_order_field = "age"
     age.short_description = "Age"
+
+    def status(self, obj: Participant):
+        return obj.status
+
+    status.admin_order_field = "status"
+    status.short_description = "Status"
+
+    def is_payed(self, obj: Participant):
+        return obj.is_payed
+
+    is_payed.admin_order_field = "is_payed"
+    is_payed.boolean = True
+    is_payed.short_description = "Payed"
+
+    def amount_due(self, obj: Participant):
+        return obj.amount_due
+
+    amount_due.admin_order_field = "amount_due"
+    amount_due.short_description = "amount due"
+
+    def amount_due_remaining(self, obj: Participant):
+        return obj.amount_due_remaining
+
+    amount_due_remaining.admin_order_field = "amount_due_remaining"
+    amount_due_remaining.short_description = "amount due remaining"
+
+
+admin.site.register(Signup, SignupAdmin)
+admin.site.register(Participant, ParticipantAmin)
