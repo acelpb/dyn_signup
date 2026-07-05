@@ -189,6 +189,25 @@ class TestSignup2026AdminPages:
     def test_paymentparticipant_changelist(self):
         get(self.client, reverse("admin:signup2026_paymentparticipant_changelist"))
 
+    def test_paymentparticipant_change_links_to_paymentsignup(self):
+        # The signup_group widget on the change form must point at the
+        # payment admin (PaymentSignup), not the lifecycle SignupAdmin.
+        from django.utils import timezone
+
+        signup = self._make_signup()
+        signup.validated_at = timezone.now()
+        signup.save()
+        participant = self._make_participant(signup)
+        response = get(
+            self.client,
+            reverse(
+                "admin:signup2026_paymentparticipant_change", args=[participant.pk]
+            ),
+        )
+        content = response.content.decode()
+        assert "/paymentsignup/__fk__/change/" in content
+        assert "/signup/__fk__/change/" not in content
+
     # --- ExtraParticipantInfo ---
 
     def test_extraparticipantinfo_changelist(self):

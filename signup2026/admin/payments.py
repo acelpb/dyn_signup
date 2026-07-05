@@ -1,3 +1,5 @@
+from copy import copy
+
 from django.conf import settings
 from django.contrib import admin, messages
 from django.shortcuts import redirect
@@ -146,6 +148,15 @@ class PaymentParticipantAdmin(admin.ModelAdmin):
     readonly_fields = ("balance",)
 
     inlines = [PaymentInline]
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        # Point the signup_group widget links (view/change icons) at the
+        # payment admin (PaymentSignup) instead of the lifecycle SignupAdmin.
+        if db_field.name == "signup_group":
+            db_field = copy(db_field)
+            db_field.remote_field = copy(db_field.remote_field)
+            db_field.remote_field.model = PaymentSignup
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
 
     def get_queryset(self, request):
         return (
