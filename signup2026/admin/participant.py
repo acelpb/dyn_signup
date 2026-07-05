@@ -5,6 +5,8 @@ from django.utils.safestring import mark_safe
 from import_export import resources
 from import_export.admin import ExportMixin
 
+from reunion.admin import PaymentInline
+
 from ..admin_views import SyncMailingListFormView
 from ..models import Participant, PaymentParticipant, Signup
 from .filters import (
@@ -16,12 +18,12 @@ from .filters import (
 
 
 class PayedColumnMixin:
-    @admin.display(boolean=True, description="Payé", ordering="amount_due_remaining")
+    @admin.display(boolean=True, description="Payé", ordering="balance")
     def is_payed(self, obj: Participant):
         # No amount due computed yet -> unknown (renders the grey "?" icon).
-        if obj.amount_due_remaining is None:
+        if obj.balance is None:
             return None
-        return obj.amount_due_remaining <= 0
+        return obj.balance <= 0
 
 
 class ParticipantResource(resources.ModelResource):
@@ -104,14 +106,31 @@ class PaymentParticipantAdmin(PayedColumnMixin, admin.ModelAdmin):
         "first_name",
         "last_name",
         "amount_due_calculated",
-        "amount_due_remaining",
+        "balance",
         "is_payed",
     )
 
     ordering = ("signup_group", "id")
     list_filter = (ParticipantPayedFilter,)
     list_editable = ("amount_due_calculated",)
-    search_fields = ("first_name", "last_name", "email")
+    search_fields = (
+        "first_name",
+        "last_name",
+        "email",
+        "signup_group__owner__email",
+    )
+
+    autocomplete_fields = ("signup_group",)
+    fields = (
+        "signup_group",
+        "first_name",
+        "last_name",
+        "amount_due_calculated",
+        "balance",
+    )
+    readonly_fields = ("balance",)
+
+    inlines = [PaymentInline]
 
     def get_queryset(self, request):
         return (
@@ -127,9 +146,9 @@ class PaymentParticipantAdmin(PayedColumnMixin, admin.ModelAdmin):
             .with_amounts()
         )
 
-    @admin.display(description="Balance", ordering="amount_due_remaining")
-    def amount_due_remaining(self, obj: Participant):
+    @admin.display(description="Balance", ordering="balance")
+    def balance(self, obj: Participant):
         # No amount due computed yet -> unknown (renders the grey "?" icon).
-        if obj.amount_due_remaining is None:
+        if obj.balance is None:
             return None
-        return obj.amount_due_remaining
+        return obj.balance

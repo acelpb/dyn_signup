@@ -348,11 +348,11 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
 
         with transaction.atomic():
             for participant in signup.participants_set.with_amounts().filter(
-                amount_due_remaining__gt=0
+                balance__gt=0
             ):
                 if remaining <= 0:
                     break
-                amount = min(remaining, participant.amount_due_remaining)
+                amount = min(remaining, participant.balance)
                 OperationValidation.objects.create(
                     operation=operation,
                     amount=amount,

@@ -61,6 +61,19 @@ class TestAnnotatedBalance:
         pay(participant, Decimal("100.00"))
         assert signup.annotated().is_payed is True
 
+    def test_participant_annotations_match_signup_vocabulary(self, signup, participant):
+        pay(participant, Decimal("40.00"))
+        annotated = Participant.objects.with_amounts().get(pk=participant.pk)
+        assert annotated.balance == Decimal("60.00")
+        assert annotated.is_payed is False
+        assert annotated.balance == signup.annotated().balance
+
+    def test_participant_is_payed_when_fully_paid(self, signup, participant):
+        pay(participant, Decimal("100.00"))
+        annotated = Participant.objects.with_amounts().get(pk=participant.pk)
+        assert annotated.balance == 0
+        assert annotated.is_payed is True
+
 
 @pytest.mark.django_db
 class TestAcceptExcessAsDonation:

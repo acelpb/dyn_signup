@@ -367,19 +367,29 @@ class Signup(models.Model):
 
 class ParticipantQuerySet(models.QuerySet):
     def with_amounts(self):
-        return self.annotate(
-            amount_due=Coalesce(
-                "amount_due_modified",
-                "amount_due_calculated",
-                output_field=DecimalField(max_digits=10, decimal_places=2),
-            ),
-            amount_payed=Coalesce(
-                Sum("payments__amount"),
-                Value(0),
-                output_field=DecimalField(max_digits=10, decimal_places=2),
-            ),
-        ).annotate(
-            amount_due_remaining=F("amount_due") - F("amount_payed"),
+        return (
+            self.annotate(
+                amount_due=Coalesce(
+                    "amount_due_modified",
+                    "amount_due_calculated",
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
+                amount_payed=Coalesce(
+                    Sum("payments__amount"),
+                    Value(0),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                ),
+            )
+            .annotate(
+                balance=F("amount_due") - F("amount_payed"),
+            )
+            .annotate(
+                is_payed=Case(
+                    When(balance__lte=Value(0), then=Value(True)),
+                    default=Value(False),
+                    output_field=BooleanField(),
+                ),
+            )
         )
 
     def with_age(self):

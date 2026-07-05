@@ -153,7 +153,7 @@ class TestSignup2026AdminPages:
     # --- Participant ---
 
     def test_participant_changelist(self):
-        # A participant with no amount due computed yet (amount_due_remaining is
+        # A participant with no amount due computed yet (balance is
         # None) must not break the "Payé" column.
         self._make_participant()
         get(self.client, reverse("admin:signup2026_participant_changelist"))

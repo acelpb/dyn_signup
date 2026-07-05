@@ -81,7 +81,7 @@ class ParticipantPayedFilter(SimpleListFilter):
 
     def queryset(self, request, queryset):
         if self.value() == "yes":
-            return queryset.filter(amount_due_remaining__lte=0)
+            return queryset.filter(balance__lte=0)
         if self.value() == "no":
-            return queryset.filter(amount_due_remaining__gt=0)
+            return queryset.filter(balance__gt=0)
         return queryset
