@@ -1,17 +1,21 @@
 from django import forms
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import F, Sum
 
 from accounts.models import (
-    Bill,
+    Bill as AccountBill,
+)
+from accounts.models import (
     ExpenditureChoices,
     ExpenseReport,
     IncomeChoices,
     Operation,
     OperationValidation,
 )
+from signup2023.models import Bill as SignupBill
 from signup2023.models import Signup
 
 # class SignupOperationForm(forms.ModelForm):
@@ -37,15 +41,27 @@ from signup2023.models import Signup
 
 class LinkToBillForm(forms.Form):
     operations = forms.ModelMultipleChoiceField(queryset=Operation.objects.all())
-    bill = forms.ModelChoiceField(queryset=Bill.objects.all())
+    bill = forms.ModelChoiceField(queryset=AccountBill.objects.all())
 
     def save(self):
         bill = self.cleaned_data["bill"]
         with transaction.atomic():
             for operation in self.cleaned_data["operations"]:
-                OperationValidation.objects.create(
-                    operation=operation, amount=operation.amount, event=bill
-                )
+                # Try to find a placeholder OperationValidation for this bill and amount
+                placeholder = OperationValidation.objects.filter(
+                    operation__isnull=True,
+                    amount=operation.amount,
+                    content_type=ContentType.objects.get_for_model(AccountBill),
+                    object_id=bill.id,
+                ).first()
+
+                if placeholder:
+                    placeholder.operation = operation
+                    placeholder.save()
+                else:
+                    OperationValidation.objects.create(
+                        operation=operation, amount=operation.amount, event=bill
+                    )
 
 
 class LinkToExpenseReportForm(forms.Form):
@@ -91,17 +107,29 @@ class LinkToSignupForm(forms.Form):
         signup = self.cleaned_data["signup"]
         with transaction.atomic():
             for operation in self.cleaned_data["operations"]:
-                OperationValidation.objects.create(
-                    operation=operation,
+                # Try to find a placeholder OperationValidation for this signup's bill and amount
+                placeholder = OperationValidation.objects.filter(
+                    operation__isnull=True,
                     amount=operation.amount,
-                    event=signup.bill,
-                    validation_type=IncomeChoices.SIGNUP,
-                )
+                    content_type=ContentType.objects.get_for_model(SignupBill),
+                    object_id=signup.bill.id,
+                ).first()
+
+                if placeholder:
+                    placeholder.operation = operation
+                    placeholder.save()
+                else:
+                    OperationValidation.objects.create(
+                        operation=operation,
+                        amount=operation.amount,
+                        event=signup.bill,
+                        validation_type=IncomeChoices.SIGNUP,
+                    )
 
 
 class BillUploadForm(forms.ModelForm):
     class Meta:
-        model = Bill
+        model = AccountBill
         fields = ("name", "amount", "date", "file")
 
     def __init__(self, *args, require_file=True, **kwargs):
@@ -118,7 +146,7 @@ def try_create_bill(data, files, require_file=True):
     form = BillUploadForm(data, files, require_file=require_file)
     if not form.is_valid():
         return {"status": "invalid", "errors": form.errors.get_json_data()}
-    duplicates = Bill.objects.filter(
+    duplicates = AccountBill.objects.filter(
         name=form.cleaned_data["name"],
         amount=form.cleaned_data["amount"],
         date=form.cleaned_data["date"],

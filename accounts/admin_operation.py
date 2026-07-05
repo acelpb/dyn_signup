@@ -243,6 +243,11 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 self.admin_site.admin_view(self.link_to_expensereport_view),
                 name="accounts_operation_link_to_expense_report",
             ),
+            path(
+                "<int:operation_id>/link-to-validation/<int:validation_id>/",
+                self.admin_site.admin_view(self.link_to_validation_view),
+                name="accounts_operation_link_to_generic",
+            ),
         ]
         return my_urls + urls
 
@@ -458,5 +463,29 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
         messages.success(
             request,
             f"L’opération {operation_id} a été liée à la note de frais {expense_report.title}.",
+        )
+        return redirect("admin:accounts_operation_changelist")
+
+    def link_to_validation_view(self, request, operation_id, validation_id):
+        operation = get_object_or_404(Operation, id=operation_id)
+        validation = get_object_or_404(OperationValidation, id=validation_id)
+
+        if validation.operation_id is not None:
+            messages.error(request, f"Validation {validation_id} is already linked.")
+            return redirect("admin:accounts_operation_changelist")
+
+        if validation.amount != operation.amount:
+            messages.error(
+                request,
+                f"Amount mismatch: Validation has {validation.amount}€, Operation has {operation.amount}€.",
+            )
+            return redirect("admin:accounts_operation_changelist")
+
+        validation.operation = operation
+        validation.save()
+
+        messages.success(
+            request,
+            f"L'opération {operation_id} a été liée à la validation {validation_id}.",
         )
         return redirect("admin:accounts_operation_changelist")

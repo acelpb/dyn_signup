@@ -5,6 +5,7 @@ import secrets
 from collections import defaultdict
 
 from django.contrib.auth.mixins import PermissionRequiredMixin, UserPassesTestMixin
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import (
     BooleanField,
     DecimalField,
@@ -36,6 +37,7 @@ from accounts.models import (
     OperationValidation,
     authenticate_api_token,
 )
+from signup2026.models import Signup
 
 DEVICE_AUTH_LIFETIME = datetime.timedelta(minutes=15)
 DEVICE_AUTH_POLL_INTERVAL = 5
@@ -269,11 +271,6 @@ class PendingPaymentsView(TreasurerRequiredMixin, TemplateView):
             .exclude(remaining=0)
             .order_by("date", "id")
         )
-        # Bank operations paying something out are negative, so remaining
-        # amounts can carry either sign; the transfer to make is the absolute value.
-        for item in expense_reports + bills:
-            item.to_pay = abs(item.remaining)
-
         # Imported outgoing operations not yet justified: candidates proving
         # a pending payment was actually executed.
         candidate_operations = defaultdict(list)
@@ -282,7 +279,29 @@ class PendingPaymentsView(TreasurerRequiredMixin, TemplateView):
         ).order_by("-date"):
             candidate_operations[operation.amount].append(operation)
 
+        # Signups or Participants with negative OperationValidation (refunds)
+        from signup2026.models import Participant
+
+        signup_ct = ContentType.objects.get_for_model(Signup)
+        participant_ct = ContentType.objects.get_for_model(Participant)
+        refunds = list(
+            OperationValidation.objects.filter(
+                Q(content_type=signup_ct) | Q(content_type=participant_ct),
+                operation__isnull=True,
+                amount__lt=0,
+            ).select_related("created_by")
+        )
+        for refund in refunds:
+            refund.to_pay = abs(refund.amount)
+            # Find candidate operations (bank operations that are negative because they are outgoing payments)
+            # refund.amount is already negative, e.g. -50.00
+            refund.matches = [
+                {"operation": operation, "iban_match": False}
+                for operation in candidate_operations[refund.amount]
+            ]
+
         for er in expense_reports:
+            er.to_pay = er.remaining
             iban = _normalize_iban(er.iban)
             er.matches = sorted(
                 (
@@ -296,6 +315,7 @@ class PendingPaymentsView(TreasurerRequiredMixin, TemplateView):
                 key=lambda match: not match["iban_match"],
             )
         for bill in bills:
+            bill.to_pay = bill.remaining
             bill.matches = [
                 {"operation": operation, "iban_match": False}
                 for operation in candidate_operations[-bill.remaining]
@@ -305,7 +325,13 @@ class PendingPaymentsView(TreasurerRequiredMixin, TemplateView):
         kwargs["bills"] = bills
         kwargs["total_expense_reports"] = sum(er.to_pay for er in expense_reports)
         kwargs["total_bills"] = sum(bill.to_pay for bill in bills)
-        kwargs["total"] = kwargs["total_expense_reports"] + kwargs["total_bills"]
+        kwargs["refunds"] = refunds
+        kwargs["total_refunds"] = sum(refund.to_pay for refund in refunds)
+        kwargs["total"] = (
+            kwargs["total_expense_reports"]
+            + kwargs["total_bills"]
+            + kwargs["total_refunds"]
+        )
         return super().get_context_data(**kwargs)
 
 

@@ -83,6 +83,11 @@ class Signup(models.Model):
     def __str__(self) -> str:
         return f"Signup #{self.pk} - {self.owner}"
 
+    def get_admin_url(self):
+        from django.urls import reverse
+
+        return reverse("admin:reunion_signup_change", args=[self.id])
+
     def check_max_participants(self):
         nb_of_participants = (
             Participant.objects.filter(

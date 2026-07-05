@@ -91,6 +91,7 @@ class SignupPaymentsInline(GenericTabularInline):
 class ParticipantInfoInline(admin.StackedInline):
     verbose_name = "Information Participants"
     model = Participant
+    classes = ["collapse"]
     extra = 0
     fields = (
         "first_name",
@@ -104,14 +105,39 @@ class ParticipantInfoInline(admin.StackedInline):
         "arrive_day_before",
         "takes_car_back",
         "extra_activities",
-        "amount_due_calculated",
-        "amount_due_modified",
     )
-    readonly_fields = ("amount_due_calculated",)
 
 
 class ParticipantDaysInline(admin.TabularInline):
     verbose_name = "Présences Participants"
     model = Participant
+    classes = ["collapse"]
     extra = 0
     fields = DAY_FIELDS
+
+
+class ParticipantPaymentsInline(admin.TabularInline):
+    verbose_name = "Participants Dues"
+    model = Participant
+    classes = ["collapse"]
+    extra = 0
+    fields = (
+        "amount_due_calculated",
+        "balance",
+        "is_payed",
+    )
+    readonly_fields = (
+        "balance",
+        "is_payed",
+    )
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).with_amounts()
+
+    @admin.display(description="Balance", ordering="balance")
+    def balance(self, obj):
+        return obj.balance
+
+    @admin.display(description="Is Payed", boolean=True, ordering="is_payed")
+    def is_payed(self, obj):
+        return obj.is_payed

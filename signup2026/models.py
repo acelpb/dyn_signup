@@ -564,13 +564,6 @@ class PaymentParticipant(Participant):
         verbose_name_plural = "Payements Participants"
 
 
-class PaymentSignup(Signup):
-    class Meta:
-        proxy = True
-        verbose_name = "Payement Inscription"
-        verbose_name_plural = "Payements Inscriptions"
-
-
 class ExtraParticipantInfo(models.Model):
     participant = models.OneToOneField(
         Participant, on_delete=models.CASCADE, related_name="extra_info"

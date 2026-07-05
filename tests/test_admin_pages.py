@@ -172,26 +172,9 @@ class TestSignup2026AdminPages:
 
     # --- PaymentSignup / PaymentParticipant ---
 
-    def test_paymentsignup_changelist(self):
-        get(self.client, reverse("admin:signup2026_paymentsignup_changelist"))
-
-    def test_paymentsignup_change(self):
-        from django.utils import timezone
-
-        signup = self._make_signup()
-        signup.validated_at = timezone.now()
-        signup.save()
-        get(
-            self.client,
-            reverse("admin:signup2026_paymentsignup_change", args=[signup.pk]),
-        )
-
-    def test_paymentparticipant_changelist(self):
-        get(self.client, reverse("admin:signup2026_paymentparticipant_changelist"))
-
-    def test_paymentparticipant_change_links_to_paymentsignup(self):
+    def test_paymentparticipant_change_links_to_signup(self):
         # The signup_group widget on the change form must point at the
-        # payment admin (PaymentSignup), not the lifecycle SignupAdmin.
+        # lifecycle SignupAdmin.
         from django.utils import timezone
 
         signup = self._make_signup()
@@ -205,8 +188,7 @@ class TestSignup2026AdminPages:
             ),
         )
         content = response.content.decode()
-        assert "/paymentsignup/__fk__/change/" in content
-        assert "/signup/__fk__/change/" not in content
+        assert "/signup/__fk__/change/" in content
 
     # --- ExtraParticipantInfo ---
 
@@ -420,7 +402,7 @@ class TestSignup2026PaymentConfirmationButton:
         )
 
         url = reverse(
-            "admin:signup2026_paymentsignup_actions",
+            "admin:signup2026_signup_actions",
             kwargs={"pk": signup.pk, "tool": "send_payment_confirmation"},
         )
         response = self.client.post(url)
@@ -447,7 +429,7 @@ class TestSignup2026PaymentConfirmationButton:
         )
 
         url = reverse(
-            "admin:signup2026_paymentsignup_actions",
+            "admin:signup2026_signup_actions",
             kwargs={"pk": signup.pk, "tool": "send_payment_confirmation"},
         )
         self.client.post(url)

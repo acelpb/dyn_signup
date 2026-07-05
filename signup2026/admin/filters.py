@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib.admin import SimpleListFilter
 from django.utils.formats import date_format
 
+from ..models import Signup
+
 # Participant model day flags (day1 .. day9), one per Dynamobile day.
 DAY_FIELDS = tuple(f"day{i}" for i in range(1, len(settings.DYNAMOBILE_DAYS) + 1))
 
@@ -21,32 +23,37 @@ class SignupStatusFilter(SimpleListFilter):
         ]
 
     def queryset(self, request, queryset):
+        if queryset.model == Signup:
+            prefix = ""
+        else:
+            prefix = "signup_group__"
+
         filters = {
             "started": {
-                "signup_group__validated_at__isnull": True,
-                "signup_group__cancelled_at__isnull": True,
+                f"{prefix}validated_at__isnull": True,
+                f"{prefix}cancelled_at__isnull": True,
             },
             "on_hold": {
-                "signup_group__on_hold_at__isnull": False,
-                "signup_group__validated_at__isnull": False,
-                "signup_group__cancelled_at__isnull": True,
+                f"{prefix}on_hold_at__isnull": False,
+                f"{prefix}validated_at__isnull": False,
+                f"{prefix}cancelled_at__isnull": True,
             },
             "on_hold_vae": {
-                "signup_group__on_hold_vae": True,
-                "signup_group__validated_at__isnull": False,
-                "signup_group__cancelled_at__isnull": True,
+                f"{prefix}on_hold_vae": True,
+                f"{prefix}validated_at__isnull": False,
+                f"{prefix}cancelled_at__isnull": True,
             },
             "partial": {
-                "signup_group__on_hold_partial": True,
-                "signup_group__validated_at__isnull": False,
-                "signup_group__cancelled_at__isnull": True,
+                f"{prefix}on_hold_partial": True,
+                f"{prefix}validated_at__isnull": False,
+                f"{prefix}cancelled_at__isnull": True,
             },
             "validated": {
-                "signup_group__validated_at__isnull": False,
-                "signup_group__on_hold_at__isnull": True,
-                "signup_group__cancelled_at__isnull": True,
+                f"{prefix}validated_at__isnull": False,
+                f"{prefix}on_hold_at__isnull": True,
+                f"{prefix}cancelled_at__isnull": True,
             },
-            "cancelled": {"signup_group__cancelled_at__isnull": False},
+            "cancelled": {f"{prefix}cancelled_at__isnull": False},
             None: {},
         }
         return queryset.distinct().filter(**filters[self.value()])

@@ -37,6 +37,11 @@ class Signup(models.Model):
     def __str__(self):
         return f"{self.id} - {self.owner.username}"
 
+    def get_admin_url(self):
+        from django.urls import reverse
+
+        return reverse("admin:signup2023_signup_change", args=[self.id])
+
     def create_bill(self):
         bill = Bill(
             signup=self,

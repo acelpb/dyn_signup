@@ -2,7 +2,8 @@ from django import views
 from django.urls import reverse, reverse_lazy
 
 from accounts.forms import LinkToBillForm, LinkToExpenseReportForm, LinkToSignupForm
-from accounts.models import Bill, ExpenseReport, Operation
+from accounts.models import Bill as AccountBill
+from accounts.models import ExpenseReport, Operation
 from dynasignup.mixins import AdminRequiredMixin
 
 
@@ -40,13 +41,13 @@ class LinkPaymentGenericView(AdminRequiredMixin, views.generic.FormView):
 class LinkToBillView(LinkPaymentGenericView):
     template_name = "admin/operations/link_to_bill.html"
     form_class = LinkToBillForm
-    model_class = Bill
+    model_class = AccountBill
 
 
 class LinkToSignupView(LinkPaymentGenericView):
     template_name = "admin/operations/link_to_bill.html"
     form_class = LinkToSignupForm
-    model_class = Bill
+    model_class = AccountBill
 
     def form_valid(self, form):
         bill = form.cleaned_data["signup"].bill
