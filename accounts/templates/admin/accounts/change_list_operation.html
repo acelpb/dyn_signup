@@ -5,6 +5,7 @@
 
 {% block object-tools-items %}
     <li><a class="addlink" href='{% url opts|admin_urlname:"import" %}' >{% trans "Import bpost extract" %}</a></li>
+    <li><a href='{% url "pending_payments" %}'>{% trans "Paiements à effectuer" %}</a></li>
     {{ block.super }}
 
 {% endblock %}

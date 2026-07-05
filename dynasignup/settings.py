@@ -273,6 +273,9 @@ OVH_API_KEY = config("OVH_API_KEY", default="")
 OVH_API_SECRET = config("OVH_API_SECRET", default="")
 OVH_API_CONSUMER = config("OVH_API_CONSUMER", default="")
 
+# Bearer token for the bill upload API; empty disables the endpoint.
+BILL_UPLOAD_TOKEN = config("BILL_UPLOAD_TOKEN", default="")
+
 MEMBERS_OF_CA = {
     "a.borsu@acelpb.com",
     "a.borsu@gmail.com",

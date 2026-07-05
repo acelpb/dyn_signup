@@ -15,6 +15,7 @@ from .admin_inline import ExpenseFileInline, PaymentInline
 from .admin_operation import OperationAdmin
 from .models import (
     Account,
+    ApiToken,
     Bill,
     ExpenseReport,
     Operation,
@@ -27,6 +28,20 @@ admin.site.register(Operation, OperationAdmin)
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ("id", "name", "IBAN")
+
+
+@admin.register(ApiToken)
+class ApiTokenAdmin(admin.ModelAdmin):
+    "Tokens are issued through the device flow; here they can only be revoked."
+
+    list_display = ("name", "created_by", "created_at", "last_used_at")
+    readonly_fields = ("name", "created_by", "created_at", "last_used_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(OperationValidation)

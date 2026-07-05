@@ -1,5 +1,7 @@
 # Create your models here.
 
+import hashlib
+import secrets
 from datetime import datetime
 
 from django.conf import settings
@@ -207,6 +209,68 @@ class Bill(models.Model):
     class Meta:
         verbose_name = "facture"
         verbose_name_plural = "factures"
+
+
+class ApiToken(models.Model):
+    """Bearer token for the bill upload API, issued through the device flow.
+
+    Only the SHA-256 of the token is stored; the plaintext is shown once when
+    the token is claimed. Deleting the row revokes the token.
+    """
+
+    name = models.CharField(max_length=255)
+    token_hash = models.CharField(max_length=64, unique=True, editable=False)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, editable=False
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(null=True, blank=True, editable=False)
+
+    class Meta:
+        verbose_name = "jeton API"
+        verbose_name_plural = "jetons API"
+        ordering = ("-created_at",)
+
+    def __str__(self):
+        return self.name
+
+    @staticmethod
+    def hash_token(raw_token):
+        return hashlib.sha256(raw_token.encode()).hexdigest()
+
+    @classmethod
+    def issue(cls, name, user):
+        "Create a token and return it with its plaintext value."
+        raw_token = secrets.token_urlsafe(32)
+        token = cls.objects.create(
+            name=name, token_hash=cls.hash_token(raw_token), created_by=user
+        )
+        return token, raw_token
+
+
+class DeviceAuthorization(models.Model):
+    """Short-lived request from an external tool waiting for user approval.
+
+    device_code is the secret the tool polls with; user_code is in the URL
+    the user opens to approve. The row is deleted once the token is claimed,
+    denied or found expired.
+    """
+
+    device_code = models.CharField(max_length=64, unique=True, editable=False)
+    user_code = models.CharField(max_length=64, unique=True, editable=False)
+    client_name = models.CharField(max_length=100, default="LLM assistant")
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = "autorisation d'appareil"
+        verbose_name_plural = "autorisations d'appareil"
+
+    def __str__(self):
+        return f"{self.client_name} ({self.created_at:%d/%m/%Y %H:%M})"
 
 
 class ExpenseFile(models.Model):

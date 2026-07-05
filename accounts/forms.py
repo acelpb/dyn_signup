@@ -99,6 +99,16 @@ class LinkToSignupForm(forms.Form):
                 )
 
 
+class BillUploadForm(forms.ModelForm):
+    class Meta:
+        model = Bill
+        fields = ("name", "amount", "date", "file")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["file"].required = True
+
+
 class VentilationForm(forms.ModelForm):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
