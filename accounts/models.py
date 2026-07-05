@@ -248,6 +248,28 @@ class ApiToken(models.Model):
         return token, raw_token
 
 
+def authenticate_api_token(raw_token):
+    """Check a plaintext API token; returns True and stamps last_used_at.
+
+    Accepts issued ApiTokens and, as a fallback, the static
+    settings.BILL_UPLOAD_TOKEN.
+    """
+    from django.utils import timezone
+    from django.utils.crypto import constant_time_compare
+
+    if not raw_token:
+        return False
+    static_token = settings.BILL_UPLOAD_TOKEN
+    if static_token and constant_time_compare(raw_token, static_token):
+        return True
+    token = ApiToken.objects.filter(token_hash=ApiToken.hash_token(raw_token)).first()
+    if token:
+        token.last_used_at = timezone.now()
+        token.save(update_fields=["last_used_at"])
+        return True
+    return False
+
+
 class DeviceAuthorization(models.Model):
     """Short-lived request from an external tool waiting for user approval.
 

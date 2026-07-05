@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Jeton API{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="col-md-3 col-lg-3"></div>
+        <div class="col-sm-12 col-md-6 col-lg-6">
+            <h2 class="text-center mt-3 mb-4">Créer un jeton API</h2>
+            {% if state == "created" %}
+                <div class="alert alert-success">
+                    <p>Jeton créé. <strong>Il ne sera plus jamais affiché</strong> — copiez-le maintenant.</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">URL du connecteur MCP (à coller dans claude.ai → Settings → Connectors)</label>
+                    <input class="form-control" readonly value="{{ mcp_url }}" onclick="this.select()">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Jeton seul (pour l'API REST)</label>
+                    <input class="form-control" readonly value="{{ token }}" onclick="this.select()">
+                </div>
+                <p class="text-muted">Pour révoquer ce jeton, supprimez-le dans l'admin sous « jetons API ».</p>
+            {% else %}
+                <p>Génère un jeton d'accès permettant à un assistant LLM de créer des factures
+                    dans l'outil (connecteur MCP ou API REST).</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label" for="id_name">Nom du jeton</label>
+                        <input class="form-control" id="id_name" name="name" placeholder="Connecteur MCP" maxlength="100">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Créer le jeton</button>
+                </form>
+            {% endif %}
+        </div>
+        <div class="col-md-3 col-lg-3"></div>
+    </div>
+{% endblock %}

@@ -4,7 +4,6 @@ import re
 import secrets
 from collections import defaultdict
 
-from django.conf import settings
 from django.contrib.auth.mixins import PermissionRequiredMixin, UserPassesTestMixin
 from django.db.models import (
     BooleanField,
@@ -20,13 +19,12 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.crypto import constant_time_compare
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
-from accounts.forms import BillUploadForm
+from accounts.forms import try_create_bill
 from accounts.models import (
     ApiToken,
     Bill,
@@ -36,6 +34,7 @@ from accounts.models import (
     IncomeChoices,
     Operation,
     OperationValidation,
+    authenticate_api_token,
 )
 
 DEVICE_AUTH_LIFETIME = datetime.timedelta(minutes=15)
@@ -68,42 +67,26 @@ class BillUploadAPIView(View):
         provided = header.removeprefix("Bearer ")
         if not provided or header == provided:
             return False
-        static_token = settings.BILL_UPLOAD_TOKEN
-        if static_token and constant_time_compare(provided, static_token):
-            return True
-        token = ApiToken.objects.filter(
-            token_hash=ApiToken.hash_token(provided)
-        ).first()
-        if token:
-            token.last_used_at = timezone.now()
-            token.save(update_fields=["last_used_at"])
-            return True
-        return False
+        return authenticate_api_token(provided)
 
     def post(self, request):
         if not self._authenticate(request):
             return JsonResponse({"error": "Invalid or missing token."}, status=401)
 
-        form = BillUploadForm(request.POST, request.FILES)
-        if not form.is_valid():
-            return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
-
-        duplicates = Bill.objects.filter(
-            name=form.cleaned_data["name"],
-            amount=form.cleaned_data["amount"],
-            date=form.cleaned_data["date"],
-        )
-        if duplicates.exists():
+        result = try_create_bill(request.POST, request.FILES)
+        if result["status"] == "invalid":
+            return JsonResponse({"errors": result["errors"]}, status=400)
+        if result["status"] == "duplicate":
             return JsonResponse(
                 {
                     "error": "A bill with the same name, amount and date "
                     "already exists.",
-                    "existing_ids": list(duplicates.values_list("id", flat=True)),
+                    "existing_ids": result["existing_ids"],
                 },
                 status=409,
             )
 
-        bill = form.save()
+        bill = result["bill"]
         return JsonResponse(
             {
                 "id": bill.id,
@@ -214,6 +197,34 @@ class DeviceAuthTokenView(View):
         )
         authorization.delete()
         return JsonResponse({"status": "approved", "token": raw_token})
+
+
+class CreateApiTokenView(TreasurerRequiredMixin, View):
+    """Generate an API token in the browser, shown only once.
+
+    Meant for configuring MCP connectors (e.g. claude.ai), where the device
+    flow is not available: the page shows the ready-to-paste MCP URL.
+    """
+
+    def get(self, request):
+        return render(request, "api_token_create.html", {"state": "ask"})
+
+    def post(self, request):
+        name = (request.POST.get("name") or "Connecteur MCP")[:100]
+        _, raw_token = ApiToken.issue(
+            name=f"{name} — créé par {request.user}", user=request.user
+        )
+        return render(
+            request,
+            "api_token_create.html",
+            {
+                "state": "created",
+                "token": raw_token,
+                "mcp_url": request.build_absolute_uri(
+                    reverse("mcp_server", args=[raw_token])
+                ),
+            },
+        )
 
 
 class PendingPaymentsView(TreasurerRequiredMixin, TemplateView):

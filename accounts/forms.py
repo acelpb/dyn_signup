@@ -104,9 +104,31 @@ class BillUploadForm(forms.ModelForm):
         model = Bill
         fields = ("name", "amount", "date", "file")
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, require_file=True, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["file"].required = True
+        self.fields["file"].required = require_file
+
+
+def try_create_bill(data, files, require_file=True):
+    """Validate and create a Bill, guarding against duplicates.
+
+    Returns a dict with "status" being one of "created" (with "bill"),
+    "invalid" (with "errors") or "duplicate" (with "existing_ids").
+    """
+    form = BillUploadForm(data, files, require_file=require_file)
+    if not form.is_valid():
+        return {"status": "invalid", "errors": form.errors.get_json_data()}
+    duplicates = Bill.objects.filter(
+        name=form.cleaned_data["name"],
+        amount=form.cleaned_data["amount"],
+        date=form.cleaned_data["date"],
+    )
+    if duplicates.exists():
+        return {
+            "status": "duplicate",
+            "existing_ids": list(duplicates.values_list("id", flat=True)),
+        }
+    return {"status": "created", "bill": form.save()}
 
 
 class VentilationForm(forms.ModelForm):

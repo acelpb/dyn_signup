@@ -36,6 +36,7 @@ class ApiTokenAdmin(admin.ModelAdmin):
 
     list_display = ("name", "created_by", "created_at", "last_used_at")
     readonly_fields = ("name", "created_by", "created_at", "last_used_at")
+    change_list_template = "admin/accounts/change_list_apitoken.html"
 
     def has_add_permission(self, request):
         return False

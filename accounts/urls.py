@@ -1,8 +1,10 @@
 from django.urls import path
 
+from .mcp import McpServerView
 from .views import (
     AnnualAccountsView,
     BillUploadAPIView,
+    CreateApiTokenView,
     DeviceAuthApproveView,
     DeviceAuthStartView,
     DeviceAuthTokenView,
@@ -24,4 +26,6 @@ urlpatterns = [
         DeviceAuthApproveView.as_view(),
         name="device_auth_approve",
     ),
+    path("tokens/new/", CreateApiTokenView.as_view(), name="api_token_create"),
+    path("mcp/<str:token>/", McpServerView.as_view(), name="mcp_server"),
 ]

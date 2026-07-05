@@ -5,8 +5,22 @@ description: Upload a bill (facture) to the Dynamobile signup tool. Use when the
 
 # Upload a bill to dyn-signup
 
-Turn a bill document (PDF or image) into an `accounts.Bill` record via the
-bill upload API.
+Turn a bill document (PDF or image) into an `accounts.Bill` record.
+
+## Preferred: the MCP tool
+
+If an `upload_bill` MCP tool is available (dyn-signup connector configured),
+use it instead of the curl flow below: extract the fields (see "Steps" step
+2), confirm them with the user, then call the tool — pass the document as
+`file_base64` when you can read the raw file. This also works in sandboxes
+whose network proxy blocks direct calls to the app.
+
+To set the connector up, the user (treasurer) opens `/tokens/new/` on the
+app while logged in, generates a token, and pastes the displayed MCP URL
+into claude.ai → Settings → Connectors (or `claude mcp add --transport http
+dyn-signup <url>` for Claude Code).
+
+## Fallback: direct API with curl
 
 ## Configuration
 
