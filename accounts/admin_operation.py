@@ -371,7 +371,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                     created_by=request.user,
                 )
 
-        if signup.payed():
+        if signup.annotated().is_payed:
             signup.send_payment_confirmation_mail()
 
         messages.success(

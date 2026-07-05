@@ -1,0 +1,6 @@
+{% if custom_message %}
+{{ custom_message }}
+
+-------------------------------------------------------------------------------
+{% endif %}
+{% include "signup2026/email/email_confirmation.txt" with signup=signup %}

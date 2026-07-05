@@ -118,7 +118,7 @@ class GroupReviewView(SignupStartedMixin, UpdateView):
         signup.save()
         signup.calculate_amounts()
         email_context = {
-            "signup": signup,
+            "signup": signup.annotated(),
             "partial_open": settings.DYNAMOBILE_START_PARTIAL_SIGNUP,
         }
         send_mail(
@@ -139,10 +139,14 @@ class CompletedSignupView(LoginRequiredMixin, DetailView):
     context_object_name = "signup"
 
     def get_object(self, queryset=None):
-        return Signup.objects.filter(
-            owner=self.request.user,
-            year=2026,
-        ).first()
+        return (
+            Signup.objects.with_amounts()
+            .filter(
+                owner=self.request.user,
+                year=2026,
+            )
+            .first()
+        )
 
     def get_context_data(self, **kwargs):
         kwargs = super().get_context_data(**kwargs)

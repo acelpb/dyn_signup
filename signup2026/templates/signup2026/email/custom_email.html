@@ -1,0 +1,7 @@
+{% if custom_message %}
+    <div style="margin-bottom: 20px; padding: 10px; border-left: 4px solid #ccc; background-color: #f9f9f9;">
+        {{ custom_message|linebreaks }}
+    </div>
+    <hr>
+{% endif %}
+{% include "signup2026/email/email_confirmation.html" with signup=signup %}

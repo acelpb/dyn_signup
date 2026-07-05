@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
-from django.db import models
+from django.db import models, transaction
 from django.db.models import (
     BooleanField,
     Case,
@@ -20,7 +21,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
-from accounts.models import OperationValidation
+from accounts.models import IncomeChoices, OperationValidation
 
 
 class SignupQuerySet(models.QuerySet):
@@ -106,6 +107,11 @@ class Signup(models.Model):
     def __str__(self):
         return f"2026-{self.id} - {self.owner.username}"
 
+    def get_admin_url(self):
+        from django.urls import reverse
+
+        return reverse("admin:signup2026_signup_change", args=[self.id])
+
     def create_bill(self):
         # Logique de création de facture/confirmation par mail
         # À adapter selon les besoins de 2026
@@ -171,44 +177,117 @@ class Signup(models.Model):
         self.save()
         return total_price
 
-    def amount_due(self):
-        return (
-            self.participants_set.aggregate(
-                total=Coalesce(
-                    Sum(
-                        Coalesce(
-                            "amount_due_modified",
-                            "amount_due_calculated",
-                            output_field=DecimalField(max_digits=10, decimal_places=2),
-                        )
-                    ),
-                    Value(0),
-                    output_field=DecimalField(max_digits=10, decimal_places=2),
-                )
-            )["total"]
-            or 0
+    def annotated(self):
+        """Re-fetch this signup with the with_amounts() annotations.
+
+        Balance and payment status must always come from the queryset
+        annotations (balance, is_payed, ...), never be recomputed in Python.
+        """
+        return type(self).objects.with_amounts().get(pk=self.pk)
+
+    def accept_excess_as_donation(self, user):
+        """Convert a negative balance (overpayment) into a donation.
+
+        Reduces the largest payment validation by the excess and books the
+        excess as a donation on the same operation. Returns the converted
+        amount. Raises ValueError when the balance is not negative or no
+        suitable payment exists.
+        """
+        balance = self.annotated().balance
+        if balance is None or balance >= 0:
+            raise ValueError("Balance is not negative.")
+
+        excess = -balance
+        participant_ct = ContentType.objects.get_for_model(Participant)
+        participant_pks = self.participants_set.values_list("pk", flat=True)
+        target = (
+            OperationValidation.objects.filter(
+                content_type=participant_ct, object_id__in=participant_pks
+            )
+            .order_by("-amount")
+            .first()
         )
+        if target is None:
+            raise ValueError("No payments found to convert.")
+        if target.amount < excess:
+            raise ValueError(
+                f"The largest single payment validation ({target.amount}) is "
+                f"smaller than the excess ({excess}). Please handle manually."
+            )
 
-    def amount_payed(self):
-        return (
-            self.participants_set.aggregate(
-                total=Coalesce(
-                    Sum("payments__amount"),
-                    Value(0),
-                    output_field=DecimalField(max_digits=10, decimal_places=2),
-                )
-            )["total"]
-            or 0
+        with transaction.atomic():
+            target.amount -= excess
+            target.save()
+            # The donation is linked to the signup, not a participant: only
+            # participant-linked validations count as payments in
+            # with_amounts(), so this is what actually zeroes the balance.
+            OperationValidation.objects.create(
+                operation=target.operation,
+                content_type=ContentType.objects.get_for_model(type(self)),
+                object_id=self.id,
+                amount=excess,
+                validation_type=IncomeChoices.DONATION,
+                created_by=user,
+            )
+        return excess
+
+    def offer_refund(self, user):
+        """Record a refund placeholder for a negative balance (overpayment).
+
+        Creates a negative validation (linked to a participant when one
+        exists) and appends a note to the signup comments. Returns the
+        refund amount. Raises ValueError when the balance is not negative.
+        """
+        balance = self.annotated().balance
+        if balance is None or balance >= 0:
+            raise ValueError("Balance is not negative.")
+
+        excess = -balance
+        participant = self.participants_set.first()
+        if participant:
+            content_type = ContentType.objects.get_for_model(Participant)
+            object_id = participant.id
+        else:
+            content_type = ContentType.objects.get_for_model(type(self))
+            object_id = self.id
+
+        with transaction.atomic():
+            OperationValidation.objects.create(
+                operation=None,
+                content_type=content_type,
+                object_id=object_id,
+                amount=-excess,
+                validation_type=IncomeChoices.SIGNUP,
+                created_by=user,
+            )
+            self.comments = (
+                self.comments or ""
+            ) + f"\n--- REFUND OFFERED on {timezone.localdate()} ---"
+            self.save()
+        return excess
+
+    def release_from_waiting_list(self):
+        """Take the signup off the waiting list, recalculate and notify."""
+        self.on_hold_at = None
+        self.on_hold_vae = False
+        self.on_hold_partial = False
+        self.save()
+        self.calculate_amounts()
+        context = {"signup": self.annotated()}
+        send_mail(
+            subject="Votre inscription à Dynamobile",
+            message=get_template("signup2026/email/unblock_waitinglist.txt").render(
+                context
+            ),
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[self.owner.email, settings.EMAIL_HOST_USER],
+            html_message=get_template(
+                "signup2026/email/unblock_waitinglist.html"
+            ).render(context),
         )
-
-    def balance(self):
-        return self.amount_due() - self.amount_payed()
-
-    def payed(self):
-        return self.balance() <= 0
 
     def send_payment_confirmation_mail(self):
-        context = {"signup": self}
+        context = {"signup": self.annotated()}
         send_mail(
             subject="Confirmation de paiement - Dynamobile",
             message=get_template("signup2026/email/email_confirmation.txt").render(
@@ -472,6 +551,13 @@ class WaitingListParticipant(Participant):
         proxy = True
         verbose_name = "Participant en attente 2026"
         verbose_name_plural = "Participants en attente 2026"
+
+
+class PaymentParticipant(Participant):
+    class Meta:
+        proxy = True
+        verbose_name = "Payement Participant"
+        verbose_name_plural = "Payements Participants"
 
 
 class ExtraParticipantInfo(models.Model):

@@ -3,6 +3,7 @@ from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
 from django.contrib.contenttypes.admin import GenericTabularInline
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
+from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db.models import Q
 from django.forms.models import BaseModelFormSet
@@ -21,8 +22,14 @@ from reunion.admin import (
     SignupAminMixin,
 )
 
-from .admin_views import SyncMailingListFormView
-from .models import ExtraParticipantInfo, Participant, Signup, WaitingListParticipant
+from .admin_views import PreviewEmailView, SyncMailingListFormView
+from .models import (
+    ExtraParticipantInfo,
+    Participant,
+    PaymentParticipant,
+    Signup,
+    WaitingListParticipant,
+)
 
 
 class _PassthroughFormSet(BaseGenericInlineFormSet):
@@ -96,8 +103,6 @@ class SignupPaymentsInline(GenericTabularInline):
         return False
 
     def get_queryset(self, request):
-        from django.contrib.contenttypes.models import ContentType
-
         signup_pk = request.resolver_match.kwargs.get("object_id")
         if not signup_pk:
             return OperationValidation.objects.none()
@@ -173,7 +178,25 @@ class SignupAdmin(SignupAminMixin, admin.ModelAdmin):
         "cancel_signup",
         "put_on_hold_signup",
         "send_payment_confirmation",
+        "accept_as_donation",
+        "offer_refund",
+        "preview_email",
     )
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "<int:pk>/preview-email/",
+                self.admin_site.admin_view(PreviewEmailView.as_view()),
+                name="signup2026_signup_preview_email",
+            ),
+        ]
+        return custom_urls + urls
+
+    @action(description="Preview & Send Email")
+    def preview_email(self, request, obj):
+        return redirect("admin:signup2026_signup_preview_email", pk=obj.pk)
 
     def validate(self, request, obj):
         obj.validated_at = localdate()
@@ -182,17 +205,42 @@ class SignupAdmin(SignupAminMixin, admin.ModelAdmin):
 
     def get_change_actions(self, request, object_id, form_url):
         actions = list(super().get_change_actions(request, object_id, form_url) or [])
-        if (
-            object_id is not None
-            and Signup.objects.filter(pk=object_id, validated_at__isnull=False).exists()
-        ):
-            actions.append("send_payment_confirmation")
+        actions.append("preview_email")
+        if object_id is not None:
+            signup = Signup.objects.with_amounts().get(pk=object_id)
+            if signup.validated_at is not None:
+                actions.append("send_payment_confirmation")
+            if signup.balance is not None and signup.balance < 0:
+                actions.append("accept_as_donation")
+                actions.append("offer_refund")
         return actions
 
     @action(description="Send payment confirmation")
     def send_payment_confirmation(self, request, signup):
         signup.send_payment_confirmation_mail()
         messages.success(request, f"Payment confirmation sent to {signup.owner.email}.")
+        return redirect("admin:signup2026_signup_change", signup.id)
+
+    @action(description="Accept excess as donation")
+    def accept_as_donation(self, request, signup):
+        try:
+            excess = signup.accept_excess_as_donation(request.user)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return
+        messages.success(request, f"Converted {excess}€ to donation. Balance is now 0.")
+        return redirect("admin:signup2026_signup_change", signup.id)
+
+    @action(description="Offer refund")
+    def offer_refund(self, request, signup):
+        try:
+            excess = signup.offer_refund(request.user)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return
+        messages.success(
+            request, f"Refund placeholder of {excess}€ created and offer recorded."
+        )
         return redirect("admin:signup2026_signup_change", signup.id)
 
     def get_queryset(self, request):
@@ -409,22 +457,7 @@ def unblock_participant(modeladmin, request, queryset):
         if signup.id in signups_done:
             continue
         signups_done.add(signup.id)
-        signup.on_hold_at = None
-        signup.on_hold_vae = False
-        signup.on_hold_partial = False
-        signup.save()
-        signup.calculate_amounts()
-        send_mail(
-            subject="Votre inscription à Dynamobile",
-            message=get_template("signup2026/email/unblock_waitinglist.txt").render(
-                {"signup": signup}
-            ),
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[signup.owner.email, settings.EMAIL_HOST_USER],
-            html_message=get_template(
-                "signup2026/email/unblock_waitinglist.html"
-            ).render({"signup": signup}),
-        )
+        signup.release_from_waiting_list()
     modeladmin.message_user(
         request, f"{len(signups_done)} inscription(s) débloquée(s)."
     )
@@ -476,6 +509,52 @@ class WaitingListParticipantAdmin(admin.ModelAdmin):
         if signup.on_hold_partial:
             return "Inscription partielle"
         return "Limite participants"
+
+
+@admin.register(PaymentParticipant)
+class PaymentParticipantAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "signup_group",
+        "first_name",
+        "last_name",
+        "amount_due_calculated",
+        "amount_due_remaining",
+        "is_payed",
+    )
+
+    ordering = ("signup_group", "id")
+    list_filter = (ParticipantPayedFilter,)
+    list_editable = ("amount_due_calculated",)
+    search_fields = ("first_name", "last_name", "email")
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .filter(
+                signup_group__on_hold_at__isnull=True,
+                signup_group__validated_at__isnull=False,
+                signup_group__cancelled_at__isnull=True,
+                signup_group__year=2026,
+            )
+            .select_related("signup_group")
+            .with_amounts()
+        )
+
+    @admin.display(boolean=True, description="Payé", ordering="amount_due_remaining")
+    def is_payed(self, obj: Participant):
+        # No amount due computed yet -> unknown (renders the grey "?" icon).
+        if obj.amount_due_remaining is None:
+            return None
+        return obj.amount_due_remaining <= 0
+
+    @admin.display(description="Ballance", ordering="amount_due_remaining")
+    def amount_due_remaining(self, obj: Participant):
+        # No amount due computed yet -> unknown (renders the grey "?" icon).
+        if obj.amount_due_remaining is None:
+            return None
+        return obj.amount_due_remaining
 
 
 @admin.register(ExtraParticipantInfo)

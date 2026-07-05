@@ -70,7 +70,7 @@
         Vous pouvez visualiser les détails de votre inscription et suivre l’évolution de votre place
         dans la liste d’attente en cliquant <a href="{% url "signup2026:completed" %}">ici</a>.
     </p>
-{% elif signup.payed %}
+{% elif signup.is_payed %}
     <p>
         Votre inscription est validée (nous avons bien reçu votre paiement).
     </p>
