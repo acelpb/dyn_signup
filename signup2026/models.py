@@ -232,39 +232,33 @@ class Signup(models.Model):
         return excess
 
     def offer_refund(self, user):
-        """Record a refund placeholder for a negative balance (overpayment).
+        """Record refund placeholders for the overpaid participants.
 
-        Creates a negative validation (linked to a participant when one
-        exists) and appends a note to the signup comments. Returns the
-        refund amount. Raises ValueError when the balance is not negative.
+        Checks each participant's balance annotation and creates one
+        negative validation per participant whose balance is negative,
+        then appends a note to the signup comments. Returns the total
+        refund amount. Raises ValueError when no participant is overpaid.
         """
-        balance = self.annotated().balance
-        if balance is None or balance >= 0:
-            raise ValueError("Balance is not negative.")
-
-        excess = -balance
-        participant = self.participants_set.first()
-        if participant:
-            content_type = ContentType.objects.get_for_model(Participant)
-            object_id = participant.id
-        else:
-            content_type = ContentType.objects.get_for_model(type(self))
-            object_id = self.id
+        participant_ct = ContentType.objects.get_for_model(Participant)
+        overpaid = list(self.participants_set.with_amounts().filter(balance__lt=0))
+        if not overpaid:
+            raise ValueError("No participant with a negative balance to refund.")
 
         with transaction.atomic():
-            OperationValidation.objects.create(
-                operation=None,
-                content_type=content_type,
-                object_id=object_id,
-                amount=-excess,
-                validation_type=IncomeChoices.SIGNUP,
-                created_by=user,
-            )
+            for participant in overpaid:
+                OperationValidation.objects.create(
+                    operation=None,
+                    content_type=participant_ct,
+                    object_id=participant.id,
+                    amount=participant.balance,
+                    validation_type=IncomeChoices.SIGNUP,
+                    created_by=user,
+                )
             self.comments = (
                 self.comments or ""
             ) + f"\n--- REFUND OFFERED on {timezone.localdate()} ---"
             self.save()
-        return excess
+        return sum(-participant.balance for participant in overpaid)
 
     def release_from_waiting_list(self):
         """Take the signup off the waiting list, recalculate and notify."""

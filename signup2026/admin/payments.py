@@ -63,6 +63,9 @@ class PaymentSignupAdmin(DjangoObjectActions, admin.ModelAdmin):
             actions.append("send_payment_confirmation")
         if signup.balance is not None and signup.balance < 0:
             actions.append("accept_as_donation")
+        # A participant can be overpaid even when the signup nets to zero
+        # or more, so the refund action is gated per participant.
+        if signup.participants_set.with_amounts().filter(balance__lt=0).exists():
             actions.append("offer_refund")
         return actions
 

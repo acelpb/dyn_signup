@@ -128,9 +128,36 @@ class TestOfferRefund:
         assert "REFUND OFFERED" in signup.comments
         assert signup.annotated().balance == 0
 
-    def test_rejects_non_negative_balance(self, signup, participant, owner):
+    def test_refunds_only_the_overpaid_participant(self, signup, participant, owner):
+        # participant owes 100 and paid 130 (overpaid by 30); the second
+        # participant owes 50 and paid nothing. The refund must land on the
+        # overpaid participant only, for exactly their own excess.
+        pay(participant, Decimal("130.00"))
+        underpaid = Participant.objects.create(
+            signup_group=signup,
+            first_name="Jane",
+            last_name="Doe",
+            birthday=date(1992, 1, 1),
+            city="Brussels",
+            amount_due_modified=Decimal("50.00"),
+        )
+
+        total = signup.offer_refund(owner)
+
+        assert total == Decimal("30.00")
+        refund = OperationValidation.objects.get(amount__lt=0)
+        assert refund.amount == Decimal("-30.00")
+        assert refund.object_id == participant.id
+        participants = {
+            p.pk: p
+            for p in Participant.objects.with_amounts().filter(signup_group=signup)
+        }
+        assert participants[participant.pk].balance == 0
+        assert participants[underpaid.pk].balance == Decimal("50.00")
+
+    def test_rejects_when_no_participant_overpaid(self, signup, participant, owner):
         pay(participant, Decimal("100.00"))
-        with pytest.raises(ValueError, match="not negative"):
+        with pytest.raises(ValueError, match="negative balance"):
             signup.offer_refund(owner)
 
 
