@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.admin import SimpleListFilter
 from django.utils.formats import date_format
 
-from ..models import Signup
+from ..models import ExtraParticipantInfo, Signup
 
 # Participant model day flags (day1 .. day9), one per Dynamobile day.
 DAY_FIELDS = tuple(f"day{i}" for i in range(1, len(settings.DYNAMOBILE_DAYS) + 1))
@@ -20,15 +20,24 @@ class SignupStatusFilter(SimpleListFilter):
             ("partial", "Liste d'attente partielle"),
             ("validated", "Confirmé"),
             ("cancelled", "Annulé"),
+            ("all", "Tout - (inclus annulés/en cours)"),
         ]
 
     def queryset(self, request, queryset):
         if queryset.model == Signup:
             prefix = ""
+        elif queryset.model == ExtraParticipantInfo:
+            prefix = "participant__signup_group__"
         else:
             prefix = "signup_group__"
 
         filters = {
+            "all": {},
+            None: {
+                f"{prefix}validated_at__isnull": False,
+                f"{prefix}on_hold_at__isnull": True,
+                f"{prefix}cancelled_at__isnull": True,
+            },
             "started": {
                 f"{prefix}validated_at__isnull": True,
                 f"{prefix}cancelled_at__isnull": True,
@@ -54,7 +63,6 @@ class SignupStatusFilter(SimpleListFilter):
                 f"{prefix}cancelled_at__isnull": True,
             },
             "cancelled": {f"{prefix}cancelled_at__isnull": False},
-            None: {},
         }
         return queryset.distinct().filter(**filters[self.value()])
 

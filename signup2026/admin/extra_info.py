@@ -3,6 +3,7 @@ from import_export.admin import ExportMixin
 from import_export.resources import ModelResource
 
 from ..models import ExtraParticipantInfo
+from .filters import SignupStatusFilter
 
 
 class ExtraInfoRessource(ModelResource):
@@ -33,7 +34,7 @@ class ExtraInfoRessource(ModelResource):
 @admin.register(ExtraParticipantInfo)
 class ExtraParticipantInfoAdmin(ExportMixin, admin.ModelAdmin):
     resource_classes = [ExtraInfoRessource]
-
+    list_filter = (SignupStatusFilter,)
     list_display = (
         "id",
         "participant__signup_group",

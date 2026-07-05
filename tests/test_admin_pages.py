@@ -127,7 +127,11 @@ class TestSignup2026AdminPages:
     def _make_signup(self, owner=None):
         if owner is None:
             owner = baker.make("auth.User")
-        return baker.make("signup2026.Signup", owner=owner, year=2026)
+        from django.utils import timezone
+
+        return baker.make(
+            "signup2026.Signup", owner=owner, year=2026, validated_at=timezone.now()
+        )
 
     def _make_participant(self, signup=None):
         if signup is None:
