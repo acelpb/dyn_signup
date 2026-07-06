@@ -8,7 +8,13 @@ from pytest_bdd import given, parsers, scenario, then, when
 from accounts.models import Bill
 
 TOKEN = "test-bill-upload-token"  # noqa: S105
-BILL_DATA = {"name": "Brico - visserie", "amount": "123.45", "date": "2026-07-01"}
+BILL_DATA = {
+    "name": "Brico - visserie",
+    "amount": "123.45",
+    "date": "2026-07-01",
+    "category": "6010",
+    "iban": "BE71096123456769",
+}
 
 
 @scenario("bill_upload_api.feature", "A bill is created with a valid token")
@@ -50,12 +56,8 @@ def no_token(settings, tmp_path):
 
 @given("an identical bill already exists")
 def existing_bill():
-    baker.make(
-        Bill,
-        name=BILL_DATA["name"],
-        amount=Decimal(BILL_DATA["amount"]),
-        date=BILL_DATA["date"],
-    )
+    bill = baker.make(Bill, name=BILL_DATA["name"], date=BILL_DATA["date"])
+    bill.set_amount(Decimal(BILL_DATA["amount"]))
 
 
 def _post_bill(client, token, data):
@@ -92,10 +94,13 @@ def post_bill_without_amount(client):
 @then("the bill is created with its document")
 def check_bill_created(response):
     assert response.status_code == 201, response.content
-    bill = Bill.objects.get(id=response.json()["id"])
+    bill = Bill.objects.with_amounts().get(id=response.json()["id"])
     assert bill.name == BILL_DATA["name"]
     assert bill.amount == Decimal(BILL_DATA["amount"])
     assert bill.date.isoformat() == BILL_DATA["date"]
+    assert bill.category == int(BILL_DATA["category"])
+    assert bill.iban == BILL_DATA["iban"]
+    assert bill.payments.get(operation__isnull=True).expected_iban == BILL_DATA["iban"]
     assert bill.file.read().startswith(b"%PDF")
     assert response.json()["admin_url"] == reverse(
         "admin:accounts_bill_change", args=[bill.id]

@@ -22,7 +22,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from accounts.forms import try_create_bill
-from accounts.models import authenticate_api_token
+from accounts.models import ExpenditureChoices, authenticate_api_token
 
 PROTOCOL_VERSION = "2025-06-18"
 MAX_FILE_BYTES = 5 * 1024 * 1024
@@ -52,6 +52,19 @@ UPLOAD_BILL_TOOL = {
                 "type": "string",
                 "description": "Invoice/bill date (not the due date), "
                 "ISO format YYYY-MM-DD.",
+            },
+            "category": {
+                "type": "string",
+                "description": "Optional accounting category code: "
+                + "; ".join(
+                    f"{choice.value}={choice.label}" for choice in ExpenditureChoices
+                )
+                + ". Pick the closest match; omit when unsure.",
+            },
+            "iban": {
+                "type": "string",
+                "description": "Optional: the vendor IBAN to pay the bill "
+                "to, if printed on the document.",
             },
             "file_base64": {
                 "type": "string",
@@ -154,7 +167,11 @@ class McpServerView(View):
             )
 
         result = try_create_bill(
-            {key: arguments.get(key) for key in ("name", "amount", "date")},
+            {
+                key: arguments.get(key)
+                for key in ("name", "amount", "date", "category", "iban")
+                if arguments.get(key)
+            },
             {"file": uploaded_file} if uploaded_file else None,
             require_file=False,
         )
@@ -178,6 +195,8 @@ class McpServerView(View):
                 "name": bill.name,
                 "amount": str(bill.amount),
                 "date": bill.date.isoformat(),
+                "category": bill.category,
+                "iban": bill.iban,
                 "document_attached": bool(uploaded_file),
                 "admin_url": request.build_absolute_uri(
                     reverse("admin:accounts_bill_change", args=[bill.id])

@@ -7,13 +7,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db.models import (
     BooleanField,
-    DecimalField,
     ExpressionWrapper,
     Q,
     Sum,
-    Value,
 )
-from django.db.models.functions import Coalesce
 from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 
@@ -21,6 +18,7 @@ from .admin_inline import ExpenseFileInline, PaymentInline
 
 # Register your models here.
 from .admin_operation import OperationAdmin
+from .forms import BillAdminForm
 from .models import (
     Account,
     ApiToken,
@@ -100,6 +98,8 @@ class JustificationAdmin(admin.ModelAdmin):
 
 @admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
+    form = BillAdminForm
+
     list_display = (
         "date",
         "name",
@@ -115,21 +115,26 @@ class BillAdmin(admin.ModelAdmin):
     ordering = ("-date",)
 
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
         # A bill is payed when it has no open item left.
-        return qs.annotate(
-            _remaining=Coalesce(
-                Sum("payments__amount", filter=Q(payments__operation__isnull=True)),
-                Value(0, output_field=DecimalField()),
+        return (
+            super()
+            .get_queryset(request)
+            .with_amounts()
+            .annotate(
+                _payed=ExpressionWrapper(Q(remaining=0), output_field=BooleanField())
             )
-        ).annotate(
-            _payed=ExpressionWrapper(Q(_remaining=0), output_field=BooleanField())
         )
 
-    def remaining_to_pay(self, inst):
-        return -inst._remaining
+    def amount(self, inst):
+        return inst.amount
 
-    remaining_to_pay.admin_order_field = "_remaining"
+    amount.admin_order_field = "amount"
+    amount.short_description = "montant"
+
+    def remaining_to_pay(self, inst):
+        return inst.remaining
+
+    remaining_to_pay.admin_order_field = "remaining"
 
     def payed(self, inst):
         return inst._payed

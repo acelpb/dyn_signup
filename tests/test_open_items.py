@@ -49,13 +49,14 @@ def make_operation(account, amount, number=1, **kwargs):
 
 @pytest.fixture
 def bill(db):
-    return Bill.objects.create(
+    bill = Bill.objects.create(
         name="Location salle",
-        amount=Decimal("100.00"),
         date=datetime.date(2026, 6, 15),
         category=ExpenditureChoices.ROOM_RENTAL,
         iban="BE71096123456769",
     )
+    bill.set_amount(Decimal("100.00"))
+    return bill
 
 
 def open_item(bill):
@@ -121,23 +122,31 @@ class TestBillOpenItem:
         assert item.due_date == bill.date
         assert item.expected_iban == bill.iban
 
-    def test_editing_unpaid_bill_syncs_placeholder(self, bill):
-        bill.amount = Decimal("120.00")
+    def test_set_amount_resizes_placeholder(self, bill):
         bill.category = ExpenditureChoices.EQUIPMENT
         bill.save()
+        bill.set_amount(Decimal("120.00"))
 
         item = open_item(bill)
         assert item.amount == Decimal("-120.00")
         assert item.validation_type == ExpenditureChoices.EQUIPMENT
 
-    def test_no_sync_once_a_payment_is_settled(self, account, bill):
+    def test_set_amount_rejected_once_a_payment_is_settled(self, account, bill):
         operation = make_operation(account, Decimal("-40.00"))
         open_item(bill).settle(operation, amount=Decimal("-40.00"))
 
-        bill.amount = Decimal("200.00")
-        bill.save()
+        with pytest.raises(ValueError, match="already settled"):
+            bill.set_amount(Decimal("200.00"))
 
         assert open_item(bill).amount == Decimal("-60.00")
+
+    def test_amount_and_remaining_come_from_annotations(self, account, bill):
+        operation = make_operation(account, Decimal("-40.00"))
+        open_item(bill).settle(operation, amount=Decimal("-40.00"))
+
+        annotated = Bill.objects.with_amounts().get(pk=bill.pk)
+        assert annotated.amount == Decimal("100.00")
+        assert annotated.remaining == Decimal("60.00")
 
     def test_link_form_settles_the_whole_bill(self, account, bill):
         operation = make_operation(account, Decimal("-100.00"))

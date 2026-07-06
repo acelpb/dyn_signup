@@ -9,7 +9,13 @@ from pytest_bdd import given, scenario, then, when
 
 from accounts.models import ApiToken, Bill
 
-BILL_ARGS = {"name": "Brico - visserie", "amount": "123.45", "date": "2026-07-01"}
+BILL_ARGS = {
+    "name": "Brico - visserie",
+    "amount": "123.45",
+    "date": "2026-07-01",
+    "category": "6010",
+    "iban": "BE71096123456769",
+}
 
 
 @scenario(
@@ -73,12 +79,8 @@ def raw_token(db, settings, tmp_path):
 
 @given("an identical bill already exists")
 def existing_bill():
-    baker.make(
-        Bill,
-        name=BILL_ARGS["name"],
-        amount=Decimal(BILL_ARGS["amount"]),
-        date=BILL_ARGS["date"],
-    )
+    bill = baker.make(Bill, name=BILL_ARGS["name"], date=BILL_ARGS["date"])
+    bill.set_amount(Decimal(BILL_ARGS["amount"]))
 
 
 @when("the assistant initializes the MCP session", target_fixture="response")
@@ -139,8 +141,10 @@ def check_bill_created(response):
     result = response.json()["result"]
     assert result["isError"] is False
     payload = json.loads(result["content"][0]["text"])
-    bill = Bill.objects.get(id=payload["id"])
+    bill = Bill.objects.with_amounts().get(id=payload["id"])
     assert bill.amount == Decimal(BILL_ARGS["amount"])
+    assert bill.category == int(BILL_ARGS["category"])
+    assert bill.iban == BILL_ARGS["iban"]
     assert bill.file.read().startswith(b"%PDF")
     assert payload["document_attached"] is True
     assert payload["admin_url"].startswith("http")

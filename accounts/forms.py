@@ -149,25 +149,36 @@ class LinkToSignupForm(forms.Form):
 
 
 class BillUploadForm(forms.ModelForm):
+    # The amount is not a Bill field: it sizes the bill's open item, the
+    # single source of truth for what the bill totals.
+    amount = forms.DecimalField(max_digits=11, decimal_places=2, label="montant")
+
     class Meta:
         model = AccountBill
-        fields = ("name", "amount", "date", "file", "category", "iban")
+        fields = ("name", "date", "file", "category", "iban")
 
     def __init__(self, *args, require_file=True, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["file"].required = require_file
 
+    def save(self, commit=True):
+        bill = super().save(commit=commit)
+        if commit:
+            bill.set_amount(self.cleaned_data["amount"])
+        return bill
+
 
 def try_create_bill(data, files, require_file=True):
     """Validate and create a Bill, guarding against duplicates.
 
-    Returns a dict with "status" being one of "created" (with "bill"),
-    "invalid" (with "errors") or "duplicate" (with "existing_ids").
+    Returns a dict with "status" being one of "created" (with "bill",
+    annotated with its amount), "invalid" (with "errors") or "duplicate"
+    (with "existing_ids").
     """
     form = BillUploadForm(data, files, require_file=require_file)
     if not form.is_valid():
         return {"status": "invalid", "errors": form.errors.get_json_data()}
-    duplicates = AccountBill.objects.filter(
+    duplicates = AccountBill.objects.with_amounts().filter(
         name=form.cleaned_data["name"],
         amount=form.cleaned_data["amount"],
         date=form.cleaned_data["date"],
@@ -177,7 +188,49 @@ def try_create_bill(data, files, require_file=True):
             "status": "duplicate",
             "existing_ids": list(duplicates.values_list("id", flat=True)),
         }
-    return {"status": "created", "bill": form.save()}
+    bill = form.save()
+    return {
+        "status": "created",
+        "bill": AccountBill.objects.with_amounts().get(pk=bill.pk),
+    }
+
+
+class BillAdminForm(BillUploadForm):
+    """Bill admin form: the amount edits the open item, not a field.
+
+    Resizing is blocked once a payment is settled — the ventilation lines
+    are then the source of truth.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, require_file=False, **kwargs)
+        if self.instance.pk:
+            total = self.instance.payments.aggregate(total=Sum("amount"))["total"]
+            self.initial["amount"] = -total if total is not None else None
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if (
+            self.instance.pk
+            and "amount" in self.changed_data
+            and self.instance.payments.filter(operation__isnull=False).exists()
+        ):
+            self.add_error(
+                "amount",
+                "Des paiements sont déjà liés : modifiez la ventilation.",
+            )
+        return cleaned_data
+
+    def save(self, commit=True):
+        bill = forms.ModelForm.save(self, commit=commit)
+        if commit and self.cleaned_data.get("amount") is not None:
+            try:
+                bill.set_amount(self.cleaned_data["amount"])
+            except ValueError:
+                # Settled or multi-line bill: the lines stay the truth, and
+                # clean() already blocked any amount change.
+                pass
+        return bill
 
 
 class VentilationForm(forms.ModelForm):

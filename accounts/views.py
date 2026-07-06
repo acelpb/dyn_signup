@@ -91,6 +91,8 @@ class BillUploadAPIView(View):
                 "name": bill.name,
                 "amount": str(bill.amount),
                 "date": bill.date.isoformat(),
+                "category": bill.category,
+                "iban": bill.iban,
                 "file": bill.file.url,
                 "admin_url": reverse("admin:accounts_bill_change", args=[bill.id]),
             },

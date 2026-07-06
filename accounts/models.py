@@ -9,6 +9,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.db.models.functions import Coalesce
 from django.urls import NoReverseMatch, reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -255,10 +256,32 @@ class Justification(models.Model):
     payment = GenericRelation(OperationValidation)
 
 
+class BillQuerySet(models.QuerySet):
+    def with_amounts(self):
+        """Annotate amount (sum of all lines) and remaining (open lines).
+
+        The bill's amount is not stored: its payment lines are the single
+        source of truth, like everywhere else in the open-item accounting.
+        """
+        decimal = models.DecimalField(max_digits=11, decimal_places=2)
+        return self.annotate(
+            amount=Coalesce(
+                -models.Sum("payments__amount"), models.Value(0), output_field=decimal
+            ),
+            remaining=Coalesce(
+                -models.Sum(
+                    "payments__amount",
+                    filter=models.Q(payments__operation__isnull=True),
+                ),
+                models.Value(0),
+                output_field=decimal,
+            ),
+        )
+
+
 class Bill(models.Model):
     name = models.CharField(max_length=255)
     file = models.FileField(blank=True, null=True)
-    amount = models.DecimalField(max_digits=11, decimal_places=2)
     date = models.DateField(default=datetime.now)
     category = models.IntegerField(
         choices=ExpenditureChoices.choices,
@@ -275,6 +298,8 @@ class Bill(models.Model):
     )
     payments = GenericRelation(OperationValidation)
 
+    objects = BillQuerySet.as_manager()
+
     def __str__(self):
         return self.name
 
@@ -282,29 +307,36 @@ class Bill(models.Model):
         verbose_name = "facture"
         verbose_name_plural = "factures"
 
-    def save(self, *args, **kwargs):
-        created = self.pk is None
-        super().save(*args, **kwargs)
-        if created:
+    def set_amount(self, amount):
+        """Create or resize the open item so the bill totals `amount`.
+
+        Only allowed while nothing is settled and at most one line is open;
+        after that the payment lines are the source of truth and must be
+        edited directly. Also propagates category/IBAN/date to the open item.
+        """
+        if self.payments.filter(operation__isnull=False).exists():
+            raise ValueError(
+                "Payments are already settled on this bill: "
+                "edit the ventilation lines directly."
+            )
+        open_items = list(self.payments.filter(operation__isnull=True))
+        if len(open_items) > 1:
+            raise ValueError("This bill has several open lines: edit them directly.")
+        if open_items:
+            item = open_items[0]
+            item.amount = -amount
+            item.validation_type = self.category
+            item.due_date = self.date
+            item.expected_iban = self.iban
+            item.save()
+        else:
             self.payments.create(
                 operation=None,
-                amount=-self.amount,
+                amount=-amount,
                 validation_type=self.category,
                 due_date=self.date,
                 expected_iban=self.iban,
             )
-            return
-        # Keep the open item in sync while nothing has been paid yet; once a
-        # payment is settled the treasurer manages the remainder manually.
-        if not self.payments.filter(operation__isnull=False).exists():
-            open_items = list(self.payments.filter(operation__isnull=True))
-            if len(open_items) == 1:
-                item = open_items[0]
-                item.amount = -self.amount
-                item.validation_type = self.category
-                item.due_date = self.date
-                item.expected_iban = self.iban
-                item.save()
 
 
 class ApiToken(models.Model):

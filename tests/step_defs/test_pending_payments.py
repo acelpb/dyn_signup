@@ -58,12 +58,15 @@ def pending_report():
 
 @given("a bill awaiting payment", target_fixture="unpaid_bill")
 def unpaid_bill():
-    return baker.make(Bill, name="Location salle", amount=Decimal("250.00"))
+    bill = baker.make(Bill, name="Location salle")
+    bill.set_amount(Decimal("250.00"))
+    return bill
 
 
 @given("a bill already paid", target_fixture="paid_bill")
 def paid_bill():
-    bill = baker.make(Bill, name="Facture payee", amount=Decimal("100.00"))
+    bill = baker.make(Bill, name="Facture payee")
+    bill.set_amount(Decimal("100.00"))
     operation = baker.make(Operation, amount=Decimal("-100.00"))
     bill.payments.get(operation__isnull=True).settle(operation)
     return bill
