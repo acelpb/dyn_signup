@@ -5,20 +5,17 @@ import secrets
 from collections import defaultdict
 
 from django.contrib.auth.mixins import PermissionRequiredMixin, UserPassesTestMixin
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import (
     BooleanField,
-    DecimalField,
     ExpressionWrapper,
     F,
     Q,
     Sum,
-    Value,
 )
-from django.db.models.functions import Coalesce, Round
+from django.db.models.functions import Round
 from django.http import JsonResponse
 from django.shortcuts import render
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -37,7 +34,6 @@ from accounts.models import (
     OperationValidation,
     authenticate_api_token,
 )
-from signup2026.models import Signup
 
 DEVICE_AUTH_LIFETIME = datetime.timedelta(minutes=15)
 DEVICE_AUTH_POLL_INTERVAL = 5
@@ -230,47 +226,28 @@ class CreateApiTokenView(TreasurerRequiredMixin, View):
 
 
 class PendingPaymentsView(TreasurerRequiredMixin, TemplateView):
-    """Everything the treasurer still has to pay, gathered in a single page.
+    """Everything the treasurer still has to pay, gathered in a single table.
 
-    Two sources of pending payments:
-    - expense reports whose expense lines are not yet linked to a bank
-      operation (reimbursements to members),
-    - bills whose amount is not fully covered by bank operations.
-
-    Payment can only be confirmed by an imported bank operation, so for each
-    pending item the view also suggests unjustified imported operations with a
-    matching amount, ready to be linked through the existing admin flows.
+    A pending payment is a group of open items (OperationValidation without
+    an operation, negative amount) sharing the same event — a bill, an
+    expense report or a refund. Payment can only be confirmed by an imported
+    bank operation, so for each entry the view also suggests unjustified
+    imported operations with a matching amount, ready to be settled through
+    the unified settle endpoint.
     """
 
     template_name = "pending_payments.html"
 
     def get_context_data(self, **kwargs):
-        expense_reports = list(
-            ExpenseReport.objects.annotate(
-                remaining=Sum(
-                    "expenses__amount",
-                    filter=Q(expenses__operation__isnull=True),
-                )
-            )
-            .exclude(remaining__isnull=True)
-            .exclude(remaining=0)
-            .select_related("beneficiary")
-            .order_by("submitted_date", "id")
+        open_items = list(
+            OperationValidation.objects.payables()
+            .select_related("content_type")
+            .order_by("object_id", "id")
         )
-        bills = list(
-            Bill.objects.annotate(
-                remaining=F("amount")
-                + Coalesce(
-                    Sum(
-                        "payments__amount",
-                        filter=Q(payments__operation__isnull=False),
-                    ),
-                    Value(0, output_field=DecimalField()),
-                )
-            )
-            .exclude(remaining=0)
-            .order_by("date", "id")
-        )
+        groups = {}
+        for item in open_items:
+            groups.setdefault((item.content_type_id, item.object_id), []).append(item)
+
         # Imported outgoing operations not yet justified: candidates proving
         # a pending payment was actually executed.
         candidate_operations = defaultdict(list)
@@ -279,79 +256,109 @@ class PendingPaymentsView(TreasurerRequiredMixin, TemplateView):
         ).order_by("-date"):
             candidate_operations[operation.amount].append(operation)
 
-        # Signups or Participants with negative OperationValidation (refunds)
-        from signup2026.models import Participant
-
-        signup_ct = ContentType.objects.get_for_model(Signup)
-        participant_ct = ContentType.objects.get_for_model(Participant)
-        refunds = list(
-            OperationValidation.objects.filter(
-                Q(content_type=signup_ct) | Q(content_type=participant_ct),
-                operation__isnull=True,
-                amount__lt=0,
-            ).select_related("created_by", "content_type")
-        )
-        for refund in refunds:
-            refund.to_pay = abs(refund.amount)
-
-            # Find IBAN and owner name from previous payments for the same event
-            previous_payment = (
-                OperationValidation.objects.filter(
-                    content_type=refund.content_type,
-                    object_id=refund.object_id,
-                    operation__isnull=False,
-                )
-                .select_related("operation")
-                .order_by("-operation__date")
-                .first()
+        pending_payments = []
+        for (_content_type_id, object_id), items in groups.items():
+            content_type = items[0].content_type
+            event = content_type.model_class().objects.filter(pk=object_id).first()
+            if event is None:
+                continue
+            pending_payments.append(
+                self._build_entry(event, content_type, items, candidate_operations)
             )
-            if previous_payment:
-                refund.iban = previous_payment.operation.counterparty_IBAN
-                refund.iban_owner = previous_payment.operation.counterparty_name
-            else:
-                refund.iban = None
-                refund.iban_owner = None
-
-            # Find candidate operations (bank operations that are negative because they are outgoing payments)
-            # refund.amount is already negative, e.g. -50.00
-            refund.matches = [
-                {"operation": operation, "iban_match": False}
-                for operation in candidate_operations[refund.amount]
-            ]
-
-        for er in expense_reports:
-            er.to_pay = er.remaining
-            iban = _normalize_iban(er.iban)
-            er.matches = sorted(
-                (
-                    {
-                        "operation": operation,
-                        "iban_match": _normalize_iban(operation.counterparty_IBAN)
-                        == iban,
-                    }
-                    for operation in candidate_operations[er.remaining]
-                ),
-                key=lambda match: not match["iban_match"],
+        pending_payments.sort(
+            key=lambda entry: (
+                entry["due_date"] or datetime.date.max,
+                entry["reference"],
             )
-        for bill in bills:
-            bill.to_pay = bill.remaining
-            bill.matches = [
-                {"operation": operation, "iban_match": False}
-                for operation in candidate_operations[-bill.remaining]
-            ]
-
-        kwargs["expense_reports"] = expense_reports
-        kwargs["bills"] = bills
-        kwargs["total_expense_reports"] = sum(er.to_pay for er in expense_reports)
-        kwargs["total_bills"] = sum(bill.to_pay for bill in bills)
-        kwargs["refunds"] = refunds
-        kwargs["total_refunds"] = sum(refund.to_pay for refund in refunds)
-        kwargs["total"] = (
-            kwargs["total_expense_reports"]
-            + kwargs["total_bills"]
-            + kwargs["total_refunds"]
         )
+
+        totals_by_type = defaultdict(int)
+        for entry in pending_payments:
+            totals_by_type[entry["type_label"]] += entry["to_pay"]
+
+        kwargs["pending_payments"] = pending_payments
+        kwargs["totals_by_type"] = dict(totals_by_type)
+        kwargs["total"] = sum(entry["to_pay"] for entry in pending_payments)
         return super().get_context_data(**kwargs)
+
+    def _build_entry(self, event, content_type, items, candidate_operations):
+        payee_name = next(
+            (
+                i.expected_counterparty_name
+                for i in items
+                if i.expected_counterparty_name
+            ),
+            "",
+        )
+        payee_iban = next((i.expected_iban for i in items if i.expected_iban), "")
+        fallback_name, fallback_iban = self._payee_fallback(event)
+        payee_name = payee_name or fallback_name
+        payee_iban = payee_iban or fallback_iban
+
+        total_open = sum(item.amount for item in items)
+        normalized = _normalize_iban(payee_iban)
+        matches = sorted(
+            (
+                {
+                    "operation": operation,
+                    "iban_match": bool(normalized)
+                    and _normalize_iban(operation.counterparty_IBAN) == normalized,
+                }
+                for operation in candidate_operations[total_open]
+            ),
+            key=lambda match: not match["iban_match"],
+        )
+        try:
+            admin_url = reverse(
+                f"admin:{event._meta.app_label}_{event._meta.model_name}_change",
+                args=[event.pk],
+            )
+        except NoReverseMatch:
+            admin_url = ""
+
+        if isinstance(event, Bill):
+            type_label = "Facture"
+        elif isinstance(event, ExpenseReport):
+            type_label = "Note de frais"
+        else:
+            type_label = "Remboursement"
+
+        return {
+            "type_label": type_label,
+            "event": event,
+            "reference": str(event),
+            "admin_url": admin_url,
+            "content_type_id": content_type.id,
+            "object_id": event.pk,
+            "to_pay": -total_open,
+            "payee_name": payee_name,
+            "payee_iban": payee_iban,
+            "due_date": min((i.due_date for i in items if i.due_date), default=None)
+            or getattr(event, "submitted_date", None),
+            "blocked": isinstance(event, ExpenseReport) and not event.validated,
+            "matches": matches,
+            "items": items,
+        }
+
+    @staticmethod
+    def _payee_fallback(event):
+        "Payee derived from the event when the open items carry none."
+        if isinstance(event, ExpenseReport):
+            beneficiary = event.beneficiary
+            name = (
+                (beneficiary.get_full_name() or beneficiary.email)
+                if beneficiary
+                else ""
+            )
+            return name, event.iban
+        if isinstance(event, Bill):
+            return "", event.iban
+        owner = getattr(event, "owner", None)
+        if owner is None and (signup_group := getattr(event, "signup_group", None)):
+            owner = signup_group.owner
+        if owner:
+            return owner.get_full_name() or owner.email, ""
+        return "", ""
 
 
 class AnnualAccountsView(PermissionRequiredMixin, TemplateView):

@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from model_bakery import baker
 from pytest_bdd import given, scenario, then, when
@@ -64,9 +65,7 @@ def unpaid_bill():
 def paid_bill():
     bill = baker.make(Bill, name="Facture payee", amount=Decimal("100.00"))
     operation = baker.make(Operation, amount=Decimal("-100.00"))
-    OperationValidation.objects.create(
-        operation=operation, amount=Decimal("-100.00"), event=bill
-    )
+    bill.payments.get(operation__isnull=True).settle(operation)
     return bill
 
 
@@ -155,8 +154,12 @@ def check_reimbursed_report_hidden(response):
 def check_expense_report_match_link(response, pending_report, matching_operation):
     content = response.content.decode("utf-8")
     url = reverse(
-        "admin:accounts_operation_link_to_expense_report",
-        args=[matching_operation.pk, pending_report.pk],
+        "admin:accounts_operation_settle_event",
+        args=[
+            matching_operation.pk,
+            ContentType.objects.get_for_model(ExpenseReport).pk,
+            pending_report.pk,
+        ],
     )
     assert url in content
     assert "IBAN ✓" in content
@@ -170,8 +173,15 @@ def check_non_matching_operation_hidden(response):
 @then("I see a link to connect the matching operation to the bill")
 def check_bill_match_link(response, unpaid_bill, bill_operation):
     content = response.content.decode("utf-8")
-    url = reverse("admin:accounts_operation_link_to_bill")
-    assert f"{url}?operations={bill_operation.pk}&bill={unpaid_bill.pk}" in content
+    url = reverse(
+        "admin:accounts_operation_settle_event",
+        args=[
+            bill_operation.pk,
+            ContentType.objects.get_for_model(Bill).pk,
+            unpaid_bill.pk,
+        ],
+    )
+    assert url in content
 
 
 @when("the participant visits the pending payments page", target_fixture="response")

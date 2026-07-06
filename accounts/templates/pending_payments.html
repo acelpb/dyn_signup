@@ -7,53 +7,55 @@
         <div class="col-sm-12 col-md-10 col-lg-8">
             <h2 class="text-center mt-3 mb-4">Paiements à effectuer</h2>
 
-            <h3>Notes de frais à rembourser</h3>
-            {% if expense_reports %}
+            {% if pending_payments %}
                 <table class="table table-sm table-striped align-middle">
                     <thead>
                         <tr>
-                            <th>Note de frais</th>
-                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Référence</th>
+                            <th>Échéance</th>
                             <th>Bénéficiaire</th>
-                            <th>IBAN</th>
-                            <th>Statut</th>
                             <th class="text-end">À payer</th>
                             <th>Opération correspondante</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for er in expense_reports %}
+                        {% for entry in pending_payments %}
                             <tr>
                                 <td>
-                                    <a href="{% url 'admin:accounts_expensereport_change' er.pk %}">{{ er.title }}</a>
-                                </td>
-                                <td>{{ er.submitted_date|date:"d/m/Y" }}</td>
-                                <td>
-                                    {% if er.beneficiary %}
-                                        {{ er.beneficiary.get_full_name|default:er.beneficiary.email }}
-                                    {% endif %}
-                                </td>
-                                <td><code>{{ er.iban }}</code></td>
-                                <td>
-                                    {% if er.validated %}
-                                        <span class="badge bg-success">validée</span>
-                                    {% else %}
+                                    <span class="badge bg-secondary">{{ entry.type_label }}</span>
+                                    {% if entry.blocked %}
                                         <span class="badge bg-warning text-dark">à valider</span>
                                     {% endif %}
                                 </td>
-                                <td class="text-end">{{ er.to_pay|floatformat:2|intcomma }} €</td>
                                 <td>
-                                    {% for match in er.matches %}
+                                    {% if entry.admin_url %}
+                                        <a href="{{ entry.admin_url }}">{{ entry.reference }}</a>
+                                    {% else %}
+                                        {{ entry.reference }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ entry.due_date|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if entry.payee_name %}<strong>{{ entry.payee_name }}</strong>{% endif %}
+                                    {% if entry.payee_iban %}
+                                        <br>
+                                        <code>{{ entry.payee_iban }}</code>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">{{ entry.to_pay|floatformat:2|intcomma }} €</td>
+                                <td>
+                                    {% for match in entry.matches %}
                                         <div class="mb-1">
                                             <small>{{ match.operation.date|date:"d/m/Y" }} {{ match.operation.counterparty_name }}</small>
                                             {% if match.iban_match %}
                                                 <span class="badge bg-success">IBAN ✓</span>
                                             {% endif %}
-                                            {% if er.validated %}
-                                                <a class="btn btn-sm btn-outline-primary"
-                                                   href="{% url 'admin:accounts_operation_link_to_expense_report' match.operation.pk er.pk %}">Lier</a>
-                                            {% else %}
+                                            {% if entry.blocked %}
                                                 <small class="text-muted">valider la note d'abord</small>
+                                            {% else %}
+                                                <a class="btn btn-sm btn-outline-primary"
+                                                   href="{% url 'admin:accounts_operation_settle_event' match.operation.pk entry.content_type_id entry.object_id %}">Lier</a>
                                             {% endif %}
                                         </div>
                                     {% empty %}
@@ -64,122 +66,17 @@
                         {% endfor %}
                     </tbody>
                     <tfoot>
-                        <tr>
-                            <td colspan="5" class="fw-bold">Total notes de frais</td>
-                            <td class="text-end fw-bold">{{ total_expense_reports|floatformat:2|intcomma }} €</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            {% else %}
-                <p class="text-muted">Aucune note de frais en attente de remboursement.</p>
-            {% endif %}
-
-            <h3 class="mt-4">Factures à payer</h3>
-            {% if bills %}
-                <table class="table table-sm table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Facture</th>
-                            <th>Date</th>
-                            <th>Montant</th>
-                            <th class="text-end">Restant à payer</th>
-                            <th>Opération correspondante</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for bill in bills %}
+                        {% for type_label, subtotal in totals_by_type.items %}
                             <tr>
-                                <td>
-                                    <a href="{% url 'admin:accounts_bill_change' bill.pk %}">{{ bill.name }}</a>
-                                </td>
-                                <td>{{ bill.date|date:"d/m/Y" }}</td>
-                                <td>{{ bill.amount|floatformat:2|intcomma }} €</td>
-                                <td class="text-end">{{ bill.to_pay|floatformat:2|intcomma }} €</td>
-                                <td>
-                                    {% for match in bill.matches %}
-                                        <div class="mb-1">
-                                            <small>{{ match.operation.date|date:"d/m/Y" }} {{ match.operation.counterparty_name }}</small>
-                                            <a class="btn btn-sm btn-outline-primary"
-                                               href="{% url 'admin:accounts_operation_link_to_bill' %}?operations={{ match.operation.pk }}&bill={{ bill.pk }}">Lier</a>
-                                        </div>
-                                    {% empty %}
-                                        <small class="text-muted">aucune opération importée</small>
-                                    {% endfor %}
-                                </td>
+                                <td colspan="4">Total {{ type_label|lower }}s</td>
+                                <td class="text-end">{{ subtotal|floatformat:2|intcomma }} €</td>
+                                <td></td>
                             </tr>
                         {% endfor %}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="3" class="fw-bold">Total factures</td>
-                            <td class="text-end fw-bold">{{ total_bills|floatformat:2|intcomma }} €</td>
-                            <td></td>
-                        </tr>
                     </tfoot>
                 </table>
             {% else %}
-                <p class="text-muted">Aucune facture en attente de paiement.</p>
-            {% endif %}
-
-            <h3 class="mt-4">Remboursements à effectuer</h3>
-            {% if refunds %}
-                <table class="table table-sm table-striped align-middle">
-                    <thead>
-                        <tr>
-                            <th>Référence</th>
-                            <th>Bénéficiaire</th>
-                            <th class="text-end">Montant</th>
-                            <th>Opération correspondante</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for refund in refunds %}
-                            <tr>
-                                <td>
-                                    <a href="{{ refund.event.get_admin_url|default:'#' }}">
-                                        {{ refund.event|default:refund.content_type }} #{{ refund.object_id }}
-                                    </a>
-                                </td>
-                                <td>
-                                    {% if refund.iban_owner %}
-                                        <strong>{{ refund.iban_owner }}</strong><br>
-                                        <code>{{ refund.iban }}</code>
-                                    {% else %}
-                                        {% if refund.event.owner %}
-                                            {{ refund.event.owner.get_full_name|default:refund.event.owner.email }}
-                                        {% elif refund.event.signup_group.owner %}
-                                            {{ refund.event.signup_group.owner.get_full_name|default:refund.event.signup_group.owner.email }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    {% endif %}
-                                </td>
-                                <td class="text-end">{{ refund.to_pay|floatformat:2|intcomma }} €</td>
-                                <td>
-                                    {% for match in refund.matches %}
-                                        <div class="mb-1">
-                                            <small>{{ match.operation.date|date:"d/m/Y" }} {{ match.operation.counterparty_name }}</small>
-                                            <a class="btn btn-sm btn-outline-primary"
-                                               href="{% url 'admin:accounts_operation_link_to_generic' match.operation.pk refund.pk %}">Lier</a>
-                                        </div>
-                                    {% empty %}
-                                        <small class="text-muted">aucune opération importée</small>
-                                    {% endfor %}
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td colspan="2" class="fw-bold">Total remboursements</td>
-                            <td class="text-end fw-bold">{{ total_refunds|floatformat:2|intcomma }} €</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            {% else %}
-                <p class="text-muted">Aucun remboursement en attente.</p>
+                <p class="text-muted">Aucun paiement en attente.</p>
             {% endif %}
 
             <div class="alert alert-info mt-4 d-flex justify-content-between">

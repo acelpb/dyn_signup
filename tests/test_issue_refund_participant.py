@@ -108,14 +108,10 @@ def test_offer_refund_links_to_participant(admin_client):
     view.request = request
     context = view.get_context_data()
 
-    refund_ids = [r.id for r in context["refunds"]]
-    assert validations.first().id in refund_ids, (
-        "Refund should appear in pending payments"
-    )
-
-    # Verify context contains the participant as object
-    refund_v = [r for r in context["refunds"] if r.id == validations.first().id][0]
-    assert refund_v.event == participant
+    entries = [e for e in context["pending_payments"] if e["event"] == participant]
+    assert entries, "Refund should appear in pending payments"
+    assert entries[0]["type_label"] == "Remboursement"
+    assert validations.first() in entries[0]["items"]
 
 
 @pytest.mark.django_db

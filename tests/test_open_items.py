@@ -276,6 +276,52 @@ class TestSettleEventEndpoint:
 
 
 @pytest.mark.django_db
+class TestPendingPaymentsEntries:
+    def test_bill_entry_carries_payee_and_due_date(self, admin_client, bill):
+        from django.urls import reverse
+
+        response = admin_client.get(reverse("pending_payments"))
+
+        entries = [
+            e for e in response.context["pending_payments"] if e["event"] == bill
+        ]
+        assert len(entries) == 1
+        entry = entries[0]
+        assert entry["type_label"] == "Facture"
+        assert entry["to_pay"] == Decimal("100.00")
+        assert entry["payee_iban"] == bill.iban
+        assert entry["due_date"] == bill.date
+        assert response.context["total"] == Decimal("100.00")
+
+    def test_matching_operation_ranked_by_iban(self, admin_client, account, bill):
+        from django.urls import reverse
+
+        other = make_operation(
+            account,
+            Decimal("-100.00"),
+            number=2,
+            counterparty_IBAN="BE00000000000000",
+            counterparty_name="Autre",
+        )
+        matching = make_operation(
+            account,
+            Decimal("-100.00"),
+            number=3,
+            counterparty_IBAN=bill.iban,
+            counterparty_name="Proprietaire",
+        )
+
+        response = admin_client.get(reverse("pending_payments"))
+
+        (entry,) = [
+            e for e in response.context["pending_payments"] if e["event"] == bill
+        ]
+        assert [m["operation"] for m in entry["matches"]][0] == matching
+        assert entry["matches"][0]["iban_match"] is True
+        assert {m["operation"] for m in entry["matches"]} == {matching, other}
+
+
+@pytest.mark.django_db
 class TestQuerySet:
     def test_open_settled_and_payables(self, account, bill):
         placeholder = open_item(bill)
