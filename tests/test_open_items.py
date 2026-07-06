@@ -173,6 +173,50 @@ class TestBillOpenItem:
 
 
 @pytest.mark.django_db
+class TestRefundPayeeStamping:
+    def test_offer_refund_stamps_the_account_that_paid(self, account):
+        from django.contrib.contenttypes.models import ContentType
+        from django.utils import timezone
+
+        from accounts.models import IncomeChoices
+        from signup2026.models import Participant, Signup
+
+        owner = User.objects.create_user(username="owner", email="owner@example.com")
+        signup = Signup.objects.create(owner=owner)
+        participant = Participant.objects.create(
+            signup_group=signup,
+            first_name="John",
+            last_name="Doe",
+            birthday=datetime.date(1990, 1, 1),
+            city="Brussels",
+            amount_due_modified=Decimal("100.00"),
+        )
+        operation = make_operation(
+            account,
+            Decimal("130.00"),
+            counterparty_IBAN="BE71096123456769",
+            counterparty_name="Jane Payer",
+        )
+        OperationValidation.objects.create(
+            operation=operation,
+            amount=Decimal("130.00"),
+            event=participant,
+            validation_type=IncomeChoices.SIGNUP,
+        )
+
+        signup.offer_refund(owner)
+
+        refund = OperationValidation.objects.payables().get(
+            content_type=ContentType.objects.get_for_model(Participant),
+            object_id=participant.id,
+        )
+        assert refund.amount == Decimal("-30.00")
+        assert refund.expected_iban == "BE71096123456769"
+        assert refund.expected_counterparty_name == "Jane Payer"
+        assert refund.due_date == timezone.localdate()
+
+
+@pytest.mark.django_db
 class TestQuerySet:
     def test_open_settled_and_payables(self, account, bill):
         placeholder = open_item(bill)

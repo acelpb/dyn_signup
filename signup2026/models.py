@@ -246,6 +246,19 @@ class Signup(models.Model):
 
         with transaction.atomic():
             for participant in overpaid:
+                # The refund must go back to the account that paid for this
+                # participant: stamp the payee from the latest settled payment.
+                previous_payment = (
+                    OperationValidation.objects.settled()
+                    .filter(
+                        content_type=participant_ct,
+                        object_id=participant.id,
+                    )
+                    .select_related("operation")
+                    .order_by("-operation__date")
+                    .first()
+                )
+                payer = previous_payment.operation if previous_payment else None
                 OperationValidation.objects.create(
                     operation=None,
                     content_type=participant_ct,
@@ -253,6 +266,9 @@ class Signup(models.Model):
                     amount=participant.balance,
                     validation_type=IncomeChoices.SIGNUP,
                     created_by=user,
+                    due_date=timezone.localdate(),
+                    expected_iban=payer.counterparty_IBAN if payer else "",
+                    expected_counterparty_name=payer.counterparty_name if payer else "",
                 )
             self.comments = (
                 self.comments or ""
