@@ -8,7 +8,7 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.db import models
+from django.db import models, transaction
 from django.urls import NoReverseMatch, reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
@@ -91,6 +91,19 @@ class IncomeChoices(models.IntegerChoices):
     INTERESTS = 7512, _("PRODUITS BANCAIRES")
 
 
+class OperationValidationQuerySet(models.QuerySet):
+    def open(self):
+        "Open items: placeholders not yet settled by an imported bank operation."
+        return self.filter(operation__isnull=True)
+
+    def settled(self):
+        return self.filter(operation__isnull=False)
+
+    def payables(self):
+        "Open items for money we still have to pay out."
+        return self.open().filter(amount__lt=0)
+
+
 class OperationValidation(models.Model):
     "Each operation should be validated, this is done by validating the operation against another event in the db"
 
@@ -124,6 +137,52 @@ class OperationValidation(models.Model):
         blank=True,
         verbose_name=_("justification"),
     )
+    # Open-item (placeholder) metadata: when the item is created before the
+    # bank operation exists, these describe the expected settlement.
+    due_date = models.DateField(null=True, blank=True, verbose_name=_("échéance"))
+    expected_iban = models.CharField(max_length=34, blank=True, default="")
+    expected_counterparty_name = models.CharField(
+        max_length=255, blank=True, default=""
+    )
+
+    objects = OperationValidationQuerySet.as_manager()
+
+    @property
+    def is_open(self):
+        return self.operation_id is None
+
+    def settle(self, operation, user=None, amount=None):
+        """Settle this open item against an imported bank operation.
+
+        Without `amount` the whole item is settled. With an `amount` smaller
+        than (and of the same sign as) the open amount, the item is split:
+        a settled line is created for `amount` and this item stays open for
+        the remainder.
+        """
+        if not self.is_open:
+            raise ValueError("This item is already settled.")
+        if amount is None or amount == self.amount:
+            self.operation = operation
+            self.save()
+            return self
+        if amount == 0 or (amount < 0) != (self.amount < 0):
+            raise ValueError("Partial settlement must have the same sign.")
+        if abs(amount) > abs(self.amount):
+            raise ValueError("Cannot settle more than the open amount.")
+        with transaction.atomic():
+            self.amount -= amount
+            self.save()
+            return OperationValidation.objects.create(
+                operation=operation,
+                amount=amount,
+                content_type=self.content_type,
+                object_id=self.object_id,
+                validation_type=self.validation_type,
+                created_by=user or self.created_by,
+                due_date=self.due_date,
+                expected_iban=self.expected_iban,
+                expected_counterparty_name=self.expected_counterparty_name,
+            )
 
     def justification_link(self):
         if event := self.event:
