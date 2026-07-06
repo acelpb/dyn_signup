@@ -2,6 +2,7 @@ import re
 
 from django.contrib import admin, messages
 from django.contrib.admin import SimpleListFilter
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
 from django.db.models.functions import Round
@@ -248,6 +249,11 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
                 self.admin_site.admin_view(self.link_to_validation_view),
                 name="accounts_operation_link_to_generic",
             ),
+            path(
+                "<int:operation_id>/settle/<int:content_type_id>/<int:object_id>/",
+                self.admin_site.admin_view(self.settle_event_view),
+                name="accounts_operation_settle_event",
+            ),
         ]
         return my_urls + urls
 
@@ -434,6 +440,50 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
         )
         return redirect("admin:accounts_operation_changelist")
 
+    def settle_event_view(self, request, operation_id, content_type_id, object_id):
+        """Settle an event's open items against an imported operation.
+
+        Single entry point for the pending payments page: works for any
+        event carrying open items (bill, expense report, refund...).
+        """
+        operation = get_object_or_404(Operation, id=operation_id)
+        content_type = get_object_or_404(ContentType, id=content_type_id)
+        try:
+            event = content_type.get_object_for_this_type(pk=object_id)
+        except content_type.model_class().DoesNotExist:
+            raise Http404("Event does not exist.") from None
+
+        if isinstance(event, ExpenseReport) and not event.validated:
+            messages.error(request, f"La note de frais {event} n'est pas validée.")
+            return redirect("pending_payments")
+
+        items = list(
+            OperationValidation.objects.open().filter(
+                content_type=content_type, object_id=object_id
+            )
+        )
+        total = sum(item.amount for item in items)
+        with transaction.atomic():
+            if items and total == operation.amount:
+                for item in items:
+                    item.settle(operation, user=request.user)
+            elif (
+                len(items) == 1
+                and (operation.amount < 0) == (items[0].amount < 0)
+                and abs(operation.amount) < abs(items[0].amount)
+            ):
+                items[0].settle(operation, user=request.user, amount=operation.amount)
+            else:
+                messages.error(
+                    request,
+                    f"Impossible de lier l'opération {operation_id} "
+                    f"({operation.amount}€) à {event} : montant ouvert {total}€.",
+                )
+                return redirect("pending_payments")
+
+        messages.success(request, f"L'opération {operation_id} a été liée à {event}.")
+        return redirect("pending_payments")
+
     def link_to_expensereport_view(self, request, operation_id, expense_report_id):
         # Récupérer l'opération
         operation = get_object_or_404(Operation, id=operation_id)
@@ -456,8 +506,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
 
         with transaction.atomic():
             for operation_validation in expenses:
-                operation_validation.operation = operation
-                operation_validation.save()
+                operation_validation.settle(operation, user=request.user)
 
         # Ajout d'un message de succès
         messages.success(
@@ -481,8 +530,7 @@ class OperationAdmin(ImportMixin, admin.ModelAdmin):
             )
             return redirect("admin:accounts_operation_changelist")
 
-        validation.operation = operation
-        validation.save()
+        validation.settle(operation, user=request.user)
 
         messages.success(
             request,

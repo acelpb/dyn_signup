@@ -86,7 +86,13 @@ class LinkToExpenseReportForm(forms.Form):
         cleaned_data = self.cleaned_data
         expense_report: ExpenseReport = cleaned_data["expense_report"]
         operation = cleaned_data["operation"]
-        total = round(sum(ex.amount for ex in expense_report.expenses.all()), 2)
+        total = round(
+            sum(
+                ex.amount
+                for ex in expense_report.expenses.filter(operation__isnull=True)
+            ),
+            2,
+        )
         if total != operation.amount:
             self.add_error(
                 "operation", "Expense report and operation should cancel each other out"
@@ -101,9 +107,10 @@ class LinkToExpenseReportForm(forms.Form):
         expense_report = self.cleaned_data["expense_report"]
         operation = self.cleaned_data["operation"]
         with transaction.atomic():
-            for operation_validation in expense_report.expenses.all():
-                operation_validation.operation = operation
-                operation_validation.save()
+            for operation_validation in expense_report.expenses.filter(
+                operation__isnull=True
+            ):
+                operation_validation.settle(operation)
 
 
 class LinkToSignupForm(forms.Form):

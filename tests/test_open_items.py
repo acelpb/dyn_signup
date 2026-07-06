@@ -217,6 +217,65 @@ class TestRefundPayeeStamping:
 
 
 @pytest.mark.django_db
+class TestSettleEventEndpoint:
+    def settle_url(self, operation, event):
+        from django.contrib.contenttypes.models import ContentType
+        from django.urls import reverse
+
+        return reverse(
+            "admin:accounts_operation_settle_event",
+            args=[
+                operation.pk,
+                ContentType.objects.get_for_model(type(event)).pk,
+                event.pk,
+            ],
+        )
+
+    def test_settles_all_open_items_of_the_event(self, admin_client, account, bill):
+        operation = make_operation(account, Decimal("-100.00"))
+
+        response = admin_client.get(self.settle_url(operation, bill))
+
+        assert response.status_code == 302
+        assert not bill.payments.filter(operation__isnull=True).exists()
+        assert bill.payments.get(operation=operation).amount == Decimal("-100.00")
+
+    def test_partial_operation_splits_single_open_item(
+        self, admin_client, account, bill
+    ):
+        operation = make_operation(account, Decimal("-40.00"))
+
+        admin_client.get(self.settle_url(operation, bill))
+
+        assert bill.payments.get(operation=operation).amount == Decimal("-40.00")
+        assert open_item(bill).amount == Decimal("-60.00")
+
+    def test_refuses_amount_mismatch_with_several_items(
+        self, admin_client, account, bill
+    ):
+        bill.payments.create(operation=None, amount=Decimal("-10.00"))
+        operation = make_operation(account, Decimal("-40.00"))
+
+        admin_client.get(self.settle_url(operation, bill))
+
+        assert not bill.payments.filter(operation__isnull=False).exists()
+
+    def test_refuses_unvalidated_expense_report(self, admin_client, account):
+        from accounts.models import ExpenseReport
+
+        report = ExpenseReport.objects.create(
+            title="NDF-2026-1", iban="BE68539007547034", validated=False
+        )
+        line = report.expenses.create(operation=None, amount=Decimal("-42.50"))
+        operation = make_operation(account, Decimal("-42.50"))
+
+        admin_client.get(self.settle_url(operation, report))
+
+        line.refresh_from_db()
+        assert line.is_open
+
+
+@pytest.mark.django_db
 class TestQuerySet:
     def test_open_settled_and_payables(self, account, bill):
         placeholder = open_item(bill)
