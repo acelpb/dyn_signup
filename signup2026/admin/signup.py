@@ -126,7 +126,7 @@ class SignupAdmin(DjangoObjectActions, admin.ModelAdmin):
         if signup.status == "payed":
             actions.append("send_payment_confirmation")
 
-        if signup.balance < 0:
+        if signup.balance is not None and signup.balance < 0:
             actions.extend(["accept_as_donation", "offer_refund"])
 
         return actions
