@@ -47,21 +47,35 @@ class LinkToBillForm(forms.Form):
         bill = self.cleaned_data["bill"]
         with transaction.atomic():
             for operation in self.cleaned_data["operations"]:
-                # Try to find a placeholder OperationValidation for this bill and amount
-                placeholder = OperationValidation.objects.filter(
-                    operation__isnull=True,
-                    amount=operation.amount,
-                    content_type=ContentType.objects.get_for_model(AccountBill),
-                    object_id=bill.id,
-                ).first()
-
-                if placeholder:
-                    placeholder.operation = operation
-                    placeholder.save()
-                else:
+                item = (
+                    OperationValidation.objects.open()
+                    .filter(
+                        content_type=ContentType.objects.get_for_model(AccountBill),
+                        object_id=bill.id,
+                    )
+                    .order_by("id")
+                    .first()
+                )
+                if item is None or (operation.amount < 0) != (item.amount < 0):
                     OperationValidation.objects.create(
                         operation=operation, amount=operation.amount, event=bill
                     )
+                elif abs(operation.amount) < abs(item.amount):
+                    # Installment: settle part of the open item, the rest
+                    # stays open.
+                    item.settle(operation, amount=operation.amount)
+                else:
+                    surplus = operation.amount - item.amount
+                    item.settle(operation)
+                    if surplus:
+                        # Keep the operation fully justified even when it
+                        # exceeds what was still open on the bill.
+                        OperationValidation.objects.create(
+                            operation=operation,
+                            amount=surplus,
+                            event=bill,
+                            validation_type=item.validation_type,
+                        )
 
 
 class LinkToExpenseReportForm(forms.Form):
@@ -130,7 +144,7 @@ class LinkToSignupForm(forms.Form):
 class BillUploadForm(forms.ModelForm):
     class Meta:
         model = AccountBill
-        fields = ("name", "amount", "date", "file")
+        fields = ("name", "amount", "date", "file", "category", "iban")
 
     def __init__(self, *args, require_file=True, **kwargs):
         super().__init__(*args, **kwargs)

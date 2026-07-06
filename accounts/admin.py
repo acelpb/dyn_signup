@@ -5,7 +5,15 @@ from django.contrib import admin, messages
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
-from django.db.models import BooleanField, ExpressionWrapper, F, Q, Sum
+from django.db.models import (
+    BooleanField,
+    DecimalField,
+    ExpressionWrapper,
+    Q,
+    Sum,
+    Value,
+)
+from django.db.models.functions import Coalesce
 from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 
@@ -92,7 +100,15 @@ class JustificationAdmin(admin.ModelAdmin):
 
 @admin.register(Bill)
 class BillAdmin(admin.ModelAdmin):
-    list_display = ("date", "name", "file", "amount", "remaining_to_pay", "payed")
+    list_display = (
+        "date",
+        "name",
+        "file",
+        "amount",
+        "category",
+        "remaining_to_pay",
+        "payed",
+    )
 
     inlines = [PaymentInline]
 
@@ -100,16 +116,20 @@ class BillAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.alias(payed_amount=Sum("payments__amount") + F("amount")).annotate(
-            _payed=ExpressionWrapper(
-                Q(payed_amount__exact=0), output_field=BooleanField()
+        # A bill is payed when it has no open item left.
+        return qs.annotate(
+            _remaining=Coalesce(
+                Sum("payments__amount", filter=Q(payments__operation__isnull=True)),
+                Value(0, output_field=DecimalField()),
             )
+        ).annotate(
+            _payed=ExpressionWrapper(Q(_remaining=0), output_field=BooleanField())
         )
 
     def remaining_to_pay(self, inst):
-        return inst.amount + sum(
-            p.amount for p in inst.payments.filter(operation__isnull=False)
-        )
+        return -inst._remaining
+
+    remaining_to_pay.admin_order_field = "_remaining"
 
     def payed(self, inst):
         return inst._payed

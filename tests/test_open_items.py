@@ -10,6 +10,7 @@ from decimal import Decimal
 import pytest
 from django.contrib.auth.models import User
 
+from accounts.forms import LinkToBillForm
 from accounts.models import (
     Account,
     Bill,
@@ -52,18 +53,14 @@ def bill(db):
         name="Location salle",
         amount=Decimal("100.00"),
         date=datetime.date(2026, 6, 15),
+        category=ExpenditureChoices.ROOM_RENTAL,
+        iban="BE71096123456769",
     )
 
 
-def open_item(bill, amount=Decimal("-100.00")):
-    return OperationValidation.objects.create(
-        operation=None,
-        event=bill,
-        amount=amount,
-        validation_type=ExpenditureChoices.ROOM_RENTAL,
-        due_date=bill.date,
-        expected_iban="BE71096123456769",
-    )
+def open_item(bill):
+    "The placeholder automatically created when the bill was saved."
+    return bill.payments.get(operation__isnull=True)
 
 
 @pytest.mark.django_db
@@ -113,6 +110,66 @@ class TestSettle:
         operation = make_operation(account, Decimal("40.00"))
         with pytest.raises(ValueError, match="same sign"):
             item.settle(operation, amount=Decimal("40.00"))
+
+
+@pytest.mark.django_db
+class TestBillOpenItem:
+    def test_bill_creation_creates_placeholder(self, bill):
+        item = open_item(bill)
+        assert item.amount == Decimal("-100.00")
+        assert item.validation_type == ExpenditureChoices.ROOM_RENTAL
+        assert item.due_date == bill.date
+        assert item.expected_iban == bill.iban
+
+    def test_editing_unpaid_bill_syncs_placeholder(self, bill):
+        bill.amount = Decimal("120.00")
+        bill.category = ExpenditureChoices.EQUIPMENT
+        bill.save()
+
+        item = open_item(bill)
+        assert item.amount == Decimal("-120.00")
+        assert item.validation_type == ExpenditureChoices.EQUIPMENT
+
+    def test_no_sync_once_a_payment_is_settled(self, account, bill):
+        operation = make_operation(account, Decimal("-40.00"))
+        open_item(bill).settle(operation, amount=Decimal("-40.00"))
+
+        bill.amount = Decimal("200.00")
+        bill.save()
+
+        assert open_item(bill).amount == Decimal("-60.00")
+
+    def test_link_form_settles_the_whole_bill(self, account, bill):
+        operation = make_operation(account, Decimal("-100.00"))
+        form = LinkToBillForm(data={"operations": [operation.pk], "bill": bill.pk})
+        assert form.is_valid()
+        form.save()
+
+        assert not bill.payments.filter(operation__isnull=True).exists()
+        settled = bill.payments.get(operation=operation)
+        assert settled.amount == Decimal("-100.00")
+        assert settled.validation_type == ExpenditureChoices.ROOM_RENTAL
+
+    def test_link_form_partial_payment_splits_the_item(self, account, bill):
+        operation = make_operation(account, Decimal("-40.00"))
+        form = LinkToBillForm(data={"operations": [operation.pk], "bill": bill.pk})
+        assert form.is_valid()
+        form.save()
+
+        settled = bill.payments.get(operation=operation)
+        assert settled.amount == Decimal("-40.00")
+        assert settled.validation_type == ExpenditureChoices.ROOM_RENTAL
+        assert open_item(bill).amount == Decimal("-60.00")
+
+    def test_link_form_overpayment_keeps_operation_justified(self, account, bill):
+        operation = make_operation(account, Decimal("-120.00"))
+        form = LinkToBillForm(data={"operations": [operation.pk], "bill": bill.pk})
+        assert form.is_valid()
+        form.save()
+
+        assert not bill.payments.filter(operation__isnull=True).exists()
+        settled_total = sum(v.amount for v in bill.payments.filter(operation=operation))
+        assert settled_total == Decimal("-120.00")
 
 
 @pytest.mark.django_db

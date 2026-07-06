@@ -260,6 +260,19 @@ class Bill(models.Model):
     file = models.FileField(blank=True, null=True)
     amount = models.DecimalField(max_digits=11, decimal_places=2)
     date = models.DateField(default=datetime.now)
+    category = models.IntegerField(
+        choices=ExpenditureChoices.choices,
+        null=True,
+        blank=True,
+        verbose_name=_("catégorie"),
+    )
+    iban = models.CharField(
+        verbose_name="IBAN",
+        max_length=34,
+        blank=True,
+        default="",
+        validators=[validate_iban],
+    )
     payments = GenericRelation(OperationValidation)
 
     def __str__(self):
@@ -268,6 +281,30 @@ class Bill(models.Model):
     class Meta:
         verbose_name = "facture"
         verbose_name_plural = "factures"
+
+    def save(self, *args, **kwargs):
+        created = self.pk is None
+        super().save(*args, **kwargs)
+        if created:
+            self.payments.create(
+                operation=None,
+                amount=-self.amount,
+                validation_type=self.category,
+                due_date=self.date,
+                expected_iban=self.iban,
+            )
+            return
+        # Keep the open item in sync while nothing has been paid yet; once a
+        # payment is settled the treasurer manages the remainder manually.
+        if not self.payments.filter(operation__isnull=False).exists():
+            open_items = list(self.payments.filter(operation__isnull=True))
+            if len(open_items) == 1:
+                item = open_items[0]
+                item.amount = -self.amount
+                item.validation_type = self.category
+                item.due_date = self.date
+                item.expected_iban = self.iban
+                item.save()
 
 
 class ApiToken(models.Model):
