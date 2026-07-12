@@ -2,7 +2,6 @@
 
 import hashlib
 import secrets
-from datetime import datetime
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -11,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models.functions import Coalesce
 from django.urls import NoReverseMatch, reverse
+from django.utils import timezone
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from schwifty import IBAN
@@ -282,7 +282,7 @@ class BillQuerySet(models.QuerySet):
 class Bill(models.Model):
     name = models.CharField(max_length=255)
     file = models.FileField(blank=True, null=True)
-    date = models.DateField(default=datetime.now)
+    date = models.DateField(default=timezone.localdate)
     category = models.IntegerField(
         choices=ExpenditureChoices.choices,
         null=True,
@@ -306,6 +306,16 @@ class Bill(models.Model):
     class Meta:
         verbose_name = "facture"
         verbose_name_plural = "factures"
+
+    @property
+    def is_paid(self):
+        """Paid when the bill has payment lines and none is still open.
+
+        A bill without any line is not paid, merely empty: its amount was
+        never registered.
+        """
+        payments = self.payments.all()
+        return payments.exists() and not payments.open().exists()
 
     def set_amount(self, amount):
         """Create or resize the open item so the bill totals `amount`.
@@ -382,7 +392,6 @@ def authenticate_api_token(raw_token):
     Accepts issued ApiTokens and, as a fallback, the static
     settings.BILL_UPLOAD_TOKEN.
     """
-    from django.utils import timezone
     from django.utils.crypto import constant_time_compare
 
     if not raw_token:

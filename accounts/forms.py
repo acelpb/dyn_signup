@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import F, Sum
+from django.db.models import Sum
 
 from accounts.models import (
     Bill as AccountBill,
@@ -198,8 +198,10 @@ def try_create_bill(data, files, require_file=True):
 class BillAdminForm(BillUploadForm):
     """Bill admin form: the amount edits the open item, not a field.
 
-    Resizing is blocked once a payment is settled — the ventilation lines
-    are then the source of truth.
+    Resizing is blocked once a payment is settled or the bill has been
+    split into several open lines — the ventilation lines are then the
+    source of truth. The actual `set_amount` call happens in
+    BillAdmin.save_related, after the inlines are saved.
     """
 
     def __init__(self, *args, **kwargs):
@@ -210,45 +212,21 @@ class BillAdminForm(BillUploadForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        if (
-            self.instance.pk
-            and "amount" in self.changed_data
-            and self.instance.payments.filter(operation__isnull=False).exists()
-        ):
-            self.add_error(
-                "amount",
-                "Des paiements sont déjà liés : modifiez la ventilation.",
-            )
+        if self.instance.pk and "amount" in self.changed_data:
+            payments = self.instance.payments.all()
+            if payments.settled().exists():
+                self.add_error(
+                    "amount",
+                    "Des paiements sont déjà liés : modifiez les lignes de "
+                    "ventilation encore ouvertes.",
+                )
+            elif payments.open().count() > 1:
+                self.add_error(
+                    "amount",
+                    "Cette facture a plusieurs lignes ouvertes : modifiez "
+                    "la ventilation.",
+                )
         return cleaned_data
-
-    def save(self, commit=True):
-        bill = forms.ModelForm.save(self, commit=commit)
-        if commit and self.cleaned_data.get("amount") is not None:
-            try:
-                bill.set_amount(self.cleaned_data["amount"])
-            except ValueError:
-                # Settled or multi-line bill: the lines stay the truth, and
-                # clean() already blocked any amount change.
-                pass
-        return bill
-
-
-class VentilationForm(forms.ModelForm):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        instance = kwargs.get("instance")
-        qs = Operation.objects.alias(
-            _justified_amount=Sum("operationvalidation__amount") - F("amount")
-        ).filter(_justified_amount__isnull=True, year=2022)
-        if instance is not None:
-            qs |= Operation.objects.filter(id=instance.operation_id)
-
-        self.fields["operation"].queryset = qs.order_by("amount")
-        self.fields["operation"].required = False
-
-    class Meta:
-        model = OperationValidation
-        fields = ("operation", "amount", "validation_type")
 
 
 class CreateVentilationForm(forms.ModelForm):
@@ -262,3 +240,23 @@ class CreateVentilationForm(forms.ModelForm):
     class Meta:
         model = OperationValidation
         fields = ("operation", "validation_type", "amount")
+
+    def clean_amount(self):
+        amount = self.cleaned_data["amount"]
+        if amount >= 0:
+            raise ValidationError(
+                "Le montant d'une ligne de dépense doit être négatif."
+            )
+        return amount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if (
+            self.instance.pk
+            and self.instance.operation_id
+            and "amount" in self.changed_data
+        ):
+            raise ValidationError(
+                "Cette ligne est déjà réglée : son montant ne peut plus changer."
+            )
+        return cleaned_data

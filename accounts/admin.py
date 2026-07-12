@@ -7,7 +7,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db.models import (
     BooleanField,
+    Exists,
     ExpressionWrapper,
+    OuterRef,
     Q,
     Sum,
 )
@@ -115,15 +117,68 @@ class BillAdmin(admin.ModelAdmin):
     ordering = ("-date",)
 
     def get_queryset(self, request):
-        # A bill is payed when it has no open item left.
+        # A bill is payed when it has payment lines and none is still open;
+        # a bill without any line is not payed, merely empty.
+        lines = OperationValidation.objects.filter(
+            content_type=ContentType.objects.get_for_model(Bill),
+            object_id=OuterRef("pk"),
+        )
         return (
             super()
             .get_queryset(request)
             .with_amounts()
             .annotate(
-                _payed=ExpressionWrapper(Q(remaining=0), output_field=BooleanField())
+                _payed=ExpressionWrapper(
+                    Exists(lines.settled()) & ~Exists(lines.open()),
+                    output_field=BooleanField(),
+                )
             )
         )
+
+    def save_related(self, request, form, formsets, change):
+        """Size the bill's open item from the amount field.
+
+        The admin saves the form with commit=False, so the form's own
+        set_amount call never runs; it has to happen here, after the
+        ventilation inlines are saved. When the ventilation was edited in
+        the same request, the lines win and the amount field is ignored.
+        """
+        super().save_related(request, form, formsets, change)
+        if "amount" not in form.changed_data:
+            return
+        ventilation_touched = any(
+            formset.model is OperationValidation
+            and (
+                formset.new_objects
+                or formset.changed_objects
+                or formset.deleted_objects
+            )
+            for formset in formsets
+        )
+        if ventilation_touched:
+            self.message_user(
+                request,
+                "La ventilation a été modifiée : le montant saisi a été ignoré, "
+                "les lignes font foi.",
+                level=messages.WARNING,
+            )
+            return
+        try:
+            form.instance.set_amount(form.cleaned_data["amount"])
+        except ValueError as error:
+            self.message_user(
+                request, f"Montant non appliqué : {error}", level=messages.WARNING
+            )
+
+    def has_change_permission(self, request, obj=None):
+        if obj is not None and obj.is_paid and not request.user.is_superuser:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj is not None and obj.is_paid and not request.user.is_superuser:
+            return False
+        return super().has_delete_permission(request, obj)
 
     def amount(self, inst):
         return inst.amount
