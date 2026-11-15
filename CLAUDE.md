@@ -12,7 +12,7 @@ Use `uv` for all package operations:
 
 ## Testing
 
-Uses **pytest-bdd** (v8.1.0) with pytest-django.
+Uses **pytest-bdd** (v9) with pytest-django.
 
 - Feature files live in `tests/features/`
 - Step definitions live in `tests/step_defs/`
