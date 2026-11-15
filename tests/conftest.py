@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.conf import settings
 from model_bakery import baker
@@ -23,6 +25,17 @@ def staff(django_user_model):
     staff_user.is_staff = True
     staff_user.save()
     return staff_user
+
+
+@pytest.fixture
+def chrome_options(chrome_options):
+    # CI runners have no display: run Chrome headless there.
+    if os.environ.get("CI"):
+        chrome_options.add_argument("--headless=new")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--window-size=1920,1080")
+    return chrome_options
 
 
 @pytest.fixture
