@@ -197,6 +197,9 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 CRISPY_FAIL_SILENTLY = not DEBUG
 
+# django-object-actions 5 will switch its default to POST; keep current behaviour.
+DJANGO_OBJECT_ACTIONS_DEFAULT_HTTP_METHOD = "GET"
+
 
 MEDIA_ROOT = BASE_DIR / "uploads"
 MEDIA_URL = "/uploads/"

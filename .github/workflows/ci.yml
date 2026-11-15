@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run ruff check --no-fix .
+      - run: uv run ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen
+      - run: uv run python manage.py check
+      - run: uv run pytest tests/ -p no:sugar -n auto
